@@ -1,160 +1,295 @@
-# Turborepo starter
+# Restaurant Project - Development Context
 
-This Turborepo starter is maintained by the Turborepo core team.
+> **Last Updated:** 2026-06-18
+> **Purpose:** Living documentation for project context, architecture, and task tracking
 
-## Using this example
+---
 
-Run the following command:
+## Project Overview
 
-```sh
-npx create-turbo@latest
+A full-stack restaurant management system built with:
+- **Backend:** NestJS + TypeScript + Prisma + PostgreSQL
+- **Frontend:** Next.js 16 + React 19 + Tailwind CSS 4
+- **Monorepo:** Turborepo + pnpm workspaces
+
+### Tech Stack Details
+
+| Component | Technology | Version |
+|-----------|-----------|---------|
+| Backend Framework | NestJS | ^11.1.27 |
+| Frontend Framework | Next.js | 16.2.9 |
+| Database ORM | Prisma | ^7.8.0 |
+| Database | PostgreSQL (Neon) | - |
+| Auth | JWT + Passport | - |
+| Password Hashing | bcrypt | ^6.0.0 |
+| Build Tool | Turborepo | ^2.9.18 |
+| Package Manager | pnpm | 9.0.0 |
+| Node Version | >=18 | - |
+| Runtime | tsx | ^4.22.4 (seeds) |
+
+---
+
+## Project Structure
+
+```
+d:\restaurant/
+├── apps/
+│   ├── backend/                 # NestJS API
+│   │   ├── prisma/
+│   │   │   ├── schema.prisma   # Database schema
+│   │   │   └── seed.ts         # Database seeder (Super Admin)
+│   │   ├── src/
+│   │   │   ├── auth/           # Authentication module
+│   │   │   │   ├── guards/     # JWTAuthGuard, RolesGuard
+│   │   │   │   ├── strategies/ # JWT strategy
+│   │   │   │   ├── decorators/ # @Roles() decorator
+│   │   │   │   ├── dto/        # Data transfer objects
+│   │   │   │   ├── interfaces/ # JwtPayload interface
+│   │   │   │   └── constants/  # Auth constants
+│   │   │   ├── database/       # Prisma service & module
+│   │   │   ├── user-module/    # User management (placeholder)
+│   │   │   ├── app.module.ts
+│   │   │   └── main.ts
+│   │   ├── .env                # Backend environment variables
+│   │   └── package.json
+│   │
+│   └── frontend/               # Next.js App
+│       ├── app/
+│       │   ├── layout.tsx       # Root layout with AuthProvider
+│       │   ├── page.tsx         # Landing page
+│       │   ├── login/
+│       │   │   └── page.tsx     # Login page
+│       │   └── dashboard/
+│       │       ├── layout.tsx   # Dashboard layout with header/logout
+│       │       ├── page.tsx     # Dashboard home
+│       │       └── create-user/
+│       │           └── page.tsx # User creation form (Super Admin)
+│       ├── components/
+│       │   └── protected-route.tsx # Route protection wrapper
+│       ├── contexts/
+│       │   └── auth-context.tsx   # Auth state management
+│       ├── lib/
+│       │   ├── types.ts            # TypeScript types (User, Login, etc.)
+│       │   └── auth-api.ts         # API functions for auth endpoints
+│       ├── .env.local              # API URL configuration
+│       └── package.json
+│
+├── packages/
+│   ├── eslint-config/          # Shared ESLint config
+│   ├── typescript-config/      # Shared TSConfig
+│   └── ui/                     # Shared UI components
+│
+├── turbo.json                  # Turborepo config
+├── pnpm-workspace.yaml
+└── package.json
 ```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+## Database Schema (Prisma)
 
-### Apps and Packages
+### User Management
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+**Models:**
+- `User` - System users with roles (SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER, CHEF, DELIVERY_AGENT)
+- `UserPassword` - User credentials with security features (lockout, refresh tokens)
+- `Restaurant` - Restaurant entities
+- `RestaurantUser` - Junction table for User-Restaurant relationships
+- `Outlet` - Physical restaurant locations
+- `OutletUser` - Junction table for User-Outlet relationships
+- `Customer` - End customers
+- `CustomerPassword` - Customer credentials
+- `CustomerAddress` - Customer delivery addresses
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+**Key Enums:**
+- `UserRole`: SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER, CHEF, DELIVERY_AGENT
+- `UserStatus`: ACTIVE, INACTIVE, SUSPENDED
+- `RestaurantStatus`: ACTIVE, INACTIVE
+- `OutletStatus`: ACTIVE, INACTIVE, CLOSED
+- `CustomerStatus`: ACTIVE, INACTIVE, BLOCKED
 
-### Utilities
+---
 
-This Turborepo has some additional tools already setup for you:
+## Current Implementation Status
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+### Backend (NestJS)
 
-### Build
+| Module | Status | Notes |
+|--------|--------|-------|
+| App Module | ✅ Complete | ConfigModule, PrismaModule imported |
+| Auth Module | ✅ Complete | JWT auth, role-based guards, decorators |
+| User Module | ⚪ Placeholder | To be implemented |
+| Database Module | ✅ Complete | Global PrismaModule with adapter |
+| Prisma Schema | ✅ Complete | Full schema with relations |
+| Database Seeder | ✅ Complete | Creates Super Admin via npm run seed |
 
-To build all apps and packages, run the following command:
+**Port:** 3001 (configurable via `PORT` env var)
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+**Super Admin Credentials (from seeder):**
+- Email: `superadmin@restaurant.com`
+- Password: `Admin@123`
 
-```sh
-cd my-turborepo
-turbo build
+### Frontend (Next.js)
+
+| Feature | Status | Notes |
+|---------|--------|-------|
+| App Structure | ✅ Complete | Layout with AuthProvider |
+| Home Page | ✅ Complete | Landing page with login button |
+| Authentication | ✅ Complete | Login, logout, JWT handling |
+| Dashboard | ✅ Complete | Protected dashboard with header/nav |
+| User Creation | ✅ Complete | Super Admin user creation form |
+| Auth Context | ✅ Complete | State management with useAuth hook |
+| Protected Routes | ✅ Complete | ProtectedRoute component with role check |
+
+---
+
+## API Endpoints
+
+### Authentication
+
+| Endpoint | Method | Auth Required | Role Required | Description |
+|----------|--------|---------------|---------------|-------------|
+| `/auth/login` | POST | No | - | Login with email/phone |
+| `/auth/create-user` | POST | JWT | SUPER_ADMIN | Create new user (role from frontend) |
+| `/auth/refresh` | POST | No | - | Refresh access token |
+| `/auth/profile` | GET | JWT | - | Get current user |
+| `/auth/logout` | POST | JWT | - | Logout user |
+| `/auth/change-password` | POST | JWT | - | Change password |
+| `/auth/admin-only` | GET | JWT | SUPER_ADMIN | Test endpoint for role check |
+
+### Authentication Flow
+
+1. **Database Seeding:** Run `pnpm run seed` to create Super Admin
+2. **Login:** Super Admin logs in via `/auth/login` → receives JWT tokens
+3. **Create Users:** Super Admin creates other users via `/auth/create-user`
+4. **Role Selection:** Frontend sends role in request body (no defaults)
+
+### Guards & Decorators
+
+- **@UseGuards(JwtAuthGuard)** - Validates JWT token
+- **@UseGuards(RolesGuard)** - Checks user roles
+- **@Roles(UserRole.SUPER_ADMIN)** - Specifies required role(s)
+
+---
+
+## Environment Setup
+
+### Backend (.env)
+Located at `apps/backend/.env`
+
+```env
+PORT=3001
+DATABASE_URL="postgresql://..."
 ```
 
-Without global `turbo`, use your package manager:
+### Prerequisites
+- Node.js >= 18
+- pnpm >= 9.0.0
+- PostgreSQL database (Neon recommended)
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+### Common Commands
+
+```bash
+# Install dependencies
+pnpm install
+
+# Run development (both apps)
+pnpm dev
+
+# Database operations
+cd apps/backend
+npx prisma generate      # Generate Prisma client
+npx prisma db push      # Push schema to database
+npx prisma studio        # Open Prisma Studio
+pnpm run seed            # Seed Super Admin user
+
+# TypeScript compilation check
+npx tsc --noEmit
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+## Frontend Structure Details
 
-```sh
-turbo build --filter=docs
+### Components & Pages
+
+| File | Purpose |
+|------|---------|
+| `lib/types.ts` | TypeScript types for User, LoginResponse, CreateUserRequest, UserRole |
+| `lib/auth-api.ts` | API functions (login, logout, getCurrentUser, createUser) |
+| `contexts/auth-context.tsx` | Auth state management with useAuth hook |
+| `components/protected-route.tsx` | Route protection wrapper with role check |
+| `app/page.tsx` | Landing page with login button |
+| `app/login/page.tsx` | Login form (email/phone + password) |
+| `app/dashboard/layout.tsx` | Dashboard layout with header, navigation, logout |
+| `app/dashboard/page.tsx` | Dashboard home page |
+| `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) |
+
+### API Communication
+
+| Endpoint | Method | Used By |
+|----------|--------|---------|
+| `/auth/login` | POST | Login page |
+| `/auth/profile` | GET | Auth context (validate token) |
+| `/auth/logout` | POST | Dashboard header |
+| `/auth/create-user` | POST | Create User page |
+
+### Environment Variables
+
+**Frontend (.env.local):**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
 
-Without global `turbo`:
+---
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+## Tasks / Work Log
 
-### Develop
+> Add new tasks here as we work on the project. Use this format:
+> - [ ] **Task Name** - Description - Date
 
-To develop all apps and packages, run the following command:
+### Completed Tasks
+- ✅ **Project Initialization** - Set up Turborepo monorepo with NestJS and Next.js - 2026-06-17
+- ✅ **Database Schema** - Designed complete Prisma schema for restaurant management - 2026-06-17
+- ✅ **Auth Module Structure** - Created NestJS auth module with guards, decorators, DTOs - 2026-06-17
+- ✅ **Auth Implementation** - Implemented complete JWT authentication with Passport, guards, roles - 2026-06-18
+- ✅ **Prisma Service** - Completed database service integration with Prisma Client - 2026-06-18
+- ✅ **Database Seeder** - Created Super Admin seeder with tsx runtime - 2026-06-18
+- ✅ **Role-Based Access Control** - Implemented @Roles() decorator with RolesGuard - 2026-06-18
+- ✅ **User Creation API** - Super Admin can create users with any role (from frontend) - 2026-06-18
+- ✅ **Frontend Auth Structure** - Created auth context, API utilities, types - 2026-06-18
+- ✅ **Login Page** - Email/password login form with error handling - 2026-06-18
+- ✅ **Dashboard Layout** - Protected dashboard with header, navigation, logout - 2026-06-18
+- ✅ **User Creation Page** - Super Admin form for creating new users - 2026-06-18
+- ✅ **CORS Configuration** - Enabled CORS in NestJS for frontend communication - 2026-06-18
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+### In Progress
+- No tasks currently in progress
 
-```sh
-cd my-turborepo
-turbo dev
-```
+### Pending Tasks
+- [ ] **User CRUD Operations** - Implement full user management endpoints (list, update, delete)
+- [ ] **User List Page** - Frontend page to view and manage all users
+- [ ] **Restaurant Management** - Create restaurant CRUD with admin assignment
+- [ ] **Outlet Management** - Create outlet CRUD with location features
+- [ ] **Customer Portal** - Implement customer registration and auth
+- [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and features
+- [ ] **API Documentation** - Add Swagger/OpenAPI docs
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
+## Git Information
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+- **Current Branch:** `pooja_dev`
+- **Main Branch:** `main`
+- **Git User:** Pooja
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+---
 
-```sh
-turbo dev --filter=web
-```
+## Notes
 
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
-# Restaurant
+- This is a Next.js 16 project with breaking changes from previous versions
+- Check `node_modules/next/dist/docs/` for Next.js API documentation
+- Frontend uses Tailwind CSS 4 (latest major version)
+- Backend uses NestJS 11 with latest conventions
+- Database seeder uses `tsx` for ES module compatibility
+- Role checks handled by decorators - service methods don't re-verify roles
