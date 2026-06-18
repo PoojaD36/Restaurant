@@ -44,13 +44,13 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent mb-2">
             Restaurant Admin
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-slate-600">
             Sign in to manage your restaurant
           </p>
         </div>
 
         {/* Login Card */}
-        <Card className="border-orange-100 dark:border-red-900/50 shadow-xl bg-white/90 dark:bg-black/70 backdrop-blur">
+        <Card className="border-orange-100 shadow-xl bg-white/90 backdrop-blur">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
             <CardDescription>
@@ -71,7 +71,7 @@ export default function LoginPage() {
                     onChange={(e) => setIdentifier(e.target.value)}
                     required
                     placeholder="admin@restaurant.com"
-                    className="pl-10 h-11 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500"
+                    className="pl-10 h-11 border-orange-200 focus:border-orange-500"
                   />
                 </div>
               </div>
@@ -87,14 +87,14 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     placeholder="••••••••"
-                    className="pl-10 h-11 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500"
+                    className="pl-10 h-11 border-orange-200 focus:border-orange-500"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-3 border border-red-200 dark:border-red-800">
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <div className="rounded-md bg-red-50 p-3 border border-red-200">
+                  <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
             </CardContent>
@@ -110,7 +110,7 @@ export default function LoginPage() {
 
               <Link
                 href="/"
-                className="text-sm text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 flex items-center gap-1"
+                className="text-sm text-slate-600 hover:text-orange-600 flex items-center gap-1"
               >
                 <span>←</span> Back to home
               </Link>
@@ -118,7 +118,7 @@ export default function LoginPage() {
           </form>
         </Card>
 
-        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-500">
+        <p className="mt-6 text-center text-xs text-slate-500">
           Super Admin: superadmin@restaurant.com / Admin@123
         </p>
       </div>

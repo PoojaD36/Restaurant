@@ -1,15 +1,15 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-18
+> **Last Updated:** 2026-06-19
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
 
 ## Project Overview
 
-A full-stack restaurant management system built with:
+A **full-stack food delivery and restaurant management system** built with:
 - **Backend:** NestJS + TypeScript + Prisma + PostgreSQL
-- **Frontend:** Next.js 16 + React 19 + Tailwind CSS 4
+- **Frontend:** Next.js 16 + React 19 + Tailwind CSS 4 + Framer Motion
 - **Monorepo:** Turborepo + pnpm workspaces
 
 ### Tech Stack Details
@@ -24,6 +24,7 @@ A full-stack restaurant management system built with:
 | Password Hashing | bcrypt | ^6.0.0 |
 | Build Tool | Turborepo | ^2.9.18 |
 | Package Manager | pnpm | 9.0.0 |
+| Animations | Framer Motion | ^11.18.0 |
 | Node Version | >=18 | - |
 | Runtime | tsx | ^4.22.4 (seeds) |
 
@@ -134,14 +135,55 @@ d:\restaurant/
 | Feature | Status | Notes |
 |---------|--------|-------|
 | App Structure | ✅ Complete | Layout with AuthProvider |
-| Home Page | ✅ Complete | Professional landing page with hero section |
+| Landing Page | ✅ Complete | Food delivery themed hero with framer-motion animations |
+| Background Effects | ✅ Complete | Floating food icons, wave animations, glass-morphism |
 | Authentication | ✅ Complete | Login, logout, JWT handling |
 | Dashboard | ✅ Complete | Protected dashboard with header/nav |
 | User Creation | ✅ Complete | Super Admin user creation form |
 | Auth Context | ✅ Complete | State management with useAuth hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check |
 | UI Components | ✅ Complete | shadcn/ui components installed |
-| Theme System | ✅ Complete | Red/Orange theme with light/dark mode |
+| Theme System | ✅ Complete | Red/Orange/Amber theme (light mode only) |
+
+---
+
+## Landing Page Features
+
+### Visual Design
+- **Food Delivery Theme**: Warm orange/amber/rose color palette evoking appetite
+- **Glass-morphism**: Semi-transparent cards with backdrop-blur effects
+- **Viewport-Fit**: Hero section designed to fit screen without scrolling
+- **Responsive Design**: Optimized for all screen sizes
+- **Light Mode Only**: Clean, light theme optimized for readability
+
+### Animations (Framer Motion + Custom CSS)
+- **Floating Food Icons**: 20 animated food/kitchen icons floating upward
+  - Coffee, ShoppingBag, Clock, Star, Beef, Cake, Egg, ChefHat, Sandwich, GlassWater, Cookie
+  - Varying speeds (17-24s), rotations, and delays for natural movement
+- **Wave Background**: Animated SVG waves at top and bottom edges
+- **Floating Orbs**: Large blurred gradient circles with gentle movement
+- **Hero Animations**: Fade-in, slide-up effects with stagger timing
+- **Hover Effects**: Scale, rotate, and shadow transitions on interactive elements
+
+### Custom CSS Animations (globals.css)
+```css
+@keyframes float-up    /* Float upward with scale */
+@keyframes float-down  /* Float downward with scale */
+@keyframes pulse-warm   /* Gentle pulse effect */
+@keyframes drift       /* Horizontal/vertical drift */
+```
+
+### Theme System
+- **Light Mode**: Orange/amber gradient (`from-orange-100 via-amber-100 to-rose-100`)
+- **No Dark Mode**: Light-only theme for consistent branding
+- **Color Palette**: Warm oranges, ambers, and rose tones throughout
+
+### Components
+- **Header**: Sticky glass-morphism header with logo, theme toggle, sign in button
+- **Badge**: "Fast & Fresh Food Delivery" with animated pulsing dot
+- **Heading**: Large gradient text with animated color shift
+- **CTA Buttons**: "Order Now" and "View Restaurants" with hover effects
+- **Stats Bar**: Quick stats (500+ Restaurants, 10K+ Customers, 4.9 Rating)
 
 ---
 
@@ -221,11 +263,12 @@ npx tsc --noEmit
 | `lib/auth-api.ts` | API functions (login, logout, getCurrentUser, createUser) |
 | `contexts/auth-context.tsx` | Auth state management with useAuth hook |
 | `components/protected-route.tsx` | Route protection wrapper with role check |
-| `app/page.tsx` | Landing page with login button |
+| `app/page.tsx` | Landing page - food delivery theme with animations |
 | `app/login/page.tsx` | Login form (email/phone + password) |
 | `app/dashboard/layout.tsx` | Dashboard layout with header, navigation, logout |
 | `app/dashboard/page.tsx` | Dashboard home page |
 | `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) |
+| `app/globals.css` | Custom CSS animations (float-up, float-down, pulse-warm, drift) |
 
 ### API Communication
 
@@ -242,6 +285,14 @@ npx tsc --noEmit
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:3001
 ```
+
+### Frontend Dependencies
+
+**Key Libraries:**
+- `framer-motion` ^11.18.0 - Animation library for smooth transitions
+- `lucide-react` - Icon library (food, kitchen, delivery icons: Coffee, ShoppingBag, Clock, Star, Beef, Cake, Egg, ChefHat, Sandwich, GlassWater, Cookie)
+- `shadcn/ui` - Pre-built UI components (Button, Card, Input, Label, Select)
+- `tailwindcss` v4 - Utility-first CSS framework
 
 ---
 
@@ -266,7 +317,14 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 - ✅ **CORS Configuration** - Enabled CORS in NestJS for frontend communication - 2026-06-18
 - ✅ **UI Components Installation** - Installed shadcn/ui with Button, Input, Label, Card, Select - 2026-06-18
 - ✅ **Professional Design** - Redesigned all pages with modern, professional UI - 2026-06-18
-- ✅ **Theme System** - Implemented red/orange theme with light and dark mode - 2026-06-18
+- ✅ **Theme System** - Implemented red/orange theme with light mode - 2026-06-18
+- ✅ **Theme Removal** - Removed custom dark/light mode toggle, using light mode only - 2026-06-18
+- ✅ **Landing Page Redesign** - Food delivery themed landing page with hero section - 2026-06-18
+- ✅ **Framer Motion Integration** - Added animations library for smooth UI transitions - 2026-06-18
+- ✅ **Animated Background** - Floating food icons (20 particles), wave animations, orbs - 2026-06-18
+- ✅ **Glass-morphism Effects** - Added backdrop-blur and semi-transparent overlays - 2026-06-18
+- ✅ **Viewport-Optimized Landing** - Hero section fits viewport without scrolling - 2026-06-18
+- ✅ **Custom CSS Animations** - Added float-up, float-down, pulse-warm, drift keyframes - 2026-06-18
 
 ### In Progress
 - No tasks currently in progress

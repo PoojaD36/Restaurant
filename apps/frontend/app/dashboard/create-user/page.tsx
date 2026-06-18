@@ -73,16 +73,16 @@ export default function CreateUserPage() {
           <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
             Create New User
           </h2>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-slate-600">
             Add a new user to the system with appropriate role and permissions.
           </p>
         </div>
 
-        <Card className="border-orange-100 dark:border-red-900/50 shadow-xl bg-white/90 dark:bg-black/70 backdrop-blur">
+        <Card className="border-orange-100 shadow-xl bg-white/90 backdrop-blur">
           <form onSubmit={handleSubmit}>
             <CardHeader>
               <CardTitle>User Information</CardTitle>
-              <CardDescription className="text-slate-600 dark:text-slate-400">
+              <CardDescription className="text-slate-600">
                 Fill in the details below to create a new user account.
               </CardDescription>
             </CardHeader>
@@ -100,7 +100,7 @@ export default function CreateUserPage() {
                       onChange={(e) => handleChange('firstName', e.target.value)}
                       required
                       placeholder="John"
-                      className="pl-10 h-10 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500"
+                      className="pl-10 h-10 border-orange-200 focus:border-orange-500"
                     />
                   </div>
                 </div>
@@ -113,7 +113,7 @@ export default function CreateUserPage() {
                     value={formData.lastName}
                     onChange={(e) => handleChange('lastName', e.target.value)}
                     placeholder="Doe"
-                    className="h-10 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500"
+                    className="h-10 border-orange-200 focus:border-orange-500"
                   />
                 </div>
               </div>
@@ -130,7 +130,7 @@ export default function CreateUserPage() {
                       onChange={(e) => handleChange('email', e.target.value)}
                       required
                       placeholder="user@restaurant.com"
-                      className="pl-10 h-10 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500"
+                      className="pl-10 h-10 border-orange-200 focus:border-orange-500"
                     />
                   </div>
                 </div>
@@ -146,7 +146,7 @@ export default function CreateUserPage() {
                       onChange={(e) => handleChange('phone', e.target.value)}
                       required
                       placeholder="+1234567890"
-                      className="pl-10 h-10 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500"
+                      className="pl-10 h-10 border-orange-200 focus:border-orange-500"
                     />
                   </div>
                 </div>
@@ -163,7 +163,7 @@ export default function CreateUserPage() {
                     onChange={(e) => handleChange('password', e.target.value)}
                     required
                     placeholder="••••••••"
-                    className="pl-10 h-10 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500"
+                    className="pl-10 h-10 border-orange-200 focus:border-orange-500"
                   />
                 </div>
               </div>
@@ -175,7 +175,7 @@ export default function CreateUserPage() {
                   onValueChange={(value) => handleChange('role', value)}
                   required
                 >
-                  <SelectTrigger className="h-10 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500">
+                  <SelectTrigger className="h-10 border-orange-200 focus:border-orange-500">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -189,16 +189,16 @@ export default function CreateUserPage() {
               </div>
 
               {error && (
-                <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-3 border border-red-200 dark:border-red-800">
-                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <div className="rounded-md bg-red-50 p-3 border border-red-200">
+                  <p className="text-sm text-red-600">{error}</p>
                 </div>
               )}
 
               {success && (
-                <div className="rounded-md bg-green-50 dark:bg-green-900/20 p-3 border border-green-200 dark:border-green-800">
+                <div className="rounded-md bg-green-50 p-3 border border-green-200">
                   <div className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                    <p className="text-sm text-green-600 dark:text-green-400">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <p className="text-sm text-green-600">
                       User created successfully!
                     </p>
                   </div>
