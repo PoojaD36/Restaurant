@@ -4,6 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/auth-context';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
+import { Lock, Mail } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -29,74 +34,93 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 px-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white dark:bg-zinc-800 rounded-lg shadow-md p-8">
-          <h1 className="text-2xl font-bold text-center text-zinc-900 dark:text-white mb-2">
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Logo/Brand */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-600 to-orange-500 rounded-2xl mb-4 shadow-lg shadow-red-500/30">
+            <Lock className="h-8 w-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent mb-2">
             Restaurant Admin
           </h1>
-          <p className="text-center text-zinc-600 dark:text-zinc-400 mb-6">
-            Sign in to your account
+          <p className="text-slate-600 dark:text-slate-400">
+            Sign in to manage your restaurant
           </p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1"
-              >
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={identifier}
-                onChange={(e) => setIdentifier(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-zinc-700 dark:text-white"
-                placeholder="admin@example.com"
-              />
-            </div>
+        {/* Login Card */}
+        <Card className="border-orange-100 dark:border-red-900/50 shadow-xl bg-white/90 dark:bg-black/70 backdrop-blur">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
+            <CardDescription>
+              Enter your credentials to access your account
+            </CardDescription>
+          </CardHeader>
 
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-zinc-700 dark:text-white"
-                placeholder="••••••••"
-              />
-            </div>
-
-            {error && (
-              <div className="text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-900/20 p-2 rounded">
-                {error}
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={identifier}
+                    onChange={(e) => setIdentifier(e.target.value)}
+                    required
+                    placeholder="admin@restaurant.com"
+                    className="pl-10 h-11 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500"
+                  />
+                </div>
               </div>
-            )}
 
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
-            >
-              {isLoading ? 'Signing in...' : 'Sign In'}
-            </button>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    placeholder="••••••••"
+                    className="pl-10 h-11 border-orange-200 dark:border-red-800 focus:border-orange-500 dark:focus:border-red-500"
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="rounded-md bg-red-50 dark:bg-red-900/20 p-3 border border-red-200 dark:border-red-800">
+                  <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                </div>
+              )}
+            </CardContent>
+
+            <CardFooter className="flex flex-col gap-4">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-11 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg shadow-red-500/30"
+              >
+                {isLoading ? 'Signing in...' : 'Sign In'}
+              </Button>
+
+              <Link
+                href="/"
+                className="text-sm text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 flex items-center gap-1"
+              >
+                <span>←</span> Back to home
+              </Link>
+            </CardFooter>
           </form>
-        </div>
+        </Card>
 
-        <div className="mt-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
-          <Link href="/" className="hover:underline">
-            ← Back to home
-          </Link>
-        </div>
+        <p className="mt-6 text-center text-xs text-slate-500 dark:text-slate-500">
+          Super Admin: superadmin@restaurant.com / Admin@123
+        </p>
       </div>
     </div>
   );
