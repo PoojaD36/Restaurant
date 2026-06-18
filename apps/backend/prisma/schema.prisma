@@ -1,0 +1,261 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/database/generated/prisma"
+  runtime  = "nodejs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Seed configuration
+// Run: npm run seed
+
+enum UserRole {
+  SUPER_ADMIN
+  RESTAURANT_ADMIN
+  MANAGER
+  CHEF
+  DELIVERY_AGENT
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  firstName String
+  lastName  String?
+
+  email String @unique
+  phone String @unique
+
+  profileImage String?
+
+  role   UserRole
+  status UserStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  password    UserPassword?
+  restaurants RestaurantUser[]
+  outlets     OutletUser[]
+
+  @@map("users")
+}
+
+model UserPassword {
+  id Int @id @default(autoincrement())
+
+  userId Int @unique
+
+  passwordHash String
+  refreshTokenHash   String?
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_passwords")
+}
+
+enum RestaurantStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Restaurant {
+  id Int @id @default(autoincrement())
+
+  name String
+  slug String @unique
+
+  logo        String?
+  description String?
+
+  status RestaurantStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  outlets Outlet[]
+  users   RestaurantUser[]
+
+  @@map("restaurants")
+}
+
+model RestaurantUser {
+  id Int @id @default(autoincrement())
+
+  restaurantId Int
+  userId       Int
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([restaurantId, userId])
+  @@index([userId])
+  @@map("restaurant_users")
+}
+
+enum OutletStatus {
+  ACTIVE
+  INACTIVE
+  CLOSED
+}
+
+model Outlet {
+  id Int @id @default(autoincrement())
+
+  restaurantId Int
+
+  name String
+
+  phone String?
+
+  email String?
+
+  addressLine1 String
+  addressLine2 String?
+
+  city       String
+  state      String
+  country    String
+  postalCode String
+
+  latitude  Decimal?
+  longitude Decimal?
+
+  openingTime String?
+  closingTime String?
+
+  status OutletStatus @default(ACTIVE)
+
+  restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  users OutletUser[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@map("outlets")
+}
+
+model OutletUser {
+  id Int @id @default(autoincrement())
+
+  outletId Int
+  userId   Int
+
+  outlet Outlet @relation(fields: [outletId], references: [id], onDelete: Cascade)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([outletId, userId])
+  @@index([userId])
+  @@map("outlet_users")
+}
+
+enum CustomerStatus {
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+model Customer {
+  id Int @id @default(autoincrement())
+
+  firstName String
+  lastName  String?
+
+  email String? @unique
+  phone String  @unique
+
+  profileImage String?
+
+  status CustomerStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  password  CustomerPassword?
+  addresses CustomerAddress[]
+
+  @@map("customers")
+}
+
+model CustomerPassword {
+  id Int @id @default(autoincrement())
+
+  customerId Int @unique
+
+  passwordHash String
+
+  lastLoginAt       DateTime?
+  passwordChangedAt DateTime?
+
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customer_passwords")
+}
+
+model CustomerAddress {
+  id Int @id @default(autoincrement())
+
+  customerId Int
+
+  label String
+  name  String
+  phone String
+
+  addressLine1 String
+  addressLine2 String?
+
+  city       String
+  state      String
+  country    String
+  postalCode String
+
+  latitude  Decimal?
+  longitude Decimal?
+
+  isDefault Boolean @default(false)
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@map("customer_addresses")
+}
