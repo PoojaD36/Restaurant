@@ -23,28 +23,6 @@
   --radius: 0.5rem;
 }
 
-.dark {
-  --background: 0 0% 4%;
-  --foreground: 0 0% 98%;
-  --card: 0 0% 8%;
-  --card-foreground: 0 0% 98%;
-  --popover: 0 0% 8%;
-  --popover-foreground: 0 0% 98%;
-  --primary: 0 72% 51%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 25 95% 53%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 64%;
-  --accent: 25 95% 53%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 62% 30%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 15%;
-  --input: 0 0% 15%;
-  --ring: 0 72% 51%;
-}
-
 @theme inline {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -69,13 +47,6 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
-  }
-}
-
 body {
   background: #fffaf0;
   background-image: radial-gradient(circle, rgba(249, 115, 22, 0.08) 0.8px, transparent 0.8px);
@@ -83,12 +54,6 @@ body {
   color: hsl(var(--foreground));
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   min-height: 100vh;
-}
-
-.dark body {
-  background: #0a0a0a;
-  background-image: radial-gradient(circle, rgba(239, 68, 68, 0.1) 0.8px, transparent 0.8px);
-  background-size: 20px 20px;
 }
 
 * {

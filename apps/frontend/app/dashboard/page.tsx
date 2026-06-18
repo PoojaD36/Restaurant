@@ -19,7 +19,7 @@ export default function DashboardPage() {
           <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
             Welcome back!
           </h2>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-slate-600">
             Here's what's happening with your restaurant today.
           </p>
         </div>
@@ -30,10 +30,10 @@ export default function DashboardPage() {
             return (
               <Card
                 key={stat.title}
-                className="border-orange-100 dark:border-red-900/50 hover:shadow-lg hover:shadow-orange-500/10 transition-all bg-white/80 dark:bg-black/50 backdrop-blur"
+                className="border-orange-100 hover:shadow-lg hover:shadow-orange-500/10 transition-all bg-white/80 backdrop-blur"
               >
                 <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-medium text-slate-600 dark:text-slate-400">
+                  <CardTitle className="text-sm font-medium text-slate-600">
                     {stat.title}
                   </CardTitle>
                   <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center shadow-md`}>
@@ -42,17 +42,17 @@ export default function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stat.value}</div>
-                  <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">{stat.description}</p>
+                  <p className="text-xs text-slate-500 mt-1">{stat.description}</p>
                 </CardContent>
               </Card>
             );
           })}
         </div>
 
-        <Card className="border-orange-100 dark:border-red-900/50 bg-white/80 dark:bg-black/50 backdrop-blur">
+        <Card className="border-orange-100 bg-white/80 backdrop-blur">
           <CardHeader>
             <CardTitle>Quick Actions</CardTitle>
-            <CardDescription className="text-slate-600 dark:text-slate-400">
+            <CardDescription className="text-slate-600">
               Get started with some common tasks
             </CardDescription>
           </CardHeader>

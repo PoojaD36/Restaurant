@@ -4,35 +4,13 @@ import { useAuth } from '../../contexts/auth-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
-import { Utensils, LayoutDashboard, UserPlus, LogOut, Moon, Sun } from 'lucide-react';
+import { Utensils, LayoutDashboard, UserPlus, LogOut } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { useState, useEffect } from 'react';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const darkMode = localStorage.getItem('darkMode') === 'true' ||
-      (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    setIsDark(darkMode);
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newDarkMode = !isDark;
-    setIsDark(newDarkMode);
-    localStorage.setItem('darkMode', String(newDarkMode));
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
 
   const handleLogout = async () => {
     await logout();
@@ -47,7 +25,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b border-orange-200 dark:border-red-900 bg-white/90 dark:bg-black/70 backdrop-blur-sm shadow-sm sticky top-0 z-50">
+      <header className="border-b border-orange-200 bg-white/90 backdrop-blur-sm shadow-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-8">
@@ -72,7 +50,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         className={
                           isActive
                             ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white hover:from-red-700 hover:to-orange-600'
-                            : 'text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+                            : 'text-slate-600 hover:text-orange-600 hover:bg-orange-50'
                         }
                       >
                         <Icon className="h-4 w-4 mr-2" />
@@ -85,27 +63,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             <div className="flex items-center gap-3">
-              <Button
-                onClick={toggleTheme}
-                variant="ghost"
-                size="sm"
-                className="text-slate-600 dark:text-slate-400 hover:bg-orange-50 dark:hover:bg-orange-900/20"
-              >
-                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              </Button>
-
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-medium">
                   {user?.firstName || user?.email}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-500">{user?.role}</p>
+                <p className="text-xs text-slate-500">{user?.role}</p>
               </div>
 
               <Button
                 onClick={handleLogout}
                 variant="ghost"
                 size="sm"
-                className="text-slate-600 dark:text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                className="text-slate-600 hover:text-red-600 hover:bg-red-50"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -115,7 +84,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
 
       {/* Mobile Navigation */}
-      <nav className="md:hidden border-b border-orange-200 dark:border-red-900 bg-white/90 dark:bg-black/70 backdrop-blur">
+      <nav className="md:hidden border-b border-orange-200 bg-white/90 backdrop-blur">
         <div className="flex px-4 py-2 gap-2">
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -128,7 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className={`w-full ${
                     isActive
                       ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white'
-                      : 'text-slate-600 dark:text-slate-400'
+                      : 'text-slate-600'
                   }`}
                 >
                   <Icon className="h-4 w-4 mr-2" />

@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import { Button } from '../components/ui/button';
-import { Utensils, Moon, Sun, ArrowRight, Coffee, ShoppingBag, Clock, Star, Beef, Cake, Egg, ChefHat, Sandwich, GlassWater, Cookie } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Utensils, ArrowRight, Coffee, ShoppingBag, Clock, Star, Beef, Cake, Egg, ChefHat, Sandwich, GlassWater, Cookie } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // Floating orb component for background
 const FloatingOrb = ({ className, delay = 0 }: { className?: string; delay?: number }) => (
@@ -61,7 +60,7 @@ const FloatingFood = ({
 
 // Subtle wave animation overlay
 const WaveBackground = () => (
-  <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.15] overflow-hidden">
+  <div className="absolute inset-0 opacity-[0.4] overflow-hidden">
     <svg className="w-[200%] h-full absolute -left-1/2" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
       <motion.path
         d="M0,100 Q200,80 400,100 T800,100 T1200,100 T1600,100 L1600,0 L0,0 Z"
@@ -106,61 +105,39 @@ const WaveBackground = () => (
 );
 
 export default function Home() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    const darkMode = localStorage.getItem('darkMode') === 'true' ||
-      (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
-    setIsDark(darkMode);
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newDarkMode = !isDark;
-    setIsDark(newDarkMode);
-    localStorage.setItem('darkMode', String(newDarkMode));
-    if (newDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-
   return (
-    <div className="h-screen flex flex-col bg-gradient-to-br from-orange-100 via-amber-100 to-rose-100 dark:from-slate-950 dark:via-orange-950/40 dark:to-slate-950 relative overflow-hidden">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-orange-100 via-amber-100 to-rose-100 relative overflow-hidden">
       {/* Animated background layers */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         {/* Wave animation */}
         <WaveBackground />
 
         {/* Large floating orbs */}
-        <FloatingOrb className="w-[500px] h-[500px] bg-gradient-to-br from-orange-400/40 to-amber-400/40 dark:from-orange-600/25 dark:to-amber-600/15 -top-60 -right-60" delay={0} />
-        <FloatingOrb className="w-[400px] h-[400px] bg-gradient-to-br from-amber-400/35 to-rose-400/35 dark:from-amber-600/20 dark:to-rose-600/12 top-1/2 -left-48" delay={1.5} />
-        <FloatingOrb className="w-[350px] h-[350px] bg-gradient-to-br from-rose-400/30 to-orange-400/30 dark:from-rose-600/18 dark:to-orange-600/10 bottom-20 right-1/3" delay={0.8} />
+        <FloatingOrb className="w-[500px] h-[500px] bg-gradient-to-br from-orange-400/40 to-amber-400/40 -top-60 -right-60" delay={0} />
+        <FloatingOrb className="w-[400px] h-[400px] bg-gradient-to-br from-amber-400/35 to-rose-400/35 top-1/2 -left-48" delay={1.5} />
+        <FloatingOrb className="w-[350px] h-[350px] bg-gradient-to-br from-rose-400/30 to-orange-400/30 bottom-20 right-1/3" delay={0.8} />
 
         {/* Floating food icons - more particles for richness */}
-        <FloatingFood icon={Coffee} className="text-orange-400/45 dark:text-orange-500/25 left-[5%] bottom-[10%]" delay={0} duration={17} rotate={15} />
-        <FloatingFood icon={ShoppingBag} className="text-amber-400/35 dark:text-amber-500/20 left-[15%] bottom-[20%]" delay={4} duration={21} rotate={-10} />
-        <FloatingFood icon={Clock} className="text-rose-400/40 dark:text-rose-500/25 left-[80%] top-[15%]" delay={1} duration={19} rotate={20} />
-        <FloatingFood icon={Beef} className="text-orange-400/35 dark:text-orange-500/20 left-[60%] top-[30%]" delay={5} duration={23} rotate={-15} />
-        <FloatingFood icon={Egg} className="text-amber-400/40 dark:text-amber-500/25 left-[10%] top-[50%]" delay={2} duration={18} rotate={10} />
-        <FloatingFood icon={Cake} className="text-rose-400/35 dark:text-rose-500/20 left-[75%] bottom-[15%]" delay={6} duration={20} rotate={-20} />
-        <FloatingFood icon={Star} className="text-orange-400/40 dark:text-orange-500/25 left-[30%] top-[20%]" delay={1.5} duration={22} rotate={5} />
-        <FloatingFood icon={Coffee} className="text-amber-400/45 dark:text-amber-500/25 left-[85%] bottom-[25%]" delay={3.5} duration={19} rotate={-5} />
-        <FloatingFood icon={ChefHat} className="text-orange-400/35 dark:text-orange-500/20 left-[45%] bottom-[12%]" delay={0.5} duration={24} rotate={25} />
-        <FloatingFood icon={Sandwich} className="text-amber-400/40 dark:text-amber-500/25 left-[25%] top-[45%]" delay={2.5} duration={18} rotate={-12} />
-        <FloatingFood icon={GlassWater} className="text-rose-400/35 dark:text-rose-500/20 left-[70%] top-[25%]" delay={4.5} duration={21} rotate={8} />
-        <FloatingFood icon={Cookie} className="text-orange-400/40 dark:text-orange-500/25 left-[55%] bottom-[18%]" delay={3} duration={20} rotate={-18} />
-        <FloatingFood icon={Egg} className="text-amber-400/35 dark:text-amber-500/20 left-[20%] top-[35%]" delay={5.5} duration={23} rotate={12} />
-        <FloatingFood icon={Cake} className="text-rose-400/40 dark:text-rose-500/25 left-[40%] top-[15%]" delay={1} duration={19} rotate={-8} />
-        <FloatingFood icon={Coffee} className="text-orange-400/35 dark:text-orange-500/20 left-[90%] top-[40%]" delay={6.5} duration={22} rotate={18} />
-        <FloatingFood icon={ShoppingBag} className="text-amber-400/45 dark:text-amber-500/25 left-[5%] top-[25%]" delay={0.8} duration={18} rotate={-22} />
-        <FloatingFood icon={Beef} className="text-rose-400/40 dark:text-rose-500/25 left-[65%] bottom-[22%]" delay={2.2} duration={21} rotate={6} />
-        <FloatingFood icon={Star} className="text-orange-400/35 dark:text-orange-500/20 left-[35%] bottom-[28%]" delay={4.2} duration={20} rotate={-14} />
-        <FloatingFood icon={ChefHat} className="text-amber-400/40 dark:text-amber-500/25 left-[78%] top-[12%]" delay={0.3} duration={24} rotate={16} />
-        <FloatingFood icon={Sandwich} className="text-rose-400/35 dark:text-rose-500/20 left-[50%] top-[38%]" delay={3.8} duration={19} rotate={-6} />
+        <FloatingFood icon={Coffee} className="text-orange-400/45 left-[5%] bottom-[10%]" delay={0} duration={17} rotate={15} />
+        <FloatingFood icon={ShoppingBag} className="text-amber-400/35 left-[15%] bottom-[20%]" delay={4} duration={21} rotate={-10} />
+        <FloatingFood icon={Clock} className="text-rose-400/40 left-[80%] top-[15%]" delay={1} duration={19} rotate={20} />
+        <FloatingFood icon={Beef} className="text-orange-400/35 left-[60%] top-[30%]" delay={5} duration={23} rotate={-15} />
+        <FloatingFood icon={Egg} className="text-amber-400/40 left-[10%] top-[50%]" delay={2} duration={18} rotate={10} />
+        <FloatingFood icon={Cake} className="text-rose-400/35 left-[75%] bottom-[15%]" delay={6} duration={20} rotate={-20} />
+        <FloatingFood icon={Star} className="text-orange-400/40 left-[30%] top-[20%]" delay={1.5} duration={22} rotate={5} />
+        <FloatingFood icon={Coffee} className="text-amber-400/45 left-[85%] bottom-[25%]" delay={3.5} duration={19} rotate={-5} />
+        <FloatingFood icon={ChefHat} className="text-orange-400/35 left-[45%] bottom-[12%]" delay={0.5} duration={24} rotate={25} />
+        <FloatingFood icon={Sandwich} className="text-amber-400/40 left-[25%] top-[45%]" delay={2.5} duration={18} rotate={-12} />
+        <FloatingFood icon={GlassWater} className="text-rose-400/35 left-[70%] top-[25%]" delay={4.5} duration={21} rotate={8} />
+        <FloatingFood icon={Cookie} className="text-orange-400/40 left-[55%] bottom-[18%]" delay={3} duration={20} rotate={-18} />
+        <FloatingFood icon={Egg} className="text-amber-400/35 left-[20%] top-[35%]" delay={5.5} duration={23} rotate={12} />
+        <FloatingFood icon={Cake} className="text-rose-400/40 left-[40%] top-[15%]" delay={1} duration={19} rotate={-8} />
+        <FloatingFood icon={Coffee} className="text-orange-400/35 left-[90%] top-[40%]" delay={6.5} duration={22} rotate={18} />
+        <FloatingFood icon={ShoppingBag} className="text-amber-400/45 left-[5%] top-[25%]" delay={0.8} duration={18} rotate={-22} />
+        <FloatingFood icon={Beef} className="text-rose-400/40 left-[65%] bottom-[22%]" delay={2.2} duration={21} rotate={6} />
+        <FloatingFood icon={Star} className="text-orange-400/35 left-[35%] bottom-[28%]" delay={4.2} duration={20} rotate={-14} />
+        <FloatingFood icon={ChefHat} className="text-amber-400/40 left-[78%] top-[12%]" delay={0.3} duration={24} rotate={16} />
+        <FloatingFood icon={Sandwich} className="text-rose-400/35 left-[50%] top-[38%]" delay={3.8} duration={19} rotate={-6} />
       </div>
 
       {/* Header */}
@@ -168,7 +145,7 @@ export default function Home() {
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.6, type: 'spring', stiffness: 80 }}
-        className="border-b border-orange-200/40 dark:border-white/10 bg-white/40 dark:bg-black/50 backdrop-blur-xl shadow-sm z-50"
+        className="border-b border-orange-200/40 bg-white/40 backdrop-blur-xl shadow-sm z-50"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
@@ -185,29 +162,11 @@ export default function Home() {
             </motion.div>
 
             <div className="flex items-center gap-3">
-              <Button
-                onClick={toggleTheme}
-                variant="ghost"
-                size="sm"
-                className="text-orange-700 dark:text-slate-400 hover:bg-orange-200/50 dark:hover:bg-orange-900/30 transition-all"
-              >
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={isDark ? 'dark' : 'light'}
-                    initial={{ rotate: -90, opacity: 0 }}
-                    animate={{ rotate: 0, opacity: 1 }}
-                    exit={{ rotate: 90, opacity: 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                  </motion.div>
-                </AnimatePresence>
-              </Button>
               <Link href="/login">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="border-orange-400 dark:border-orange-700 hover:bg-orange-200/50 dark:hover:bg-orange-900/30 text-orange-700 dark:text-slate-300 transition-all font-medium bg-white/30 dark:bg-transparent backdrop-blur-sm"
+                  className="border-orange-400 hover:bg-orange-200/50 text-orange-700 transition-all font-medium bg-white/30 backdrop-blur-sm"
                 >
                   Sign In
                 </Button>
@@ -225,14 +184,14 @@ export default function Home() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-200/70 to-amber-200/70 dark:from-orange-900/50 dark:to-amber-900/50 border border-orange-300/50 dark:border-orange-700/50 backdrop-blur-md mb-8"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-200/70 to-amber-200/70 border border-orange-300/50 backdrop-blur-md mb-8"
           >
             <motion.span
               className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500"
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
-            <span className="text-sm font-medium text-orange-800 dark:text-orange-300">Fast & Fresh Food Delivery</span>
+            <span className="text-sm font-medium text-orange-800">Fast & Fresh Food Delivery</span>
           </motion.div>
 
           {/* Main Heading */}
@@ -261,7 +220,7 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.5 }}
-            className="max-w-2xl mx-auto text-lg sm:text-xl text-orange-900/80 dark:text-slate-300 leading-relaxed mb-10"
+            className="max-w-2xl mx-auto text-lg sm:text-xl text-orange-900/80 leading-relaxed mb-10"
           >
             Order from your favorite restaurants and get fresh food delivered to your doorstep in minutes.
           </motion.p>
@@ -296,7 +255,7 @@ export default function Home() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-2 border-orange-400 dark:border-orange-700 hover:bg-orange-200/50 dark:hover:bg-orange-900/20 text-orange-800 dark:text-slate-300 transition-all text-lg px-10 py-6 rounded-2xl font-semibold bg-white/30 dark:bg-black/20 backdrop-blur-md"
+                  className="border-2 border-orange-400 hover:bg-orange-200/50 text-orange-800 transition-all text-lg px-10 py-6 rounded-2xl font-semibold bg-white/30 backdrop-blur-md"
                 >
                   View Restaurants
                 </Button>
@@ -309,12 +268,12 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 1 }}
-            className="mt-12 flex flex-wrap justify-center gap-8 text-orange-800/70 dark:text-slate-400 text-sm"
+            className="mt-12 flex flex-wrap justify-center gap-8 text-orange-800/70 text-sm"
           >
             <span className="font-medium">500+ Restaurants</span>
-            <span className="w-1 h-1 rounded-full bg-orange-500 dark:bg-slate-500" />
+            <span className="w-1 h-1 rounded-full bg-orange-500" />
             <span className="font-medium">10K+ Happy Customers</span>
-            <span className="w-1 h-1 rounded-full bg-orange-500 dark:bg-slate-500" />
+            <span className="w-1 h-1 rounded-full bg-orange-500" />
             <span className="font-medium">4.9 ★ Rating</span>
           </motion.div>
         </div>
