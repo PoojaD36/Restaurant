@@ -1,29 +1,322 @@
+'use client';
+
 import Link from 'next/link';
+import { Button } from '../components/ui/button';
+import { Utensils, Moon, Sun, ArrowRight, Coffee, ShoppingBag, Clock, Star, Beef, Cake, Egg, ChefHat, Sandwich, GlassWater, Cookie } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// Floating orb component for background
+const FloatingOrb = ({ className, delay = 0 }: { className?: string; delay?: number }) => (
+  <motion.div
+    className={`absolute rounded-full blur-3xl ${className}`}
+    animate={{
+      y: [0, -40, 0],
+      x: [0, 30, 0],
+      scale: [1, 1.15, 1],
+      opacity: [0.4, 0.6, 0.4],
+    }}
+    transition={{
+      duration: 10 + delay,
+      repeat: Infinity,
+      ease: 'easeInOut',
+      delay,
+    }}
+  />
+);
+
+// Floating food icon component
+const FloatingFood = ({
+  icon: Icon,
+  className,
+  delay = 0,
+  duration = 20,
+  rotate = 0
+}: {
+  icon: any;
+  className?: string;
+  delay?: number;
+  duration?: number;
+  rotate?: number;
+}) => (
+  <motion.div
+    className={`absolute ${className}`}
+    animate={{
+      y: [0, -120, -250],
+      x: [0, 15, -15, 0],
+      opacity: [0, 0.5, 0.5, 0],
+      scale: [0, 1, 1, 0],
+      rotate: [rotate, rotate + 10, rotate - 5, rotate],
+    }}
+    transition={{
+      duration,
+      repeat: Infinity,
+      ease: 'easeInOut',
+      delay,
+    }}
+  >
+    <Icon className="w-5 h-5" strokeWidth={1.5} />
+  </motion.div>
+);
+
+// Subtle wave animation overlay
+const WaveBackground = () => (
+  <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.15] overflow-hidden">
+    <svg className="w-[200%] h-full absolute -left-1/2" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <motion.path
+        d="M0,100 Q200,80 400,100 T800,100 T1200,100 T1600,100 L1600,0 L0,0 Z"
+        fill="url(#waveGradient)"
+        animate={{
+          d: [
+            'M0,100 Q200,80 400,100 T800,100 T1200,100 T1600,100 L1600,0 L0,0 Z',
+            'M0,100 Q200,120 400,100 T800,80 T1200,100 T1600,100 L1600,0 L0,0 Z',
+            'M0,100 Q200,80 400,100 T800,100 T1200,100 T1600,100 L1600,0 L0,0 Z',
+          ],
+        }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <defs>
+        <linearGradient id="waveGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#fb923c" stopOpacity="0.3" />
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0.1" />
+        </linearGradient>
+      </defs>
+    </svg>
+    <svg className="w-[200%] h-full absolute -left-1/2 bottom-0" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+      <motion.path
+        d="M0,0 Q200,20 400,0 T800,0 T1200,0 T1600,0 L1600,100 L0,100 Z"
+        fill="url(#waveGradient2)"
+        animate={{
+          d: [
+            'M0,0 Q200,20 400,0 T800,0 T1200,0 T1600,0 L1600,100 L0,100 Z',
+            'M0,0 Q200,-20 400,0 T800,20 T1200,0 T1600,0 L1600,100 L0,100 Z',
+            'M0,0 Q200,20 400,0 T800,0 T1200,0 T1600,0 L1600,100 L0,100 Z',
+          ],
+        }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <defs>
+        <linearGradient id="waveGradient2" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stopColor="#fdba74" stopOpacity="0.2" />
+          <stop offset="100%" stopColor="#fb923c" stopOpacity="0.05" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+);
 
 export default function Home() {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const darkMode = localStorage.getItem('darkMode') === 'true' ||
+      (!localStorage.getItem('darkMode') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    setIsDark(darkMode);
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const newDarkMode = !isDark;
+    setIsDark(newDarkMode);
+    localStorage.setItem('darkMode', String(newDarkMode));
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-100 dark:bg-zinc-900 font-sans min-h-screen">
-      <main className="flex flex-col items-center justify-center gap-8 px-4 text-center">
-        <div className="space-y-4">
-          <h1 className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-zinc-50">
-            Restaurant Management
-          </h1>
-          <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-md">
-            Complete restaurant administration system for managing users, orders, and operations.
-          </p>
-        </div>
+    <div className="h-screen flex flex-col bg-gradient-to-br from-orange-100 via-amber-100 to-rose-100 dark:from-slate-950 dark:via-orange-950/40 dark:to-slate-950 relative overflow-hidden">
+      {/* Animated background layers */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        {/* Wave animation */}
+        <WaveBackground />
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <Link
-            href="/login"
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+        {/* Large floating orbs */}
+        <FloatingOrb className="w-[500px] h-[500px] bg-gradient-to-br from-orange-400/40 to-amber-400/40 dark:from-orange-600/25 dark:to-amber-600/15 -top-60 -right-60" delay={0} />
+        <FloatingOrb className="w-[400px] h-[400px] bg-gradient-to-br from-amber-400/35 to-rose-400/35 dark:from-amber-600/20 dark:to-rose-600/12 top-1/2 -left-48" delay={1.5} />
+        <FloatingOrb className="w-[350px] h-[350px] bg-gradient-to-br from-rose-400/30 to-orange-400/30 dark:from-rose-600/18 dark:to-orange-600/10 bottom-20 right-1/3" delay={0.8} />
+
+        {/* Floating food icons - more particles for richness */}
+        <FloatingFood icon={Coffee} className="text-orange-400/45 dark:text-orange-500/25 left-[5%] bottom-[10%]" delay={0} duration={17} rotate={15} />
+        <FloatingFood icon={ShoppingBag} className="text-amber-400/35 dark:text-amber-500/20 left-[15%] bottom-[20%]" delay={4} duration={21} rotate={-10} />
+        <FloatingFood icon={Clock} className="text-rose-400/40 dark:text-rose-500/25 left-[80%] top-[15%]" delay={1} duration={19} rotate={20} />
+        <FloatingFood icon={Beef} className="text-orange-400/35 dark:text-orange-500/20 left-[60%] top-[30%]" delay={5} duration={23} rotate={-15} />
+        <FloatingFood icon={Egg} className="text-amber-400/40 dark:text-amber-500/25 left-[10%] top-[50%]" delay={2} duration={18} rotate={10} />
+        <FloatingFood icon={Cake} className="text-rose-400/35 dark:text-rose-500/20 left-[75%] bottom-[15%]" delay={6} duration={20} rotate={-20} />
+        <FloatingFood icon={Star} className="text-orange-400/40 dark:text-orange-500/25 left-[30%] top-[20%]" delay={1.5} duration={22} rotate={5} />
+        <FloatingFood icon={Coffee} className="text-amber-400/45 dark:text-amber-500/25 left-[85%] bottom-[25%]" delay={3.5} duration={19} rotate={-5} />
+        <FloatingFood icon={ChefHat} className="text-orange-400/35 dark:text-orange-500/20 left-[45%] bottom-[12%]" delay={0.5} duration={24} rotate={25} />
+        <FloatingFood icon={Sandwich} className="text-amber-400/40 dark:text-amber-500/25 left-[25%] top-[45%]" delay={2.5} duration={18} rotate={-12} />
+        <FloatingFood icon={GlassWater} className="text-rose-400/35 dark:text-rose-500/20 left-[70%] top-[25%]" delay={4.5} duration={21} rotate={8} />
+        <FloatingFood icon={Cookie} className="text-orange-400/40 dark:text-orange-500/25 left-[55%] bottom-[18%]" delay={3} duration={20} rotate={-18} />
+        <FloatingFood icon={Egg} className="text-amber-400/35 dark:text-amber-500/20 left-[20%] top-[35%]" delay={5.5} duration={23} rotate={12} />
+        <FloatingFood icon={Cake} className="text-rose-400/40 dark:text-rose-500/25 left-[40%] top-[15%]" delay={1} duration={19} rotate={-8} />
+        <FloatingFood icon={Coffee} className="text-orange-400/35 dark:text-orange-500/20 left-[90%] top-[40%]" delay={6.5} duration={22} rotate={18} />
+        <FloatingFood icon={ShoppingBag} className="text-amber-400/45 dark:text-amber-500/25 left-[5%] top-[25%]" delay={0.8} duration={18} rotate={-22} />
+        <FloatingFood icon={Beef} className="text-rose-400/40 dark:text-rose-500/25 left-[65%] bottom-[22%]" delay={2.2} duration={21} rotate={6} />
+        <FloatingFood icon={Star} className="text-orange-400/35 dark:text-orange-500/20 left-[35%] bottom-[28%]" delay={4.2} duration={20} rotate={-14} />
+        <FloatingFood icon={ChefHat} className="text-amber-400/40 dark:text-amber-500/25 left-[78%] top-[12%]" delay={0.3} duration={24} rotate={16} />
+        <FloatingFood icon={Sandwich} className="text-rose-400/35 dark:text-rose-500/20 left-[50%] top-[38%]" delay={3.8} duration={19} rotate={-6} />
+      </div>
+
+      {/* Header */}
+      <motion.header
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, type: 'spring', stiffness: 80 }}
+        className="border-b border-orange-200/40 dark:border-white/10 bg-white/40 dark:bg-black/50 backdrop-blur-xl shadow-sm z-50"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <motion.div
+              className="flex items-center gap-2"
+              whileHover={{ scale: 1.05 }}
+            >
+              <div className="bg-gradient-to-br from-orange-600 to-amber-500 p-1.5 rounded-xl shadow-lg shadow-orange-500/30">
+                <Utensils className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">
+                FoodHub
+              </span>
+            </motion.div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={toggleTheme}
+                variant="ghost"
+                size="sm"
+                className="text-orange-700 dark:text-slate-400 hover:bg-orange-200/50 dark:hover:bg-orange-900/30 transition-all"
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={isDark ? 'dark' : 'light'}
+                    initial={{ rotate: -90, opacity: 0 }}
+                    animate={{ rotate: 0, opacity: 1 }}
+                    exit={{ rotate: 90, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  </motion.div>
+                </AnimatePresence>
+              </Button>
+              <Link href="/login">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-orange-400 dark:border-orange-700 hover:bg-orange-200/50 dark:hover:bg-orange-900/30 text-orange-700 dark:text-slate-300 transition-all font-medium bg-white/30 dark:bg-transparent backdrop-blur-sm"
+                >
+                  Sign In
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </motion.header>
+
+      {/* Hero Section - centered in viewport */}
+      <main className="flex-1 flex items-center justify-center relative z-10">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-orange-200/70 to-amber-200/70 dark:from-orange-900/50 dark:to-amber-900/50 border border-orange-300/50 dark:border-orange-700/50 backdrop-blur-md mb-8"
           >
-            Sign In
-          </Link>
-        </div>
+            <motion.span
+              className="w-2 h-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500"
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
+            <span className="text-sm font-medium text-orange-800 dark:text-orange-300">Fast & Fresh Food Delivery</span>
+          </motion.div>
 
-        <div className="mt-8 text-sm text-zinc-500 dark:text-zinc-500">
-          Super Admin credentials: superadmin@restaurant.com / Admin@123
+          {/* Main Heading */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+            className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tight mb-6"
+          >
+            <span className="bg-gradient-to-r from-orange-600 via-amber-500 to-rose-500 bg-clip-text text-transparent drop-shadow-sm">
+              Delicious Food,
+            </span>
+            <br />
+            <motion.span
+              className="bg-gradient-to-r from-amber-600 via-orange-500 to-amber-600 bg-clip-text text-transparent"
+              animate={{ backgroundPosition: ['0%', '100%', '0%'] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+              style={{ backgroundSize: '200% auto' }}
+            >
+              Delivered to You
+            </motion.span>
+          </motion.h1>
+
+          {/* Description */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.5 }}
+            className="max-w-2xl mx-auto text-lg sm:text-xl text-orange-900/80 dark:text-slate-300 leading-relaxed mb-10"
+          >
+            Order from your favorite restaurants and get fresh food delivered to your doorstep in minutes.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.7 }}
+            className="flex flex-col sm:flex-row justify-center gap-4"
+          >
+            <Link href="/login">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  size="lg"
+                  className="bg-gradient-to-r from-orange-600 to-amber-500 text-white hover:from-orange-700 hover:to-amber-600 shadow-xl shadow-orange-500/30 transition-all text-lg px-10 py-6 rounded-2xl font-semibold relative overflow-hidden group border-0"
+                >
+                  <span className="relative z-10 flex items-center gap-2">
+                    Order Now
+                    <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
+                  </span>
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-amber-500 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                    transition={{ duration: 0.3 }}
+                  />
+                </Button>
+              </motion.div>
+            </Link>
+
+            <Link href="/login">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-orange-400 dark:border-orange-700 hover:bg-orange-200/50 dark:hover:bg-orange-900/20 text-orange-800 dark:text-slate-300 transition-all text-lg px-10 py-6 rounded-2xl font-semibold bg-white/30 dark:bg-black/20 backdrop-blur-md"
+                >
+                  View Restaurants
+                </Button>
+              </motion.div>
+            </Link>
+          </motion.div>
+
+          {/* Stats - small, below CTAs */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, delay: 1 }}
+            className="mt-12 flex flex-wrap justify-center gap-8 text-orange-800/70 dark:text-slate-400 text-sm"
+          >
+            <span className="font-medium">500+ Restaurants</span>
+            <span className="w-1 h-1 rounded-full bg-orange-500 dark:bg-slate-500" />
+            <span className="font-medium">10K+ Happy Customers</span>
+            <span className="w-1 h-1 rounded-full bg-orange-500 dark:bg-slate-500" />
+            <span className="font-medium">4.9 ★ Rating</span>
+          </motion.div>
         </div>
       </main>
     </div>
