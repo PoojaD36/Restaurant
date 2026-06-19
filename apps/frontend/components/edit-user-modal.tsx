@@ -1,0 +1,224 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from './ui/dialog';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select';
+import { Mail, User, Phone, CheckCircle, Pencil } from 'lucide-react';
+import { updateUser } from '../lib/users-api';
+import type { UpdateUserRequest, UserRole, UserListItem } from '../lib/types';
+
+const roles: { value: UserRole; label: string }[] = [
+  { value: 'RESTAURANT_ADMIN', label: 'Restaurant Admin' },
+  { value: 'MANAGER', label: 'Manager' },
+  { value: 'CHEF', label: 'Chef' },
+  { value: 'DELIVERY_AGENT', label: 'Delivery Agent' },
+  { value: 'SUPER_ADMIN', label: 'Super Admin' },
+];
+
+interface EditUserModalProps {
+  open: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+  user: UserListItem;
+}
+
+export function EditUserModal({ open, onClose, onSuccess, user }: EditUserModalProps) {
+  const [formData, setFormData] = useState<UpdateUserRequest>({
+    email: user.email,
+    phone: user.phone,
+    firstName: user.firstName,
+    lastName: user.lastName || '',
+    role: user.role,
+  });
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setFormData({
+      email: user.email,
+      phone: user.phone,
+      firstName: user.firstName,
+      lastName: user.lastName || '',
+      role: user.role,
+    });
+    setError('');
+    setSuccess(false);
+  }, [user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess(false);
+    setIsLoading(true);
+
+    try {
+      await updateUser(user.id, formData);
+      setSuccess(true);
+      setTimeout(() => {
+        onSuccess?.();
+        handleClose();
+      }, 1000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update user');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleChange = (field: keyof UpdateUserRequest, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleClose = () => {
+    setError('');
+    setSuccess(false);
+    setFormData({
+      email: user.email,
+      phone: user.phone,
+      firstName: user.firstName,
+      lastName: user.lastName || '',
+      role: user.role,
+    });
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Pencil className="h-5 w-5 text-orange-500" />
+            Edit User
+          </DialogTitle>
+          <DialogDescription>
+            Update user information and permissions.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name *</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  id="firstName"
+                  type="text"
+                  value={formData.firstName}
+                  onChange={(e) => handleChange('firstName', e.target.value)}
+                  required
+                  placeholder="John"
+                  className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input
+                id="lastName"
+                type="text"
+                value={formData.lastName}
+                onChange={(e) => handleChange('lastName', e.target.value)}
+                placeholder="Doe"
+                className="h-10 border-orange-200 focus:border-orange-500"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email *</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange('email', e.target.value)}
+                required
+                placeholder="user@restaurant.com"
+                className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="phone">Phone *</Label>
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+              <Input
+                id="phone"
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => handleChange('phone', e.target.value)}
+                required
+                placeholder="+1234567890"
+                className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="role">Role *</Label>
+            <Select
+              value={formData.role}
+              onValueChange={(value) => handleChange('role', value)}
+              required
+            >
+              <SelectTrigger className="h-10 border-orange-200 focus:border-orange-500">
+                <SelectValue placeholder="Select a role" />
+              </SelectTrigger>
+              <SelectContent>
+                {roles.map((role) => (
+                  <SelectItem key={role.value} value={role.value}>
+                    {role.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 border border-red-200">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="rounded-md bg-green-50 p-3 border border-green-200">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-green-600" />
+                <p className="text-sm text-green-600">
+                  User updated successfully!
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end gap-3">
+            <Button type="button" variant="outline" onClick={handleClose}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white"
+            >
+              {isLoading ? 'Updating...' : 'Update User'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}

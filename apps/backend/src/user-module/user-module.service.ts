@@ -1,9 +1,17 @@
-import { Injectable, BadRequestException, ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { hash, genSalt, compare } from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
 import { UserRole, UserStatus } from 'src/database/generated/prisma/enums';
 import { authConstants } from '../auth/constants/auth.constants';
+import { CreateUserDto } from './dto/create-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UserModuleService {
@@ -15,37 +23,32 @@ export class UserModuleService {
   /**
    * Create a new user (Super Admin only - role check at controller level)
    */
-  async createUser(
-    email: string,
-    phone: string,
-    password: string,
-    firstName: string,
-    lastName: string | null,
-    role: UserRole,
-  ): Promise<{
+  async createUser(createUserDto: CreateUserDto): Promise<{
     success: boolean;
     message: string;
   }> {
     try {
       const existingUser = await this.prisma.user.findUnique({
-        where: { email },
+        where: { email: createUserDto.email },
       });
 
       if (existingUser) {
         throw new ConflictException('User with this email already exists');
       }
 
-      const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS') || authConstants.BCRYPT_ROUNDS;
+      const saltRounds =
+        this.configService.get<number>('BCRYPT_ROUNDS') ||
+        authConstants.BCRYPT_ROUNDS;
       const salt = await genSalt(saltRounds);
-      const passwordHash = await hash(password, salt);
+      const passwordHash = await hash(createUserDto.password, salt);
 
       await this.prisma.user.create({
         data: {
-          email,
-          phone,
-          firstName,
-          lastName,
-          role,
+          email: createUserDto.email,
+          phone: createUserDto.phone,
+          firstName: createUserDto.firstName,
+          lastName: createUserDto.lastName || null,
+          role: createUserDto.role,
           status: UserStatus.ACTIVE,
           password: {
             create: {
@@ -70,7 +73,10 @@ export class UserModuleService {
   /**
    * Get all users excluding superadmin with limited details and pagination
    */
-  async getAllUsers(page: number = 1, limit: number = 10): Promise<{
+  async getAllUsers(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
     success: boolean;
     message: string;
     data: any[];
@@ -139,7 +145,10 @@ export class UserModuleService {
    * Change user password (with old password verification)
    * For regular users changing their own password
    */
-  async changePassword(userId: number, oldPassword: string, newPassword: string): Promise<{
+  async changePassword(
+    userId: number,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{
     success: boolean;
     message: string;
   }> {
@@ -152,20 +161,26 @@ export class UserModuleService {
         throw new BadRequestException('User password not found');
       }
 
-      const isOldPasswordValid = await compare(oldPassword, userPassword.passwordHash);
+      const isOldPasswordValid = await compare(
+        changePasswordDto.oldPassword!,
+        userPassword.passwordHash,
+      );
 
       if (!isOldPasswordValid) {
         throw new UnauthorizedException('Old password is incorrect');
       }
 
-      await this.updateUserPassword(userId, newPassword);
+      await this.updateUserPassword(userId, changePasswordDto.newPassword);
 
       return {
         success: true,
         message: 'Password changed successfully',
       };
     } catch (error) {
-      if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof UnauthorizedException
+      ) {
         throw error;
       }
       throw new BadRequestException('Password change failed');
@@ -176,12 +191,15 @@ export class UserModuleService {
    * Change user password (admin reset - no old password needed)
    * For Super Admin changing another user's password
    */
-  async changeUserPassword(userId: number, newPassword: string): Promise<{
+  async changeUserPassword(
+    userId: number,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{
     success: boolean;
     message: string;
   }> {
     try {
-      await this.updateUserPassword(userId, newPassword);
+      await this.updateUserPassword(userId, changePasswordDto.newPassword);
 
       return {
         success: true,
@@ -195,8 +213,13 @@ export class UserModuleService {
   /**
    * Shared password update logic
    */
-  private async updateUserPassword(userId: number, newPassword: string): Promise<void> {
-    const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS') || authConstants.BCRYPT_ROUNDS;
+  private async updateUserPassword(
+    userId: number,
+    newPassword: string,
+  ): Promise<void> {
+    const saltRounds =
+      this.configService.get<number>('BCRYPT_ROUNDS') ||
+      authConstants.BCRYPT_ROUNDS;
     const salt = await genSalt(saltRounds);
     const newPasswordHash = await hash(newPassword, salt);
 
@@ -260,6 +283,110 @@ export class UserModuleService {
         throw error;
       }
       throw new BadRequestException('Failed to fetch user');
+    }
+  }
+
+  /**
+   * Update user (Super Admin only)
+   */
+  async updateUser(
+    userId: number,
+    updateUserDto: UpdateUserDto,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: any;
+  }> {
+    try {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!existingUser) {
+        throw new BadRequestException('User not found');
+      }
+
+      if (updateUserDto.email && updateUserDto.email !== existingUser.email) {
+        const emailExists = await this.prisma.user.findUnique({
+          where: { email: updateUserDto.email },
+        });
+
+        if (emailExists) {
+          throw new ConflictException('Email already in use');
+        }
+      }
+
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          ...(updateUserDto.email && { email: updateUserDto.email }),
+          ...(updateUserDto.phone && { phone: updateUserDto.phone }),
+          ...(updateUserDto.firstName && {
+            firstName: updateUserDto.firstName,
+          }),
+          ...(updateUserDto.lastName !== undefined && {
+            lastName: updateUserDto.lastName || null,
+          }),
+          ...(updateUserDto.role && { role: updateUserDto.role }),
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'User updated successfully',
+        data: null, // Return null or updatedUser based on your preference. Be cautious about returning sensitive info.
+      };
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException('User update failed');
+    }
+  }
+
+  /**
+   * Delete user (Super Admin only)
+   */
+  async deleteUser(userId: number): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    try {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!existingUser) {
+        throw new BadRequestException('User not found');
+      }
+
+      await this.prisma.user.delete({
+        where: { id: userId },
+      });
+
+      return {
+        success: true,
+        message: 'User deleted successfully',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('User deletion failed');
     }
   }
 

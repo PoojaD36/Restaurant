@@ -47,6 +47,14 @@ export interface ChangePasswordRequest {
   userId?: number;
 }
 
+export interface UpdateUserRequest {
+  email?: string;
+  phone?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: UserRole;
+}
+
 export interface UserListItem {
   id: string;
   firstName: string;

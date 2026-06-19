@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Request, HttpCode, HttpStatus, Param, UnauthorizedException, Query } from '@nestjs/common';
+import { Controller, Post, Get, Put, Delete, Body, UseGuards, Request, HttpCode, HttpStatus, Param, UnauthorizedException, Query } from '@nestjs/common';
 import { UserModuleService } from './user-module.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -7,6 +7,7 @@ import { UserRole } from 'src/database/generated/prisma/enums';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { PaginationDto } from './dto/pagination.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -21,14 +22,7 @@ export class UserModuleController {
   @Roles(UserRole.SUPER_ADMIN)
   @HttpCode(HttpStatus.CREATED)
   async createUser(@Body() createUserDto: CreateUserDto) {
-    return this.userModuleService.createUser(
-      createUserDto.email,
-      createUserDto.phone,
-      createUserDto.password,
-      createUserDto.firstName,
-      createUserDto.lastName || null,
-      createUserDto.role,
-    );
+    return this.userModuleService.createUser(createUserDto);
   }
 
   /**
@@ -54,7 +48,7 @@ export class UserModuleController {
     if (req.user.role === UserRole.SUPER_ADMIN && changePasswordDto.userId) {
       return this.userModuleService.changeUserPassword(
         changePasswordDto.userId,
-        changePasswordDto.newPassword,
+        changePasswordDto,
       );
     }
 
@@ -65,8 +59,7 @@ export class UserModuleController {
 
     return this.userModuleService.changePassword(
       req.user.userId,
-      changePasswordDto.oldPassword,
-      changePasswordDto.newPassword,
+      changePasswordDto,
     );
   }
 
@@ -86,5 +79,27 @@ export class UserModuleController {
   @Roles(UserRole.SUPER_ADMIN)
   async getUserById(@Param('id') id: string) {
     return this.userModuleService.getUserById(parseInt(id));
+  }
+
+  /**
+   * Update user (Super Admin only)
+   */
+  @Put(':id')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  async updateUser(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.userModuleService.updateUser(parseInt(id), updateUserDto);
+  }
+
+  /**
+   * Delete user (Super Admin only)
+   */
+  @Delete(':id')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
+  @HttpCode(HttpStatus.OK)
+  async deleteUser(@Param('id') id: string) {
+    return this.userModuleService.deleteUser(parseInt(id));
   }
 }
