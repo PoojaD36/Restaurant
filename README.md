@@ -264,10 +264,51 @@ All API responses follow a consistent format with `success`, `message`, and `dat
 ### Backend (.env)
 Located at `apps/backend/.env`
 
+**Required Variables:**
+```env
+PORT=3001
+DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
+FRONTEND_URL=https://restaurant-frontend-kappa-ten.vercel.app
+```
+
+**For Local Development:**
 ```env
 PORT=3001
 DATABASE_URL="postgresql://..."
+FRONTEND_URL=http://localhost:3000
 ```
+
+**Files:**
+- `.env` - Active environment variables (not committed to git)
+- `.env.example` - Template file for reference
+
+### Frontend (.env)
+Located at `apps/frontend/`
+
+**Development (.env.local):**
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
+
+**Production (.env.production):**
+```env
+NEXT_PUBLIC_API_URL=https://restaurant-t24q.onrender.com
+```
+
+**Files:**
+- `.env.local` - Local development (auto-loaded by Next.js)
+- `.env.production` - Production build configuration
+- `.env.example` - Template file for reference
+
+### Production Deployment
+
+**Render (Backend):**
+1. Set `FRONTEND_URL=https://restaurant-frontend-kappa-ten.vercel.app` in Render environment variables
+2. CORS configuration automatically includes the production frontend URL
+
+**Vercel (Frontend):**
+1. Add `NEXT_PUBLIC_API_URL=https://restaurant-t24q.onrender.com` in Vercel Dashboard → Settings → Environment Variables
+2. The `NEXT_PUBLIC_` prefix makes the variable available in browser code
 
 ### Prerequisites
 - Node.js >= 18
@@ -430,6 +471,7 @@ npx shadcn@latest add dialog -y
 - ✅ **DTO Usage Refactoring** - Refactored create user and change password APIs to use DTOs directly in service methods instead of individual parameters - 2026-06-19
 - ✅ **User Update/Delete APIs** - Implemented PUT and DELETE endpoints for user management with proper validation and error handling - 2026-06-19
 - ✅ **Frontend User Edit/Delete** - Added edit and delete icons with modals for user management, including edit user modal with pre-filled data and delete confirmation dialog - 2026-06-19
+- ✅ **Environment Variable Configuration** - Set up environment variables for production and local development, including frontend API URL and backend CORS configuration - 2026-06-19
 
 ### In Progress
 - No tasks currently in progress
