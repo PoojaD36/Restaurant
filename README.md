@@ -138,7 +138,7 @@ d:\restaurant/
 | Landing Page | ✅ Complete | Food delivery themed hero with framer-motion animations |
 | Background Effects | ✅ Complete | Floating food icons, wave animations, glass-morphism |
 | Authentication | ✅ Complete | Login, logout, JWT handling |
-| Dashboard | ✅ Complete | Protected dashboard with header/nav |
+| Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
 | User Creation | ✅ Complete | Super Admin user creation form |
 | Auth Context | ✅ Complete | State management with useAuth hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check |
@@ -284,7 +284,7 @@ npx tsc --noEmit
 | `components/ui/dialog.tsx` | shadcn Dialog component |
 | `app/page.tsx` | Landing page - food delivery theme with animations |
 | `app/login/page.tsx` | Login form (email/phone + password) |
-| `app/dashboard/layout.tsx` | Dashboard layout with header, navigation, logout, change password button |
+| `app/dashboard/layout.tsx` | Dashboard layout with sidebar navigation (collapsible on desktop, hamburger menu on mobile), logout, change password button |
 | `app/dashboard/page.tsx` | Dashboard home page |
 | `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) - legacy, replaced by modal |
 | `app/dashboard/users/page.tsx` | Users list page with Create User button and password reset modal (Super Admin only) |
@@ -385,6 +385,7 @@ npx shadcn@latest add dialog -y
 - ✅ **Password Confirmation Field** - Added confirm password field to change password modal with validation - 2026-06-19
 - ✅ **Create User Modal** - Created modal-based user creation instead of separate page - 2026-06-19
 - ✅ **Users List Modal Integration** - Updated Manage Users page to use modals for both create user and password change - 2026-06-19
+- ✅ **Sidebar Navigation** - Converted dashboard from top header navigation to professional sidebar (collapsible on desktop, hamburger menu on mobile) - 2026-06-19
 
 ### In Progress
 - No tasks currently in progress
@@ -404,6 +405,18 @@ npx shadcn@latest add dialog -y
 - **Current Branch:** `pooja_dev`
 - **Main Branch:** `main`
 - **Git User:** Pooja
+
+---
+
+## Documentation Guidelines
+
+> **IMPORTANT:** This README.md must be updated whenever:
+> - New features or functionality are added
+> - Changes are made to existing components/pages
+> - New API endpoints are created
+> - Architecture or structure changes occur
+>
+> This ensures the documentation stays current and serves as the single source of truth for the project.
 
 ---
 
