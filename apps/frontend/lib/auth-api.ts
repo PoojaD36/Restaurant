@@ -1,4 +1,4 @@
-import type { LoginCredentials, LoginResponse, CreateUserRequest, User } from './types';
+import type { LoginCredentials, LoginResponse, User } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -32,13 +32,6 @@ export async function login(credentials: LoginCredentials): Promise<LoginRespons
 
 export async function getCurrentUser(): Promise<User> {
   return request('/auth/profile');
-}
-
-export async function createUser(data: CreateUserRequest): Promise<User> {
-  return request('/auth/create-user', {
-    method: 'POST',
-    body: JSON.stringify(data),
-  });
 }
 
 export async function logout(): Promise<void> {

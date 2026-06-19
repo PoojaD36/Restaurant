@@ -4,7 +4,7 @@ import { useAuth } from '../../contexts/auth-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
-import { Utensils, LayoutDashboard, UserPlus, LogOut } from 'lucide-react';
+import { Utensils, LayoutDashboard, UserPlus, LogOut, Key, Users } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { href: '/dashboard/create-user', icon: UserPlus, label: 'Create User' },
+    { href: '/dashboard/create-user', icon: UserPlus, label: 'Create User', requiresRole: 'SUPER_ADMIN' as const },
+    { href: '/dashboard/change-password', icon: Key, label: 'Change Password' },
+    { href: '/dashboard/users', icon: Users, label: 'Manage Users', requiresRole: 'SUPER_ADMIN' as const },
   ];
 
   return (
@@ -39,26 +41,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </Link>
 
               <nav className="hidden md:flex items-center gap-1">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link key={item.href} href={item.href}>
-                      <Button
-                        variant={isActive ? 'default' : 'ghost'}
-                        size="sm"
-                        className={
-                          isActive
-                            ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white hover:from-red-700 hover:to-orange-600'
-                            : 'text-slate-600 hover:text-orange-600 hover:bg-orange-50'
-                        }
-                      >
-                        <Icon className="h-4 w-4 mr-2" />
-                        {item.label}
-                      </Button>
-                    </Link>
-                  );
-                })}
+                {navItems
+                  .filter((item) => !item.requiresRole || user?.role === item.requiresRole)
+                  .map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link key={item.href} href={item.href}>
+                        <Button
+                          variant={isActive ? 'default' : 'ghost'}
+                          size="sm"
+                          className={
+                            isActive
+                              ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white hover:from-red-700 hover:to-orange-600'
+                              : 'text-slate-600 hover:text-orange-600 hover:bg-orange-50'
+                          }
+                        >
+                          <Icon className="h-4 w-4 mr-2" />
+                          {item.label}
+                        </Button>
+                      </Link>
+                    );
+                  })}
               </nav>
             </div>
 
@@ -86,26 +90,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Mobile Navigation */}
       <nav className="md:hidden border-b border-orange-200 bg-white/90 backdrop-blur">
         <div className="flex px-4 py-2 gap-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link key={item.href} href={item.href} className="flex-1">
-                <Button
-                  variant={isActive ? 'default' : 'ghost'}
-                  size="sm"
-                  className={`w-full ${
-                    isActive
-                      ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white'
-                      : 'text-slate-600'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 mr-2" />
-                  {item.label}
-                </Button>
-              </Link>
-            );
-          })}
+          {navItems
+            .filter((item) => !item.requiresRole || user?.role === item.requiresRole)
+            .map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link key={item.href} href={item.href} className="flex-1">
+                  <Button
+                    variant={isActive ? 'default' : 'ghost'}
+                    size="sm"
+                    className={`w-full ${
+                      isActive
+                        ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white'
+                        : 'text-slate-600'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 mr-2" />
+                    {item.label}
+                  </Button>
+                </Link>
+              );
+            })}
         </div>
       </nav>
 
