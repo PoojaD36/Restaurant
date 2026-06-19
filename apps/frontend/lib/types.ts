@@ -10,9 +10,18 @@ export interface User {
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   createdAt?: string;
   updatedAt?: string;
+  profileImage?: string;
+}
+
+export interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data?: T;
 }
 
 export interface LoginResponse {
+  success: boolean;
+  message: string;
   user: User;
   accessToken: string;
   refreshToken: string;
@@ -33,8 +42,9 @@ export interface CreateUserRequest {
 }
 
 export interface ChangePasswordRequest {
-  oldPassword: string;
+  oldPassword?: string;
   newPassword: string;
+  userId?: number;
 }
 
 export interface UserListItem {
@@ -46,4 +56,16 @@ export interface UserListItem {
   role: UserRole;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   createdAt: string;
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  message: string;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }

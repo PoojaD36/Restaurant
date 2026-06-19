@@ -18,70 +18,110 @@ export class AuthService {
   /**
    * Login user with email/phone and password
    */
-  async login(identifier: string, password: string) {
-    const user = await this.prisma.user.findFirst({
-      where: {
-        OR: [{ email: identifier }, { phone: identifier }],
-      },
-      include: {
-        password: true,
-      },
-    });
+  async login(identifier: string, password: string): Promise<{
+    success: boolean;
+    message: string;
+    accessToken: string;
+    refreshToken: string;
+    user: any;
+  }> {
+    try {
+      const user = await this.prisma.user.findFirst({
+        where: {
+          OR: [{ email: identifier }, { phone: identifier }],
+        },
+        include: {
+          password: true,
+        },
+      });
 
-    if (!user || !user.password) {
-      throw new UnauthorizedException('Invalid credentials');
+      if (!user || !user.password) {
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      if (user.status === UserStatus.SUSPENDED) {
+        throw new UnauthorizedException('Account is suspended');
+      }
+
+      if (user.status === UserStatus.INACTIVE) {
+        throw new UnauthorizedException('Account is inactive');
+      }
+
+      await this.checkAccountLock(user.password);
+
+      const isPasswordValid = await compare(password, user.password.passwordHash);
+
+      if (!isPasswordValid) {
+        await this.handleFailedLogin(user.password);
+        throw new UnauthorizedException('Invalid credentials');
+      }
+
+      await this.handleSuccessfulLogin(user.password);
+
+      const tokens = await this.generateTokens(user);
+
+      return {
+        success: true,
+        message: 'Login successful',
+        ...tokens,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Login failed');
     }
-
-    if (user.status === UserStatus.SUSPENDED) {
-      throw new UnauthorizedException('Account is suspended');
-    }
-
-    if (user.status === UserStatus.INACTIVE) {
-      throw new UnauthorizedException('Account is inactive');
-    }
-
-    await this.checkAccountLock(user.password);
-
-    const isPasswordValid = await compare(password, user.password.passwordHash);
-
-    if (!isPasswordValid) {
-      await this.handleFailedLogin(user.password);
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    await this.handleSuccessfulLogin(user.password);
-
-    return this.generateTokens(user);
   }
 
   /**
    * Validate user for JWT strategy
    */
-  async validateUser(userId: number): Promise<any> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        status: true,
-        profileImage: true,
-      },
-    });
+  async validateUser(userId: number): Promise<{
+    success: boolean;
+    message: string;
+    user: any;
+  }> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          firstName: true,
+          lastName: true,
+          role: true,
+          status: true,
+          profileImage: true,
+        },
+      });
 
-    if (!user || user.status !== UserStatus.ACTIVE) {
-      throw new UnauthorizedException('User not found or inactive');
+      if (!user || user.status !== UserStatus.ACTIVE) {
+        throw new UnauthorizedException('User not found or inactive');
+      }
+
+      return {
+        success: true,
+        message: 'User validated successfully',
+        user,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('User validation failed');
     }
-
-    return user;
   }
 
   /**
    * Refresh access token using refresh token
    */
-  async refreshToken(refreshToken: string) {
+  async refreshToken(refreshToken: string): Promise<{
+    success: boolean;
+    message: string;
+    accessToken: string;
+    refreshToken: string;
+    user: any;
+  }> {
     try {
       const payload = this.jwtService.verify(refreshToken);
       const user = await this.prisma.user.findUnique({
@@ -93,67 +133,99 @@ export class AuthService {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      return this.generateTokens(user);
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token');
+      const tokens = await this.generateTokens(user);
+
+      return {
+        success: true,
+        message: 'Token refreshed successfully',
+        ...tokens,
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Token refresh failed');
     }
   }
 
   /**
    * Logout user by clearing refresh token
    */
-  async logout(userId: number): Promise<void> {
-    await this.prisma.userPassword.update({
-      where: { userId },
-      data: { refreshTokenHash: null, lastLoginAt: new Date() },
-    });
+  async logout(userId: number): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    try {
+      await this.prisma.userPassword.update({
+        where: { userId },
+        data: { refreshTokenHash: null, lastLoginAt: new Date() },
+      });
+
+      return {
+        success: true,
+        message: 'Logout successful',
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Logout failed');
+    }
   }
 
   /**
    * Generate JWT tokens for user
    */
   private async generateTokens(user: any): Promise<{ accessToken: string; refreshToken: string; user: any }> {
-    const payload: JwtPayload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-    };
+    try {
+      const payload: JwtPayload = {
+        sub: user.id,
+        email: user.email,
+        role: user.role,
+      };
 
-    const accessToken = this.jwtService.sign(payload);
-    const refreshToken = this.jwtService.sign(payload, {
-      expiresIn: (this.configService.get<string>('REFRESH_TOKEN_EXPIRES_IN') || authConstants.REFRESH_TOKEN_EXPIRES_IN) as any,
-    });
+      const accessToken = this.jwtService.sign(payload);
+      const refreshToken = this.jwtService.sign(payload, {
+        expiresIn: (this.configService.get<string>('REFRESH_TOKEN_EXPIRES_IN') || authConstants.REFRESH_TOKEN_EXPIRES_IN) as any,
+      });
 
-    await this.prisma.userPassword.update({
-      where: { userId: user.id },
-      data: { refreshTokenHash: refreshToken },
-    });
+      await this.prisma.userPassword.update({
+        where: { userId: user.id },
+        data: { refreshTokenHash: refreshToken },
+      });
 
-    const { password: _, ...userWithoutPassword } = user;
+      const { password: _, ...userWithoutPassword } = user;
 
-    return {
-      accessToken,
-      refreshToken,
-      user: userWithoutPassword,
-    };
+      return {
+        accessToken,
+        refreshToken,
+        user: userWithoutPassword,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Token generation failed');
+    }
   }
 
   /**
    * Check if account is locked
    */
   private async checkAccountLock(userPassword: any): Promise<void> {
-    if (userPassword.lockedUntil && userPassword.lockedUntil > new Date()) {
-      throw new UnauthorizedException('Account is locked due to too many failed attempts. Please try again later.');
-    }
+    try {
+      if (userPassword.lockedUntil && userPassword.lockedUntil > new Date()) {
+        throw new UnauthorizedException('Account is locked due to too many failed attempts. Please try again later.');
+      }
 
-    if (userPassword.lockedUntil && userPassword.lockedUntil <= new Date() && userPassword.failedAttempts > 0) {
-      await this.prisma.userPassword.update({
-        where: { id: userPassword.id },
-        data: {
-          failedAttempts: 0,
-          lockedUntil: null,
-        },
-      });
+      if (userPassword.lockedUntil && userPassword.lockedUntil <= new Date() && userPassword.failedAttempts > 0) {
+        await this.prisma.userPassword.update({
+          where: { id: userPassword.id },
+          data: {
+            failedAttempts: 0,
+            lockedUntil: null,
+          },
+        });
+      }
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new UnauthorizedException('Account lock check failed');
     }
   }
 
@@ -161,37 +233,45 @@ export class AuthService {
    * Handle failed login attempt
    */
   private async handleFailedLogin(userPassword: any): Promise<void> {
-    const maxAttempts = this.configService.get<number>('MAX_LOGIN_ATTEMPTS') || authConstants.MAX_LOGIN_ATTEMPTS;
-    const lockDurationMinutes = this.configService.get<number>('LOCK_DURATION_MINUTES') || authConstants.LOCK_DURATION_MINUTES;
+    try {
+      const maxAttempts = this.configService.get<number>('MAX_LOGIN_ATTEMPTS') || authConstants.MAX_LOGIN_ATTEMPTS;
+      const lockDurationMinutes = this.configService.get<number>('LOCK_DURATION_MINUTES') || authConstants.LOCK_DURATION_MINUTES;
 
-    const newFailedAttempts = userPassword.failedAttempts + 1;
-    const updateData: any = {
-      failedAttempts: newFailedAttempts,
-    };
+      const newFailedAttempts = userPassword.failedAttempts + 1;
+      const updateData: any = {
+        failedAttempts: newFailedAttempts,
+      };
 
-    if (newFailedAttempts >= maxAttempts) {
-      const lockedUntil = new Date();
-      lockedUntil.setMinutes(lockedUntil.getMinutes() + lockDurationMinutes);
-      updateData.lockedUntil = lockedUntil;
+      if (newFailedAttempts >= maxAttempts) {
+        const lockedUntil = new Date();
+        lockedUntil.setMinutes(lockedUntil.getMinutes() + lockDurationMinutes);
+        updateData.lockedUntil = lockedUntil;
+      }
+
+      await this.prisma.userPassword.update({
+        where: { id: userPassword.id },
+        data: updateData,
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Failed login tracking failed');
     }
-
-    await this.prisma.userPassword.update({
-      where: { id: userPassword.id },
-      data: updateData,
-    });
   }
 
   /**
    * Handle successful login
    */
   private async handleSuccessfulLogin(userPassword: any): Promise<void> {
-    await this.prisma.userPassword.update({
-      where: { id: userPassword.id },
-      data: {
-        failedAttempts: 0,
-        lockedUntil: null,
-        lastLoginAt: new Date(),
-      },
-    });
+    try {
+      await this.prisma.userPassword.update({
+        where: { id: userPassword.id },
+        data: {
+          failedAttempts: 0,
+          lockedUntil: null,
+          lastLoginAt: new Date(),
+        },
+      });
+    } catch (error) {
+      throw new UnauthorizedException('Login tracking failed');
+    }
   }
 }

@@ -1,4 +1,4 @@
-import type { LoginCredentials, LoginResponse, User } from './types';
+import type { LoginCredentials, LoginResponse, User, ApiResponse } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -30,12 +30,12 @@ export async function login(credentials: LoginCredentials): Promise<LoginRespons
   });
 }
 
-export async function getCurrentUser(): Promise<User> {
+export async function getCurrentUser(): Promise<ApiResponse<User>> {
   return request('/auth/profile');
 }
 
-export async function logout(): Promise<void> {
-  await request('/auth/logout', { method: 'POST' });
+export async function logout(): Promise<ApiResponse<null>> {
+  return request('/auth/logout', { method: 'POST' });
 }
 
 export function saveTokens(accessToken: string, refreshToken: string): void {

@@ -22,107 +22,174 @@ export class UserModuleService {
     firstName: string,
     lastName: string | null,
     role: UserRole,
-  ) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-    });
+  ): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    try {
+      const existingUser = await this.prisma.user.findUnique({
+        where: { email },
+      });
 
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
-    }
+      if (existingUser) {
+        throw new ConflictException('User with this email already exists');
+      }
 
-    const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS') || authConstants.BCRYPT_ROUNDS;
-    const salt = await genSalt(saltRounds);
-    const passwordHash = await hash(password, salt);
+      const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS') || authConstants.BCRYPT_ROUNDS;
+      const salt = await genSalt(saltRounds);
+      const passwordHash = await hash(password, salt);
 
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        phone,
-        firstName,
-        lastName,
-        role,
-        status: UserStatus.ACTIVE,
-        password: {
-          create: {
-            passwordHash,
+      await this.prisma.user.create({
+        data: {
+          email,
+          phone,
+          firstName,
+          lastName,
+          role,
+          status: UserStatus.ACTIVE,
+          password: {
+            create: {
+              passwordHash,
+            },
           },
         },
-      },
-      include: {
-        password: true,
-      },
-    });
+      });
 
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
+      return {
+        success: true,
+        message: 'User created successfully',
+      };
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      throw new BadRequestException('User creation failed');
+    }
   }
 
   /**
-   * Get all users excluding superadmin with limited details
+   * Get all users excluding superadmin with limited details and pagination
    */
-  async getAllUsers(): Promise<any[]> {
-    const users = await this.prisma.user.findMany({
-      where: {
-        role: {
-          not: UserRole.SUPER_ADMIN,
-        },
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        role: true,
-        status: true,
-        createdAt: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+  async getAllUsers(page: number = 1, limit: number = 10): Promise<{
+    success: boolean;
+    message: string;
+    data: any[];
+    pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+    };
+  }> {
+    try {
+      const skip = (page - 1) * limit;
 
-    return users.map(user => ({
-      id: user.id.toString(),
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      status: user.status,
-      createdAt: user.createdAt.toISOString(),
-    }));
+      const [users, total] = await Promise.all([
+        this.prisma.user.findMany({
+          where: {
+            role: {
+              not: UserRole.SUPER_ADMIN,
+            },
+          },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            role: true,
+            status: true,
+            createdAt: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          skip,
+          take: limit,
+        }),
+        this.prisma.user.count({
+          where: {
+            role: {
+              not: UserRole.SUPER_ADMIN,
+            },
+          },
+        }),
+      ]);
+
+      const totalPages = Math.ceil(total / limit);
+
+      return {
+        success: true,
+        message: 'Users retrieved successfully',
+        data: users,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages,
+        },
+      };
+    } catch (error) {
+      console.error('Error in getAllUsers:', error);
+      throw new BadRequestException('Failed to fetch users');
+    }
   }
 
   /**
    * Change user password (with old password verification)
    * For regular users changing their own password
    */
-  async changePassword(userId: number, oldPassword: string, newPassword: string): Promise<void> {
-    const userPassword = await this.prisma.userPassword.findUnique({
-      where: { userId },
-    });
+  async changePassword(userId: number, oldPassword: string, newPassword: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    try {
+      const userPassword = await this.prisma.userPassword.findUnique({
+        where: { userId },
+      });
 
-    if (!userPassword) {
-      throw new BadRequestException('User password not found');
+      if (!userPassword) {
+        throw new BadRequestException('User password not found');
+      }
+
+      const isOldPasswordValid = await compare(oldPassword, userPassword.passwordHash);
+
+      if (!isOldPasswordValid) {
+        throw new UnauthorizedException('Old password is incorrect');
+      }
+
+      await this.updateUserPassword(userId, newPassword);
+
+      return {
+        success: true,
+        message: 'Password changed successfully',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException || error instanceof UnauthorizedException) {
+        throw error;
+      }
+      throw new BadRequestException('Password change failed');
     }
-
-    const isOldPasswordValid = await compare(oldPassword, userPassword.passwordHash);
-
-    if (!isOldPasswordValid) {
-      throw new UnauthorizedException('Old password is incorrect');
-    }
-
-    await this.updateUserPassword(userId, newPassword);
   }
 
   /**
    * Change user password (admin reset - no old password needed)
    * For Super Admin changing another user's password
    */
-  async changeUserPassword(userId: number, newPassword: string): Promise<void> {
-    this.updateUserPassword(userId, newPassword);
+  async changeUserPassword(userId: number, newPassword: string): Promise<{
+    success: boolean;
+    message: string;
+  }> {
+    try {
+      await this.updateUserPassword(userId, newPassword);
+
+      return {
+        success: true,
+        message: 'Password reset successfully',
+      };
+    } catch (error) {
+      throw new BadRequestException('Password reset failed');
+    }
   }
 
   /**
@@ -146,39 +213,54 @@ export class UserModuleService {
   /**
    * Get user by ID
    */
-  async getUserById(userId: number): Promise<any> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        role: true,
-        status: true,
-        profileImage: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+  async getUserById(userId: number): Promise<{
+    success: boolean;
+    message: string;
+    data: any;
+  }> {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          role: true,
+          status: true,
+          profileImage: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
 
-    if (!user) {
-      throw new BadRequestException('User not found');
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      return {
+        success: true,
+        message: 'User retrieved successfully',
+        data: {
+          id: user.id.toString(),
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          status: user.status,
+          profileImage: user.profileImage,
+          createdAt: user.createdAt.toISOString(),
+          updatedAt: user.updatedAt.toISOString(),
+        },
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to fetch user');
     }
-
-    return {
-      id: user.id.toString(),
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      phone: user.phone,
-      role: user.role,
-      status: user.status,
-      profileImage: user.profileImage,
-      createdAt: user.createdAt.toISOString(),
-      updatedAt: user.updatedAt.toISOString(),
-    };
   }
 
   // Placeholder methods for future CRUD operations
