@@ -1,4 +1,4 @@
-import type { CreateUserRequest, ChangePasswordRequest, UserListItem, ApiResponse, PaginatedResponse, User } from './types';
+import type { CreateUserRequest, ChangePasswordRequest, UserListItem, ApiResponse, PaginatedResponse, User, UpdateUserRequest } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -43,4 +43,17 @@ export async function changePassword(data: ChangePasswordRequest): Promise<ApiRe
 
 export async function getUserProfile(): Promise<ApiResponse<User>> {
   return request('/users/profile');
+}
+
+export async function updateUser(userId: string, data: UpdateUserRequest): Promise<ApiResponse<User>> {
+  return request(`/users/${userId}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteUser(userId: string): Promise<ApiResponse<null>> {
+  return request(`/users/${userId}`, {
+    method: 'DELETE',
+  });
 }

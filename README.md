@@ -208,6 +208,8 @@ d:\restaurant/
 | `/users/change-password` | POST | JWT | - | Change password | - |
 | `/users/profile` | GET | JWT | - | Get user profile | - |
 | `/users/:id` | GET | JWT | SUPER_ADMIN | Get user by ID | - |
+| `/users/:id` | PUT | JWT | SUPER_ADMIN | Update user | - |
+| `/users/:id` | DELETE | JWT | SUPER_ADMIN | Delete user | - |
 
 ### Authentication Flow
 
@@ -425,12 +427,14 @@ npx shadcn@latest add dialog -y
 - ✅ **Pagination Implementation** - Added pagination support to user list API with metadata (page, limit, total, totalPages) - 2026-06-19
 - ✅ **Frontend Pagination** - Updated users list page with pagination controls and state management - 2026-06-19
 - ✅ **Global Validation Pipe** - Enabled NestJS validation pipe in main.ts for DTO validation - 2026-06-19
+- ✅ **DTO Usage Refactoring** - Refactored create user and change password APIs to use DTOs directly in service methods instead of individual parameters - 2026-06-19
+- ✅ **User Update/Delete APIs** - Implemented PUT and DELETE endpoints for user management with proper validation and error handling - 2026-06-19
+- ✅ **Frontend User Edit/Delete** - Added edit and delete icons with modals for user management, including edit user modal with pre-filled data and delete confirmation dialog - 2026-06-19
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
-- [ ] **User Update/Delete Operations** - Implement update and delete user endpoints
 - [ ] **Restaurant Management** - Create restaurant CRUD with admin assignment
 - [ ] **Outlet Management** - Create outlet CRUD with location features
 - [ ] **Customer Portal** - Implement customer registration and auth
@@ -456,6 +460,7 @@ npx shadcn@latest add dialog -y
 - **DTOs (Data Transfer Objects):** All DTOs must be defined in separate `dto/` folders within each module
   - Do NOT define DTOs inline in controllers or services
   - Use class-validator decorators for validation
+  - Pass DTOs to service methods instead of individual parameters
   - Example: `src/user-module/dto/create-user.dto.ts`
 
 - **Services:** Business logic goes in services, not controllers

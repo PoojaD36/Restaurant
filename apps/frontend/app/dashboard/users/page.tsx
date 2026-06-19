@@ -8,9 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../..
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
-import { Mail, Phone, Users, Loader2, Key, UserPlus } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
+import { Mail, Phone, Users, Loader2, Key, UserPlus, Pencil, Trash2 } from 'lucide-react';
 import { ChangePasswordModal } from '../../../components/change-password-modal';
 import { CreateUserModal } from '../../../components/create-user-modal';
+import { EditUserModal } from '../../../components/edit-user-modal';
+import { deleteUser } from '../../../lib/users-api';
 
 const roleLabels: Record<UserRole, string> = {
   SUPER_ADMIN: 'Super Admin',
@@ -32,10 +35,13 @@ export default function UsersListPage() {
   const [error, setError] = useState('');
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [showEditUserModal, setShowEditUserModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadUsers();
@@ -66,8 +72,49 @@ export default function UsersListPage() {
     setShowChangePasswordModal(false);
   };
 
+  const handleOpenEditModal = (user: UserListItem) => {
+    setSelectedUser(user);
+    setShowEditUserModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setSelectedUser(null);
+    setShowEditUserModal(false);
+  };
+
   const handleUserCreated = () => {
     loadUsers();
+  };
+
+  const handleUserUpdated = () => {
+    loadUsers();
+  };
+
+  const handleDeleteUser = async () => {
+    if (!selectedUser) return;
+
+    setIsDeleting(true);
+    setError('');
+    try {
+      await deleteUser(selectedUser.id);
+      setShowDeleteConfirm(false);
+      setSelectedUser(null);
+      loadUsers();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete user');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleOpenDeleteConfirm = (user: UserListItem) => {
+    setSelectedUser(user);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleCloseDeleteConfirm = () => {
+    setSelectedUser(null);
+    setShowDeleteConfirm(false);
   };
 
   return (
@@ -161,15 +208,35 @@ export default function UsersListPage() {
                           {new Date(user.createdAt).toLocaleDateString()}
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleOpenChangePasswordModal(user)}
-                            className="text-slate-600 hover:text-orange-600 hover:bg-orange-50"
-                            title="Change Password"
-                          >
-                            <Key className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleOpenEditModal(user)}
+                              className="text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                              title="Edit User"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleOpenChangePasswordModal(user)}
+                              className="text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                              title="Change Password"
+                            >
+                              <Key className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleOpenDeleteConfirm(user)}
+                              className="text-slate-600 hover:text-red-600 hover:bg-red-50"
+                              title="Delete User"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -223,6 +290,55 @@ export default function UsersListPage() {
           onClose={() => setShowCreateUserModal(false)}
           onSuccess={handleUserCreated}
         />
+
+        {/* Edit User Modal */}
+        {selectedUser && (
+          <EditUserModal
+            open={showEditUserModal}
+            onClose={handleCloseEditModal}
+            onSuccess={handleUserUpdated}
+            user={selectedUser}
+          />
+        )}
+
+        {/* Delete Confirmation Modal */}
+        <Dialog open={showDeleteConfirm} onOpenChange={handleCloseDeleteConfirm}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-red-600">
+                <Trash2 className="h-5 w-5" />
+                Delete User
+              </DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete <strong>{selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName || ''}` : 'this user'}</strong>? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+
+            {error && (
+              <div className="rounded-md bg-red-50 p-3 border border-red-200">
+                <p className="text-sm text-red-600">{error}</p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={handleCloseDeleteConfirm}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteUser}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeleting ? 'Deleting...' : 'Delete User'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </ProtectedRoute>
   );
