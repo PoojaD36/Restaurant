@@ -22,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = api.getAccessToken();
     if (token) {
       api.getCurrentUser()
-        .then((response) => setUser(response.data))
+        .then((response) => setUser(response.data ?? null))
         .catch(() => {
           api.clearTokens();
           setUser(null);
