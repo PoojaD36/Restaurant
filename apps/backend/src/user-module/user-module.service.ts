@@ -96,7 +96,8 @@ export class UserModuleService {
   }
 
   /**
-   * Change user password
+   * Change user password (with old password verification)
+   * For regular users changing their own password
    */
   async changePassword(userId: number, oldPassword: string, newPassword: string): Promise<void> {
     const userPassword = await this.prisma.userPassword.findUnique({
@@ -113,6 +114,21 @@ export class UserModuleService {
       throw new UnauthorizedException('Old password is incorrect');
     }
 
+    await this.updateUserPassword(userId, newPassword);
+  }
+
+  /**
+   * Change user password (admin reset - no old password needed)
+   * For Super Admin changing another user's password
+   */
+  async changeUserPassword(userId: number, newPassword: string): Promise<void> {
+    this.updateUserPassword(userId, newPassword);
+  }
+
+  /**
+   * Shared password update logic
+   */
+  private async updateUserPassword(userId: number, newPassword: string): Promise<void> {
     const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS') || authConstants.BCRYPT_ROUNDS;
     const salt = await genSalt(saltRounds);
     const newPasswordHash = await hash(newPassword, salt);
