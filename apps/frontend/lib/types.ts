@@ -3,12 +3,13 @@ export type UserRole = 'SUPER_ADMIN' | 'RESTAURANT_ADMIN' | 'MANAGER' | 'CHEF' |
 export interface User {
   id: string;
   email: string;
-  name?: string;
+  firstName?: string;
+  lastName?: string;
   phone?: string;
   role: UserRole;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface LoginResponse {
@@ -29,4 +30,20 @@ export interface CreateUserRequest {
   lastName?: string;
   phone: string;
   role: UserRole;
+}
+
+export interface ChangePasswordRequest {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export interface UserListItem {
+  id: string;
+  firstName: string;
+  lastName: string | null;
+  email: string;
+  phone: string;
+  role: UserRole;
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  createdAt: string;
 }

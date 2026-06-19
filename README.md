@@ -194,18 +194,26 @@ d:\restaurant/
 | Endpoint | Method | Auth Required | Role Required | Description |
 |----------|--------|---------------|---------------|-------------|
 | `/auth/login` | POST | No | - | Login with email/phone |
-| `/auth/create-user` | POST | JWT | SUPER_ADMIN | Create new user (role from frontend) |
 | `/auth/refresh` | POST | No | - | Refresh access token |
 | `/auth/profile` | GET | JWT | - | Get current user |
 | `/auth/logout` | POST | JWT | - | Logout user |
-| `/auth/change-password` | POST | JWT | - | Change password |
 | `/auth/admin-only` | GET | JWT | SUPER_ADMIN | Test endpoint for role check |
+
+### User Management
+
+| Endpoint | Method | Auth Required | Role Required | Description |
+|----------|--------|---------------|---------------|-------------|
+| `/users/create` | POST | JWT | SUPER_ADMIN | Create new user |
+| `/users/list` | GET | JWT | SUPER_ADMIN | Get all users (excludes superadmin) |
+| `/users/change-password` | POST | JWT | - | Change password |
+| `/users/profile` | GET | JWT | - | Get user profile |
+| `/users/:id` | GET | JWT | SUPER_ADMIN | Get user by ID |
 
 ### Authentication Flow
 
 1. **Database Seeding:** Run `pnpm run seed` to create Super Admin
 2. **Login:** Super Admin logs in via `/auth/login` → receives JWT tokens
-3. **Create Users:** Super Admin creates other users via `/auth/create-user`
+3. **Create Users:** Super Admin creates other users via `/users/create`
 4. **Role Selection:** Frontend sends role in request body (no defaults)
 
 ### Guards & Decorators
@@ -259,15 +267,20 @@ npx tsc --noEmit
 
 | File | Purpose |
 |------|---------|
-| `lib/types.ts` | TypeScript types for User, LoginResponse, CreateUserRequest, UserRole |
-| `lib/auth-api.ts` | API functions (login, logout, getCurrentUser, createUser) |
+| `lib/types.ts` | TypeScript types for User, LoginResponse, CreateUserRequest, ChangePasswordRequest, UserListItem |
+| `lib/auth-api.ts` | API functions for auth endpoints (login, logout, getCurrentUser) |
+| `lib/users-api.ts` | API functions for user endpoints (createUser, getAllUsers, changePassword) |
 | `contexts/auth-context.tsx` | Auth state management with useAuth hook |
 | `components/protected-route.tsx` | Route protection wrapper with role check |
+| `components/ui/table.tsx` | Table component from shadcn/ui |
+| `components/ui/badge.tsx` | Badge component from shadcn/ui |
 | `app/page.tsx` | Landing page - food delivery theme with animations |
 | `app/login/page.tsx` | Login form (email/phone + password) |
 | `app/dashboard/layout.tsx` | Dashboard layout with header, navigation, logout |
 | `app/dashboard/page.tsx` | Dashboard home page |
 | `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) |
+| `app/dashboard/change-password/page.tsx` | Change password form (all authenticated users) |
+| `app/dashboard/users/page.tsx` | Users list page (Super Admin only) |
 | `app/globals.css` | Custom CSS animations (float-up, float-down, pulse-warm, drift) |
 
 ### API Communication
@@ -277,7 +290,9 @@ npx tsc --noEmit
 | `/auth/login` | POST | Login page |
 | `/auth/profile` | GET | Auth context (validate token) |
 | `/auth/logout` | POST | Dashboard header |
-| `/auth/create-user` | POST | Create User page |
+| `/users/create` | POST | Create User page |
+| `/users/list` | GET | Users list page |
+| `/users/change-password` | POST | Change Password page |
 
 ### Environment Variables
 
@@ -325,13 +340,17 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 - ✅ **Glass-morphism Effects** - Added backdrop-blur and semi-transparent overlays - 2026-06-18
 - ✅ **Viewport-Optimized Landing** - Hero section fits viewport without scrolling - 2026-06-18
 - ✅ **Custom CSS Animations** - Added float-up, float-down, pulse-warm, drift keyframes - 2026-06-18
+- ✅ **Auth Module Refactoring** - Moved user management from Auth to Users module - 2026-06-19
+- ✅ **Users Module Implementation** - Implemented full CRUD operations for users - 2026-06-19
+- ✅ **Change Password Frontend** - Added change password page and API integration - 2026-06-19
+- ✅ **Users List Feature** - Added users list page with Super Admin access - 2026-06-19
+- ✅ **Dashboard Navigation** - Added navigation links for new pages with role-based visibility - 2026-06-19
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
-- [ ] **User CRUD Operations** - Implement full user management endpoints (list, update, delete)
-- [ ] **User List Page** - Frontend page to view and manage all users
+- [ ] **User Update/Delete Operations** - Implement update and delete user endpoints
 - [ ] **Restaurant Management** - Create restaurant CRUD with admin assignment
 - [ ] **Outlet Management** - Create outlet CRUD with location features
 - [ ] **Customer Portal** - Implement customer registration and auth

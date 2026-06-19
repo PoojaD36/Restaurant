@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ProtectedRoute } from '../../../components/protected-route';
-import { createUser } from '../../../lib/auth-api';
+import { createUser } from '../../../lib/users-api';
 import type { CreateUserRequest, UserRole } from '../../../lib/types';
 import { Button } from '../../../components/ui/button';
 import { Input } from '../../../components/ui/input';

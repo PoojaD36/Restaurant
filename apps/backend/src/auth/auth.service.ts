@@ -1,10 +1,10 @@
-import { Injectable, UnauthorizedException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
-import { hash, genSalt, compare } from 'bcrypt';
+import { compare } from 'bcrypt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { UserRole, UserStatus } from 'src/database/generated/prisma/enums';
+import { UserStatus } from 'src/database/generated/prisma/enums';
 import { authConstants } from './constants/auth.constants';
 
 @Injectable()
@@ -14,54 +14,6 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
-
-  /**
-   * Create a new user (only for authenticated Super Admin)
-   * Role check is handled by @Roles() decorator and RolesGuard at controller level
-   */
-  async createUser(
-    email: string,
-    phone: string,
-    password: string,
-    firstName: string,
-    lastName: string | null | undefined,
-    role: UserRole,
-  ) {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      throw new ConflictException('User with this email already exists');
-    }
-
-    const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS') || authConstants.BCRYPT_ROUNDS;
-    const salt = await genSalt(saltRounds);
-    const passwordHash = await hash(password, salt);
-
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        phone,
-        firstName,
-        lastName,
-        role,
-        status: UserStatus.ACTIVE,
-        password: {
-          create: {
-            passwordHash,
-          },
-        },
-      },
-      include: {
-        password: true,
-      },
-    });
-
-    // Return user data without password
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }
 
   /**
    * Login user with email/phone and password
@@ -154,38 +106,6 @@ export class AuthService {
     await this.prisma.userPassword.update({
       where: { userId },
       data: { refreshTokenHash: null, lastLoginAt: new Date() },
-    });
-  }
-
-  /**
-   * Change user password
-   */
-  async changePassword(userId: number, oldPassword: string, newPassword: string): Promise<void> {
-    const userPassword = await this.prisma.userPassword.findUnique({
-      where: { userId },
-    });
-
-    if (!userPassword) {
-      throw new BadRequestException('User password not found');
-    }
-
-    const isOldPasswordValid = await compare(oldPassword, userPassword.passwordHash);
-
-    if (!isOldPasswordValid) {
-      throw new UnauthorizedException('Old password is incorrect');
-    }
-
-    const saltRounds = this.configService.get<number>('BCRYPT_ROUNDS') || authConstants.BCRYPT_ROUNDS;
-    const salt = await genSalt(saltRounds);
-    const newPasswordHash = await hash(newPassword, salt);
-
-    await this.prisma.userPassword.update({
-      where: { userId },
-      data: {
-        passwordHash: newPasswordHash,
-        passwordChangedAt: new Date(),
-        refreshTokenHash: null,
-      },
     });
   }
 

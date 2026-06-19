@@ -5,15 +5,6 @@ import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './guards/roles.guard';
 import { UserRole } from 'src/database/generated/prisma/enums';
 
-class CreateUserDto {
-  email!: string;
-  phone!: string;
-  password!: string;
-  firstName!: string;
-  lastName?: string;
-  role!: UserRole;
-}
-
 class LoginDto {
   identifier!: string;
   password!: string;
@@ -21,11 +12,6 @@ class LoginDto {
 
 class RefreshTokenDto {
   refreshToken!: string;
-}
-
-class ChangePasswordDto {
-  oldPassword!: string;
-  newPassword!: string;
 }
 
 @Controller('auth')
@@ -67,40 +53,6 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(@Request() req: any) {
     await this.authService.logout(req.user.userId);
-  }
-
-  /**
-   * Change password
-   */
-  @UseGuards(JwtAuthGuard)
-  @Post('change-password')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async changePassword(
-    @Request() req: any,
-    @Body() changePasswordDto: ChangePasswordDto,
-  ) {
-    await this.authService.changePassword(
-      req.user.userId,
-      changePasswordDto.oldPassword,
-      changePasswordDto.newPassword,
-    );
-  }
-
-  /**
-   * Register a new user (Super Admin only)
-   */
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN)
-  @Post('create-user')
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    return this.authService.createUser(
-      createUserDto.email,
-      createUserDto.phone,
-      createUserDto.password,
-      createUserDto.firstName,
-      createUserDto.lastName,
-      createUserDto.role,
-    );
   }
 
   /**
