@@ -4,15 +4,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './guards/roles.guard';
 import { UserRole } from 'src/database/generated/prisma/enums';
-
-class LoginDto {
-  identifier!: string;
-  password!: string;
-}
-
-class RefreshTokenDto {
-  refreshToken!: string;
-}
+import { LoginDto } from './dto/login.dto';
+import { RefreshTokenDto } from './dto/refresh-token.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -50,9 +43,9 @@ export class AuthController {
    */
   @UseGuards(JwtAuthGuard)
   @Post('logout')
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   async logout(@Request() req: any) {
-    await this.authService.logout(req.user.userId);
+    return this.authService.logout(req.user.userId);
   }
 
   /**

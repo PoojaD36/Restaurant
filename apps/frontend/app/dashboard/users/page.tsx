@@ -33,17 +33,22 @@ export default function UsersListPage() {
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [currentPage]);
 
   const loadUsers = async () => {
     setIsLoading(true);
     setError('');
     try {
-      const data = await getAllUsers();
-      setUsers(data);
+      const response = await getAllUsers(currentPage, 10);
+      setUsers(response.data);
+      setTotalPages(response.pagination.totalPages);
+      setTotalUsers(response.pagination.total);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
@@ -93,7 +98,7 @@ export default function UsersListPage() {
               All Users
             </CardTitle>
             <CardDescription className="text-slate-600">
-              Total users: {users.length}
+              Total users: {totalUsers}
             </CardDescription>
           </CardHeader>
 
@@ -174,6 +179,35 @@ export default function UsersListPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between bg-white/90 backdrop-blur p-4 rounded-lg border border-orange-100 shadow-lg">
+            <div className="text-sm text-slate-600">
+              Page {currentPage} of {totalPages} ({totalUsers} total users)
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="border-orange-200 text-slate-700 hover:bg-orange-50"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="border-orange-200 text-slate-700 hover:bg-orange-50"
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Change Password Modal */}
         <ChangePasswordModal

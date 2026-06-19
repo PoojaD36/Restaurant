@@ -138,7 +138,7 @@ d:\restaurant/
 | Landing Page | ✅ Complete | Food delivery themed hero with framer-motion animations |
 | Background Effects | ✅ Complete | Floating food icons, wave animations, glass-morphism |
 | Authentication | ✅ Complete | Login, logout, JWT handling |
-| Dashboard | ✅ Complete | Protected dashboard with header/nav |
+| Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
 | User Creation | ✅ Complete | Super Admin user creation form |
 | Auth Context | ✅ Complete | State management with useAuth hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check |
@@ -201,13 +201,13 @@ d:\restaurant/
 
 ### User Management
 
-| Endpoint | Method | Auth Required | Role Required | Description |
-|----------|--------|---------------|---------------|-------------|
-| `/users/create` | POST | JWT | SUPER_ADMIN | Create new user |
-| `/users/list` | GET | JWT | SUPER_ADMIN | Get all users (excludes superadmin) |
-| `/users/change-password` | POST | JWT | - | Change password |
-| `/users/profile` | GET | JWT | - | Get user profile |
-| `/users/:id` | GET | JWT | SUPER_ADMIN | Get user by ID |
+| Endpoint | Method | Auth Required | Role Required | Description | Query Params |
+|----------|--------|---------------|---------------|-------------|--------------|
+| `/users/create` | POST | JWT | SUPER_ADMIN | Create new user | - |
+| `/users/list` | GET | JWT | SUPER_ADMIN | Get all users (paginated) | `page`, `limit` |
+| `/users/change-password` | POST | JWT | - | Change password | - |
+| `/users/profile` | GET | JWT | - | Get user profile | - |
+| `/users/:id` | GET | JWT | SUPER_ADMIN | Get user by ID | - |
 
 ### Authentication Flow
 
@@ -215,6 +215,39 @@ d:\restaurant/
 2. **Login:** Super Admin logs in via `/auth/login` → receives JWT tokens
 3. **Create Users:** Super Admin creates other users via `/users/create`
 4. **Role Selection:** Frontend sends role in request body (no defaults)
+
+### API Response Format
+
+All API responses follow a consistent format with `success`, `message`, and `data` fields:
+
+**Standard Response:**
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { ... }
+}
+```
+
+**Paginated Response (e.g., `/users/list`):**
+```json
+{
+  "success": true,
+  "message": "Users retrieved successfully",
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 50,
+    "totalPages": 5
+  }
+}
+```
+
+**Example Endpoints:**
+- `POST /users/create` → Returns `{ "success": true, "message": "User created successfully" }`
+- `GET /users/list?page=1&limit=10` → Returns paginated users with metadata
+- `POST /users/change-password` → Returns `{ "success": true, "message": "Password changed successfully" }`
 
 ### Guards & Decorators
 
@@ -284,7 +317,7 @@ npx tsc --noEmit
 | `components/ui/dialog.tsx` | shadcn Dialog component |
 | `app/page.tsx` | Landing page - food delivery theme with animations |
 | `app/login/page.tsx` | Login form (email/phone + password) |
-| `app/dashboard/layout.tsx` | Dashboard layout with header, navigation, logout, change password button |
+| `app/dashboard/layout.tsx` | Dashboard layout with sidebar navigation (collapsible on desktop, hamburger menu on mobile), logout, change password button |
 | `app/dashboard/page.tsx` | Dashboard home page |
 | `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) - legacy, replaced by modal |
 | `app/dashboard/users/page.tsx` | Users list page with Create User button and password reset modal (Super Admin only) |
@@ -385,6 +418,13 @@ npx shadcn@latest add dialog -y
 - ✅ **Password Confirmation Field** - Added confirm password field to change password modal with validation - 2026-06-19
 - ✅ **Create User Modal** - Created modal-based user creation instead of separate page - 2026-06-19
 - ✅ **Users List Modal Integration** - Updated Manage Users page to use modals for both create user and password change - 2026-06-19
+- ✅ **Sidebar Navigation** - Converted dashboard from top header navigation to professional sidebar (collapsible on desktop, hamburger menu on mobile) - 2026-06-19
+- ✅ **Backend Error Handling** - Added try-catch blocks to all service methods with proper error handling - 2026-06-19
+- ✅ **DTO Organization** - Created separate DTO files for all modules (auth, user) following clean code principles - 2026-06-19
+- ✅ **API Response Standardization** - Implemented consistent response format with `success`, `message`, and `data` fields across all endpoints - 2026-06-19
+- ✅ **Pagination Implementation** - Added pagination support to user list API with metadata (page, limit, total, totalPages) - 2026-06-19
+- ✅ **Frontend Pagination** - Updated users list page with pagination controls and state management - 2026-06-19
+- ✅ **Global Validation Pipe** - Enabled NestJS validation pipe in main.ts for DTO validation - 2026-06-19
 
 ### In Progress
 - No tasks currently in progress
@@ -404,6 +444,118 @@ npx shadcn@latest add dialog -y
 - **Current Branch:** `pooja_dev`
 - **Main Branch:** `main`
 - **Git User:** Pooja
+
+---
+
+## Coding Standards and Best Practices
+
+> **IMPORTANT:** All code must follow these standards to maintain code quality, performance, and maintainability.
+
+### Code Organization
+
+- **DTOs (Data Transfer Objects):** All DTOs must be defined in separate `dto/` folders within each module
+  - Do NOT define DTOs inline in controllers or services
+  - Use class-validator decorators for validation
+  - Example: `src/user-module/dto/create-user.dto.ts`
+
+- **Services:** Business logic goes in services, not controllers
+  - Controllers should only handle HTTP concerns (validation, parsing, response formatting)
+  - Services contain the core business logic and database interactions
+
+- **Error Handling:** All service methods must have try-catch blocks
+  - Wrap database operations and external API calls in try-catch
+  - Re-throw specific exceptions (BadRequestException, UnauthorizedException, etc.)
+  - Provide generic error messages for unexpected failures
+  - Example:
+    ```typescript
+    async createUser(data: CreateUserDto) {
+      try {
+        // Business logic here
+      } catch (error) {
+        if (error instanceof ConflictException) {
+          throw error; // Re-throw specific exceptions
+        }
+        throw new BadRequestException('Operation failed'); // Generic fallback
+      }
+    }
+    ```
+
+### Code Quality Principles
+
+- **Keep it Simple:** Write clean, simple code that is easy to understand
+  - Avoid unnecessary complexity
+  - Prefer readability over cleverness
+  - Keep functions focused and small
+  - Avoid deep nesting
+
+- **Performance:** Avoid N+1 query problems
+  - Use Prisma's `include` or `select` for related data
+  - Batch operations when possible
+  - Use proper indexing in database
+  - Example of BAD (N+1):
+    ```typescript
+    // BAD: Makes N+1 queries
+    const users = await prisma.user.findMany();
+    for (const user of users) {
+      user.password = await prisma.userPassword.findUnique({ where: { userId: user.id } });
+    }
+    ```
+  - Example of GOOD:
+    ```typescript
+    // GOOD: Single query with include
+    const users = await prisma.user.findMany({
+      include: { password: true },
+    });
+    ```
+
+- **API Responses:** Keep responses minimal and focused
+  - Return only necessary data
+  - For mutations (create, update, delete), return success messages, not full objects
+  - Example: `{ message: 'User created successfully' }` instead of full user object
+
+### Module Structure
+
+Each module should follow this structure:
+```
+src/{module-name}/
+├── dto/                    # All DTOs for this module
+│   ├── create-{entity}.dto.ts
+│   ├── update-{entity}.dto.ts
+│   └── ...
+├── entities/               # Entity definitions (if needed)
+├── guards/                 # Module-specific guards
+├── interfaces/             # TypeScript interfaces
+├── {module-name}.controller.ts  # Controller (thin, HTTP concerns only)
+├── {module-name}.service.ts     # Service (business logic)
+├── {module-name}.module.ts      # Module definition
+└── constants/             # Module constants
+```
+
+### Database Best Practices
+
+- Use Prisma's type-safe queries
+- Always use transactions for multi-step operations
+- Use proper error handling for database operations
+- Avoid raw SQL when Prisma can handle it
+- Use `select` to limit returned fields for performance
+
+### Testing
+
+- All service methods should be unit testable
+- Controllers should be tested separately
+- Mock external dependencies (database, external APIs)
+
+---
+
+## Documentation Guidelines
+
+> **IMPORTANT:** This README.md must be updated whenever:
+> - New features or functionality are added
+> - Changes are made to existing components/pages
+> - New API endpoints are created
+> - Architecture or structure changes occur
+>
+> This ensures the documentation stays current and serves as the single source of truth for the project.
 
 ---
 
