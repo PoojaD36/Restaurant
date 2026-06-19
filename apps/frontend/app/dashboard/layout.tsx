@@ -1,16 +1,19 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuth } from '../../contexts/auth-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
-import { Utensils, LayoutDashboard, UserPlus, LogOut, Key, Users } from 'lucide-react';
+import { Utensils, LayoutDashboard, LogOut, Key, Users } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { ChangePasswordModal } from '../../components/change-password-modal';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -19,8 +22,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { href: '/dashboard/create-user', icon: UserPlus, label: 'Create User', requiresRole: 'SUPER_ADMIN' as const },
-    { href: '/dashboard/change-password', icon: Key, label: 'Change Password' },
     { href: '/dashboard/users', icon: Users, label: 'Manage Users', requiresRole: 'SUPER_ADMIN' as const },
   ];
 
@@ -67,6 +68,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
 
             <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setShowChangePasswordModal(true)}
+                variant="ghost"
+                size="sm"
+                className="text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+              >
+                <Key className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Change Password</span>
+              </Button>
+
               <div className="hidden sm:block text-right">
                 <p className="text-sm font-medium">
                   {user?.firstName || user?.email}
@@ -119,6 +130,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        open={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+      />
     </div>
   );
 }

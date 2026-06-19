@@ -7,7 +7,10 @@ import type { UserListItem, UserRole } from '../../../lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 import { Badge } from '../../../components/ui/badge';
-import { Mail, Phone, Users, Loader2 } from 'lucide-react';
+import { Button } from '../../../components/ui/button';
+import { Mail, Phone, Users, Loader2, Key, UserPlus } from 'lucide-react';
+import { ChangePasswordModal } from '../../../components/change-password-modal';
+import { CreateUserModal } from '../../../components/create-user-modal';
 
 const roleLabels: Record<UserRole, string> = {
   SUPER_ADMIN: 'Super Admin',
@@ -27,6 +30,9 @@ export default function UsersListPage() {
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<UserListItem | null>(null);
 
   useEffect(() => {
     loadUsers();
@@ -45,16 +51,39 @@ export default function UsersListPage() {
     }
   };
 
+  const handleOpenChangePasswordModal = (user: UserListItem) => {
+    setSelectedUser(user);
+    setShowChangePasswordModal(true);
+  };
+
+  const handleCloseChangePasswordModal = () => {
+    setSelectedUser(null);
+    setShowChangePasswordModal(false);
+  };
+
+  const handleUserCreated = () => {
+    loadUsers();
+  };
+
   return (
     <ProtectedRoute requiredRole="SUPER_ADMIN">
       <div className="space-y-6">
-        <div className="mb-6">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
-            Manage Users
-          </h2>
-          <p className="text-slate-600">
-            View and manage all users in the system.
-          </p>
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+              Manage Users
+            </h2>
+            <p className="text-slate-600">
+              View and manage all users in the system.
+            </p>
+          </div>
+          <Button
+            onClick={() => setShowCreateUserModal(true)}
+            className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg shadow-red-500/30"
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Create User
+          </Button>
         </div>
 
         <Card className="border-orange-100 shadow-xl bg-white/90 backdrop-blur">
@@ -92,6 +121,7 @@ export default function UsersListPage() {
                       <TableHead className="font-semibold">Role</TableHead>
                       <TableHead className="font-semibold">Status</TableHead>
                       <TableHead className="font-semibold">Created</TableHead>
+                      <TableHead className="font-semibold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -125,6 +155,17 @@ export default function UsersListPage() {
                         <TableCell className="text-slate-600">
                           {new Date(user.createdAt).toLocaleDateString()}
                         </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenChangePasswordModal(user)}
+                            className="text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                            title="Change Password"
+                          >
+                            <Key className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -133,6 +174,21 @@ export default function UsersListPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Change Password Modal */}
+        <ChangePasswordModal
+          open={showChangePasswordModal}
+          onClose={handleCloseChangePasswordModal}
+          userId={selectedUser?.id}
+          userName={selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName || ''}` : undefined}
+        />
+
+        {/* Create User Modal */}
+        <CreateUserModal
+          open={showCreateUserModal}
+          onClose={() => setShowCreateUserModal(false)}
+          onSuccess={handleUserCreated}
+        />
       </div>
     </ProtectedRoute>
   );

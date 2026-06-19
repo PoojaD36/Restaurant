@@ -269,30 +269,37 @@ npx tsc --noEmit
 |------|---------|
 | `lib/types.ts` | TypeScript types for User, LoginResponse, CreateUserRequest, ChangePasswordRequest, UserListItem |
 | `lib/auth-api.ts` | API functions for auth endpoints (login, logout, getCurrentUser) |
-| `lib/users-api.ts` | API functions for user endpoints (createUser, getAllUsers, changePassword) |
+| `lib/users-api.ts` | API functions for user endpoints (createUser, getAllUsers) |
 | `contexts/auth-context.tsx` | Auth state management with useAuth hook |
 | `components/protected-route.tsx` | Route protection wrapper with role check |
-| `components/ui/table.tsx` | Table component from shadcn/ui |
-| `components/ui/badge.tsx` | Badge component from shadcn/ui |
+| `components/change-password-modal.tsx` | Reusable modal for password changes (uses shadcn Dialog, with confirm password field) |
+| `components/create-user-modal.tsx` | Modal for creating new users (uses shadcn Dialog) |
+| `components/ui/button.tsx` | shadcn Button component |
+| `components/ui/card.tsx` | shadcn Card component |
+| `components/ui/input.tsx` | shadcn Input component |
+| `components/ui/label.tsx` | shadcn Label component |
+| `components/ui/select.tsx` | shadcn Select component |
+| `components/ui/table.tsx` | shadcn Table component |
+| `components/ui/badge.tsx` | shadcn Badge component |
+| `components/ui/dialog.tsx` | shadcn Dialog component |
 | `app/page.tsx` | Landing page - food delivery theme with animations |
 | `app/login/page.tsx` | Login form (email/phone + password) |
-| `app/dashboard/layout.tsx` | Dashboard layout with header, navigation, logout |
+| `app/dashboard/layout.tsx` | Dashboard layout with header, navigation, logout, change password button |
 | `app/dashboard/page.tsx` | Dashboard home page |
-| `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) |
-| `app/dashboard/change-password/page.tsx` | Change password form (all authenticated users) |
-| `app/dashboard/users/page.tsx` | Users list page (Super Admin only) |
+| `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) - legacy, replaced by modal |
+| `app/dashboard/users/page.tsx` | Users list page with Create User button and password reset modal (Super Admin only) |
 | `app/globals.css` | Custom CSS animations (float-up, float-down, pulse-warm, drift) |
 
 ### API Communication
 
-| Endpoint | Method | Used By |
-|----------|--------|---------|
-| `/auth/login` | POST | Login page |
-| `/auth/profile` | GET | Auth context (validate token) |
-| `/auth/logout` | POST | Dashboard header |
-| `/users/create` | POST | Create User page |
-| `/users/list` | GET | Users list page |
-| `/users/change-password` | POST | Change Password page |
+| Endpoint | Method | Used By | Description |
+|----------|--------|---------|-------------|
+| `/auth/login` | POST | Login page | User login |
+| `/auth/profile` | GET | Auth context | Validate token, get current user |
+| `/auth/logout` | POST | Dashboard header | User logout |
+| `/users/create` | POST | Create User modal | Create new user (SUPER_ADMIN only) |
+| `/users/list` | GET | Users list page | Get all users except superadmin (SUPER_ADMIN only) |
+| `/users/change-password` | POST | Change Password modal | Change password (admin reset or own password, with confirm password validation) |
 
 ### Environment Variables
 
@@ -305,9 +312,37 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 **Key Libraries:**
 - `framer-motion` ^11.18.0 - Animation library for smooth transitions
-- `lucide-react` - Icon library (food, kitchen, delivery icons: Coffee, ShoppingBag, Clock, Star, Beef, Cake, Egg, ChefHat, Sandwich, GlassWater, Cookie)
-- `shadcn/ui` - Pre-built UI components (Button, Card, Input, Label, Select)
+- `lucide-react` - Icon library (food, kitchen, delivery icons: Coffee, ShoppingBag, Clock, Star, Beef, Cake, Egg, ChefHat, Sandwich, GlassWater, Cookie, Key, Eye, EyeOff, UserPlus, Users, Loader2, Mail, Phone)
+- `shadcn/ui` - Pre-built UI components
 - `tailwindcss` v4 - Utility-first CSS framework
+
+### shadcn/ui Components Used
+
+The following shadcn/ui components are used in this project:
+
+| Component | Usage | Files |
+|-----------|-------|-------|
+| Button | All buttons, navigation, form submit, actions | All pages |
+| Card | Card containers for forms and content | Login, dashboard pages |
+| Input | Text inputs, password fields | All forms |
+| Label | Form labels | All forms |
+| Select | Role selection dropdown | Create User page |
+| Table | Users list table | Manage Users page |
+| Badge | Role and status badges | Manage Users page |
+| Dialog | Modal for password changes | Change Password modal |
+
+**Installing New Components:**
+
+To add new shadcn components, run from the frontend directory:
+```bash
+cd apps/frontend
+npx shadcn@latest add [component-name] -y
+```
+
+For example:
+```bash
+npx shadcn@latest add dialog -y
+```
 
 ---
 
@@ -345,6 +380,11 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 - ✅ **Change Password Frontend** - Added change password page and API integration - 2026-06-19
 - ✅ **Users List Feature** - Added users list page with Super Admin access - 2026-06-19
 - ✅ **Dashboard Navigation** - Added navigation links for new pages with role-based visibility - 2026-06-19
+- ✅ **UI Refactoring with shadcn** - Consolidated user management, added shadcn Dialog modal, removed separate tabs - 2026-06-19
+- ✅ **Admin Password Reset** - Implemented Super Admin ability to change any user's password without old password - 2026-06-19
+- ✅ **Password Confirmation Field** - Added confirm password field to change password modal with validation - 2026-06-19
+- ✅ **Create User Modal** - Created modal-based user creation instead of separate page - 2026-06-19
+- ✅ **Users List Modal Integration** - Updated Manage Users page to use modals for both create user and password change - 2026-06-19
 
 ### In Progress
 - No tasks currently in progress
