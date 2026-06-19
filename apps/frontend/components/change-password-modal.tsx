@@ -7,6 +7,8 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Key, Eye, EyeOff } from 'lucide-react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 interface ChangePasswordModalProps {
   open: boolean;
   onClose: () => void;
@@ -39,7 +41,7 @@ export function ChangePasswordModal({ open, onClose, userId, userName }: ChangeP
         ? { userId: parseInt(userId), newPassword }
         : { oldPassword, newPassword };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/change-password`, {
+      const response = await fetch(`${API_URL}/users/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
