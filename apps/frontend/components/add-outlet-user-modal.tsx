@@ -59,6 +59,7 @@ export function AddOutletUserModal({
   }, [open, outlet?.id]);
 
   const loadAvailableUsers = async () => {
+    if (!outlet?.id) return;
     setIsLoadingUsers(true);
     try {
       const response = await getAvailableOutletUsers(outlet.id);
@@ -71,6 +72,7 @@ export function AddOutletUserModal({
   };
 
   const loadCurrentUsers = async () => {
+    if (!outlet?.id) return;
     try {
       const response = await getOutletUsers(outlet.id);
       setCurrentUsers(response.data || []);
@@ -84,6 +86,7 @@ export function AddOutletUserModal({
       setError('Please select a user to add');
       return;
     }
+    if (!outlet?.id) return;
 
     setIsLoading(true);
     setError('');
@@ -102,6 +105,7 @@ export function AddOutletUserModal({
 
   const handleRemoveUser = async (userId: string, userName: string) => {
     if (!confirm(`Remove ${userName} from this outlet?`)) return;
+    if (!outlet?.id) return;
 
     setIsLoading(true);
     setError('');
