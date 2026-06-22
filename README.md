@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-19
+> **Last Updated:** 2026-06-22 (Updated with RESTAURANT_ADMIN access and role permissions)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -48,7 +48,9 @@ d:\restaurant/
 │   │   │   │   ├── interfaces/ # JwtPayload interface
 │   │   │   │   └── constants/  # Auth constants
 │   │   │   ├── database/       # Prisma service & module
-│   │   │   ├── user-module/    # User management (placeholder)
+│   │   │   ├── user-module/    # User management module
+│   │   │   ├── restaurant-module/  # Restaurant management module
+│   │   │   ├── outlet-module/      # Outlet management module
 │   │   │   ├── app.module.ts
 │   │   │   └── main.ts
 │   │   ├── .env                # Backend environment variables
@@ -61,17 +63,28 @@ d:\restaurant/
 │       │   ├── login/
 │       │   │   └── page.tsx     # Login page
 │       │   └── dashboard/
-│       │       ├── layout.tsx   # Dashboard layout with header/logout
+│       │       ├── layout.tsx   # Dashboard layout with sidebar navigation
 │       │       ├── page.tsx     # Dashboard home
-│       │       └── create-user/
-│       │           └── page.tsx # User creation form (Super Admin)
+│       │       ├── users/       # Users list page (Super Admin only)
+│       │       ├── restaurants/ # Restaurants list page (Super Admin, Restaurant Admin)
+│       │       └── outlets/     # Outlets list page (Super Admin, Restaurant Admin)
 │       ├── components/
-│       │   └── protected-route.tsx # Route protection wrapper
+│       │   ├── ui/             # shadcn/ui components
+│       │   ├── protected-route.tsx
+│       │   ├── change-password-modal.tsx
+│       │   ├── create-user-modal.tsx
+│       │   ├── edit-user-modal.tsx
+│       │   ├── create-restaurant-modal.tsx
+│       │   ├── add-restaurant-user-modal.tsx
+│       │   └── create-outlet-modal.tsx
 │       ├── contexts/
 │       │   └── auth-context.tsx   # Auth state management
 │       ├── lib/
-│       │   ├── types.ts            # TypeScript types (User, Login, etc.)
-│       │   └── auth-api.ts         # API functions for auth endpoints
+│       │   ├── types.ts            # TypeScript types
+│       │   ├── auth-api.ts         # API functions for auth
+│       │   ├── users-api.ts        # API functions for users
+│       │   ├── restaurants-api.ts  # API functions for restaurants
+│       │   └── outlets-api.ts      # API functions for outlets
 │       ├── .env.local              # API URL configuration
 │       └── package.json
 │
@@ -117,9 +130,11 @@ d:\restaurant/
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| App Module | ✅ Complete | ConfigModule, PrismaModule imported |
+| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule imported |
 | Auth Module | ✅ Complete | JWT auth, role-based guards, decorators |
-| User Module | ⚪ Placeholder | To be implemented |
+| User Module | ✅ Complete | Full CRUD operations for users |
+| Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction |
+| Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
 | Prisma Schema | ✅ Complete | Full schema with relations |
 | Database Seeder | ✅ Complete | Creates Super Admin via npm run seed |
@@ -139,9 +154,12 @@ d:\restaurant/
 | Background Effects | ✅ Complete | Floating food icons, wave animations, glass-morphism |
 | Authentication | ✅ Complete | Login, logout, JWT handling |
 | Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
-| User Creation | ✅ Complete | Super Admin user creation form |
+| User Management | ✅ Complete | Users list, create, edit, delete, change password |
+| Restaurant Management | ✅ Complete | Restaurants list, create (SUPER_ADMIN), add/remove users (SUPER_ADMIN, RESTAURANT_ADMIN) |
+| Outlet Management | ✅ Complete | Outlets list, create with restaurant filter (SUPER_ADMIN, RESTAURANT_ADMIN) |
+| Restaurant Admin Access | ✅ Complete | RESTAURANT_ADMIN can view assigned restaurants, manage users, create outlets |
 | Auth Context | ✅ Complete | State management with useAuth hook |
-| Protected Routes | ✅ Complete | ProtectedRoute component with role check |
+| Protected Routes | ✅ Complete | ProtectedRoute component with role check and multiple role support |
 | UI Components | ✅ Complete | shadcn/ui components installed |
 | Theme System | ✅ Complete | Red/Orange/Amber theme (light mode only) |
 
@@ -211,12 +229,61 @@ d:\restaurant/
 | `/users/:id` | PUT | JWT | SUPER_ADMIN | Update user | - |
 | `/users/:id` | DELETE | JWT | SUPER_ADMIN | Delete user | - |
 
+### Restaurant Management
+
+| Endpoint | Method | Auth Required | Role Required | Description | Query Params |
+|----------|--------|---------------|---------------|-------------|--------------|
+| `/restaurants/create` | POST | JWT | SUPER_ADMIN | Create restaurant with admin | - |
+| `/restaurants/list` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Get restaurants (paginated) | `page`, `limit` |
+| `/restaurants/my-restaurants` | GET | JWT | - | Get user's restaurants | - |
+| `/restaurants/:id` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Get restaurant by ID | - |
+| `/restaurants/:id` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Update restaurant | - |
+| `/restaurants/:id` | DELETE | JWT | SUPER_ADMIN | Delete restaurant | - |
+| `/restaurants/:id/users` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Get restaurant users | - |
+| `/restaurants/:id/users` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Add user to restaurant | - |
+| `/restaurants/:id/users/:userId` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Remove user from restaurant | - |
+
+### Outlet Management
+
+| Endpoint | Method | Auth Required | Role Required | Description | Query Params |
+|----------|--------|---------------|---------------|-------------|--------------|
+| `/outlets/create` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Create outlet | - |
+| `/outlets/list` | GET | JWT | - | Get outlets (paginated) | `page`, `limit`, `restaurantId` |
+| `/outlets/restaurant/:restaurantId` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Get outlets by restaurant | - |
+| `/outlets/:id` | GET | JWT | - | Get outlet by ID | - |
+| `/outlets/:id` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Update outlet | - |
+| `/outlets/:id` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Delete outlet | - |
+
 ### Authentication Flow
 
 1. **Database Seeding:** Run `pnpm run seed` to create Super Admin
 2. **Login:** Super Admin logs in via `/auth/login` → receives JWT tokens
 3. **Create Users:** Super Admin creates other users via `/users/create`
 4. **Role Selection:** Frontend sends role in request body (no defaults)
+
+### Role Permissions
+
+| Feature | SUPER_ADMIN | RESTAURANT_ADMIN | MANAGER | CHEF | DELIVERY_AGENT |
+|---------|-------------|-------------------|---------|------|----------------|
+| **User Management** |
+| Create any user | ✅ | ❌ | ❌ | ❌ | ❌ |
+| View all users | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Update/Delete users | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Change own password | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Restaurant Management** |
+| Create restaurants | ✅ | ❌ | ❌ | ❌ | ❌ |
+| View all restaurants | ✅ | ❌ | ❌ | ❌ | ❌ |
+| View assigned restaurants | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Update restaurant | ✅ | ✅ (own only) | ❌ | ❌ | ❌ |
+| Delete restaurant | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Add users to restaurant | ✅ (any) | ✅ (own only) | ❌ | ❌ | ❌ |
+| Remove users from restaurant | ✅ (any) | ✅ (own only) | ❌ | ❌ | ❌ |
+| **Outlet Management** |
+| Create outlets | ✅ (any) | ✅ (own restaurants) | ❌ | ❌ | ❌ |
+| View all outlets | ✅ | ❌ | ❌ | ❌ | ❌ |
+| View restaurant outlets | ✅ | ✅ (own only) | ❌ | ❌ | ❌ |
+| Update outlet | ✅ (any) | ✅ (own restaurants) | ❌ | ❌ | ❌ |
+| Delete outlet | ✅ (any) | ✅ (own restaurants) | ❌ | ❌ | ❌ |
 
 ### API Response Format
 
@@ -343,13 +410,19 @@ npx tsc --noEmit
 
 | File | Purpose |
 |------|---------|
-| `lib/types.ts` | TypeScript types for User, LoginResponse, CreateUserRequest, ChangePasswordRequest, UserListItem |
+| `lib/types.ts` | TypeScript types for User, LoginResponse, CreateUserRequest, ChangePasswordRequest, UserListItem, Restaurant, Outlet |
 | `lib/auth-api.ts` | API functions for auth endpoints (login, logout, getCurrentUser) |
-| `lib/users-api.ts` | API functions for user endpoints (createUser, getAllUsers) |
+| `lib/users-api.ts` | API functions for user endpoints (createUser, getAllUsers, updateUser, deleteUser) |
+| `lib/restaurants-api.ts` | API functions for restaurant endpoints (createRestaurant, getAllRestaurants, addUserToRestaurant, etc.) |
+| `lib/outlets-api.ts` | API functions for outlet endpoints (createOutlet, getAllOutlets, updateOutlet, deleteOutlet) |
 | `contexts/auth-context.tsx` | Auth state management with useAuth hook |
-| `components/protected-route.tsx` | Route protection wrapper with role check |
+| `components/protected-route.tsx` | Route protection wrapper with role check (supports single role or multiple allowedRoles) |
 | `components/change-password-modal.tsx` | Reusable modal for password changes (uses shadcn Dialog, with confirm password field) |
 | `components/create-user-modal.tsx` | Modal for creating new users (uses shadcn Dialog) |
+| `components/edit-user-modal.tsx` | Modal for editing existing users (uses shadcn Dialog) |
+| `components/create-restaurant-modal.tsx` | Modal for creating restaurants with admin assignment |
+| `components/add-restaurant-user-modal.tsx` | Modal for adding/removing users from restaurants |
+| `components/create-outlet-modal.tsx` | Modal for creating outlets for restaurants |
 | `components/ui/button.tsx` | shadcn Button component |
 | `components/ui/card.tsx` | shadcn Card component |
 | `components/ui/input.tsx` | shadcn Input component |
@@ -364,6 +437,8 @@ npx tsc --noEmit
 | `app/dashboard/page.tsx` | Dashboard home page |
 | `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) - legacy, replaced by modal |
 | `app/dashboard/users/page.tsx` | Users list page with Create User button and password reset modal (Super Admin only) |
+| `app/dashboard/restaurants/page.tsx` | Restaurants list page with pagination, Create Restaurant button (SUPER_ADMIN), and Add User modal (SUPER_ADMIN, RESTAURANT_ADMIN) |
+| `app/dashboard/outlets/page.tsx` | Outlets list page with pagination, restaurant filter, and Create Outlet button (SUPER_ADMIN, RESTAURANT_ADMIN) |
 | `app/globals.css` | Custom CSS animations (float-up, float-down, pulse-warm, drift) |
 
 ### API Communication
@@ -376,6 +451,15 @@ npx tsc --noEmit
 | `/users/create` | POST | Create User modal | Create new user (SUPER_ADMIN only) |
 | `/users/list` | GET | Users list page | Get all users except superadmin (SUPER_ADMIN only) |
 | `/users/change-password` | POST | Change Password modal | Change password (admin reset or own password, with confirm password validation) |
+| `/restaurants/create` | POST | Create Restaurant modal | Create restaurant with admin (SUPER_ADMIN only) |
+| `/restaurants/list` | GET | Restaurants list page | Get restaurants with pagination |
+| `/restaurants/:id/users` | GET | Add Restaurant User modal | Get users in restaurant |
+| `/restaurants/:id/users` | POST | Add Restaurant User modal | Add user to restaurant |
+| `/restaurants/:id/users/:userId` | DELETE | Add Restaurant User modal | Remove user from restaurant |
+| `/restaurants/my-restaurants` | GET | Create Outlet modal | Get user's accessible restaurants |
+| `/outlets/create` | POST | Create Outlet modal | Create outlet for restaurant |
+| `/outlets/list` | GET | Outlets list page | Get outlets with pagination and optional restaurant filter |
+| `/outlets/:id` | DELETE | Outlets list page | Delete outlet |
 
 ### Environment Variables
 
@@ -472,16 +556,27 @@ npx shadcn@latest add dialog -y
 - ✅ **User Update/Delete APIs** - Implemented PUT and DELETE endpoints for user management with proper validation and error handling - 2026-06-19
 - ✅ **Frontend User Edit/Delete** - Added edit and delete icons with modals for user management, including edit user modal with pre-filled data and delete confirmation dialog - 2026-06-19
 - ✅ **Environment Variable Configuration** - Set up environment variables for production and local development, including frontend API URL and backend CORS configuration - 2026-06-19
+- ✅ **Restaurant Module Backend** - Implemented complete restaurant management module with CRUD operations - 2026-06-22
+- ✅ **Restaurant User Management** - Added ability to assign/remove users from restaurants - 2026-06-22
+- ✅ **Outlet Module Backend** - Implemented outlet management with restaurant relationships - 2026-06-22
+- ✅ **Restaurant Frontend** - Created restaurants list page and create restaurant modal - 2026-06-22
+- ✅ **Restaurant User Modal** - Created modal for adding/removing users from restaurants - 2026-06-22
+- ✅ **Outlet Frontend** - Created outlets list page and create outlet modal - 2026-06-22
+- ✅ **Dashboard Navigation Update** - Added Restaurants and Outlets links to sidebar navigation - 2026-06-22
+- ✅ **ProtectedRoute Enhancement** - Updated ProtectedRoute component to support multiple roles via allowedRoles array - 2026-06-22
+- ✅ **Restaurant Admin Dashboard Access** - RESTAURANT_ADMIN can now access their assigned restaurants and outlets, manage users - 2026-06-22
+- ✅ **Contextual Page Titles** - Page titles change based on user role (My Restaurants/Outlets for RESTAURANT_ADMIN) - 2026-06-22
+- ✅ **Super Admin Restaurant Access** - SUPER_ADMIN sees all restaurants when creating outlets, not just assigned ones - 2026-06-22
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
-- [ ] **Restaurant Management** - Create restaurant CRUD with admin assignment
-- [ ] **Outlet Management** - Create outlet CRUD with location features
 - [ ] **Customer Portal** - Implement customer registration and auth
 - [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and features
 - [ ] **API Documentation** - Add Swagger/OpenAPI docs
+- [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
+- [ ] **Restaurant Edit Feature** - Add edit restaurant modal for updating restaurant details
 
 ---
 

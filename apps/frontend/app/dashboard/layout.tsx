@@ -5,7 +5,7 @@ import { useAuth } from '../../contexts/auth-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
-import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
+import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '../../components/change-password-modal';
 
@@ -25,10 +25,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/dashboard/users', icon: Users, label: 'Manage Users', requiresRole: 'SUPER_ADMIN' as const },
+    { href: '/dashboard/restaurants', icon: Building2, label: 'My Restaurants', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] as const },
+    { href: '/dashboard/outlets', icon: MapPin, label: 'My Outlets', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] as const },
   ];
 
   const filteredNavItems = navItems.filter(
-    (item) => !item.requiresRole || user?.role === item.requiresRole
+    (item) =>
+      !item.requiresRole ||
+      !item.allowedRoles ||
+      user?.role === item.requiresRole ||
+      item.allowedRoles?.includes(user?.role as any)
   );
 
   return (
