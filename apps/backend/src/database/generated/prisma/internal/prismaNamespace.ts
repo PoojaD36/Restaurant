@@ -1226,6 +1226,7 @@ export const CustomerPasswordScalarFieldEnum = {
   id: 'id',
   customerId: 'customerId',
   passwordHash: 'passwordHash',
+  refreshTokenHash: 'refreshTokenHash',
   lastLoginAt: 'lastLoginAt',
   passwordChangedAt: 'passwordChangedAt',
   failedAttempts: 'failedAttempts',

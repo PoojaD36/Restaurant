@@ -162,13 +162,22 @@ export default function Home() {
             </motion.div>
 
             <div className="flex items-center gap-3">
-              <Link href="/login">
+              <Link href="/customer">
                 <Button
                   variant="outline"
                   size="sm"
                   className="border-orange-400 hover:bg-orange-200/50 text-orange-700 transition-all font-medium bg-white/30 backdrop-blur-sm"
                 >
-                  Sign In
+                  Order Food
+                </Button>
+              </Link>
+              <Link href="/login">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-orange-700 hover:bg-orange-200/30 transition-all font-medium"
+                >
+                  Admin
                 </Button>
               </Link>
             </div>
@@ -232,7 +241,7 @@ export default function Home() {
             transition={{ duration: 0.7, delay: 0.7 }}
             className="flex flex-col sm:flex-row justify-center gap-4"
           >
-            <Link href="/login">
+            <Link href="/customer">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   size="lg"
@@ -250,7 +259,7 @@ export default function Home() {
               </motion.div>
             </Link>
 
-            <Link href="/login">
+            <Link href="/customer">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   size="lg"
