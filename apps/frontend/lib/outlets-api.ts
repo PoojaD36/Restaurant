@@ -5,6 +5,9 @@ import type {
   Outlet,
   ApiResponse,
   PaginatedResponse,
+  OutletUser,
+  AddOutletUserRequest,
+  AvailableOutletUser,
 } from './types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -74,4 +77,35 @@ export async function getOutletsByRestaurant(
   restaurantId: string,
 ): Promise<ApiResponse<Outlet[]>> {
   return request(`/outlets/restaurant/${restaurantId}`);
+}
+
+export async function getOutletUsers(
+  outletId: string,
+): Promise<ApiResponse<OutletUser[]>> {
+  return request(`/outlets/${outletId}/users`);
+}
+
+export async function getAvailableOutletUsers(
+  outletId: string,
+): Promise<ApiResponse<AvailableOutletUser[]>> {
+  return request(`/outlets/${outletId}/users/available`);
+}
+
+export async function addUserToOutlet(
+  outletId: string,
+  data: AddOutletUserRequest,
+): Promise<ApiResponse<null>> {
+  return request(`/outlets/${outletId}/users`, {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function removeUserFromOutlet(
+  outletId: string,
+  userId: string,
+): Promise<ApiResponse<null>> {
+  return request(`/outlets/${outletId}/users/${userId}`, {
+    method: 'DELETE',
+  });
 }

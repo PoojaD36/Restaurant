@@ -231,3 +231,27 @@ export interface UpdateOutletRequest {
   openingTime?: string;
   closingTime?: string;
 }
+
+export interface OutletUser {
+  id: string;
+  firstName: string;
+  lastName: string | null;
+  email: string;
+  phone: string;
+  role: UserRole;
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  addedAt: string;
+}
+
+export interface AddOutletUserRequest {
+  userId: number;
+}
+
+export interface AvailableOutletUser {
+  id: string;
+  firstName: string;
+  lastName: string | null;
+  email: string;
+  role: UserRole;
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+}
