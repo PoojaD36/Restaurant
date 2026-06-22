@@ -3,14 +3,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '../../contexts/auth-context';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
-import { Lock, Mail } from 'lucide-react';
+import { useAuth } from '../../../contexts/auth-context';
+import { Button } from '../../../components/ui/button';
+import { Input } from '../../../components/ui/input';
+import { Label } from '../../../components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../../components/ui/card';
+import { Lock, Mail, Utensils } from 'lucide-react';
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   const router = useRouter();
   const { login } = useAuth();
   const [identifier, setIdentifier] = useState('');
@@ -34,15 +34,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-slate-50 flex items-center justify-center p-4">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-400/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-red-400/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
         {/* Logo/Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-600 to-orange-500 rounded-2xl mb-4 shadow-lg shadow-red-500/30">
-            <Lock className="h-8 w-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent mb-2">
-            Restaurant Admin
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-600 to-amber-500 rounded-2xl mb-4 shadow-lg shadow-orange-500/30"
+          >
+            <Utensils className="h-8 w-8 text-white" />
+          </motion.div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent mb-2">
+            FoodHub Admin
           </h1>
           <p className="text-slate-600">
             Sign in to manage your restaurant
@@ -61,9 +71,9 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-gray-700">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500" />
                   <Input
                     id="email"
                     type="email"
@@ -71,15 +81,15 @@ export default function LoginPage() {
                     onChange={(e) => setIdentifier(e.target.value)}
                     required
                     placeholder="admin@restaurant.com"
-                    className="pl-10 h-11 border-orange-200 focus:border-orange-500"
+                    className="pl-10 h-11 border-orange-200 focus:border-orange-500 focus:ring-orange-400/20"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-gray-700">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500" />
                   <Input
                     id="password"
                     type="password"
@@ -87,7 +97,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     placeholder="••••••••"
-                    className="pl-10 h-11 border-orange-200 focus:border-orange-500"
+                    className="pl-10 h-11 border-orange-200 focus:border-orange-500 focus:ring-orange-400/20"
                   />
                 </div>
               </div>
@@ -103,17 +113,19 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg shadow-red-500/30"
+                className="w-full h-11 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white shadow-lg shadow-orange-500/20"
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
 
-              <Link
-                href="/"
-                className="text-sm text-slate-600 hover:text-orange-600 flex items-center gap-1"
-              >
-                <span>←</span> Back to home
-              </Link>
+              <div className="flex items-center justify-center gap-4 text-sm">
+                <Link
+                  href="/customer"
+                  className="text-slate-600 hover:text-orange-600 flex items-center gap-1"
+                >
+                  <span>←</span> Customer Portal
+                </Link>
+              </div>
             </CardFooter>
           </form>
         </Card>
@@ -125,3 +137,6 @@ export default function LoginPage() {
     </div>
   );
 }
+
+// Add motion import
+import { motion } from 'framer-motion';

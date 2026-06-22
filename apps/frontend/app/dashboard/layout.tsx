@@ -29,7 +29,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     await logout();
-    router.push('/login');
+    router.push('/admin/login');
   };
 
   const navItems: NavItem[] = [

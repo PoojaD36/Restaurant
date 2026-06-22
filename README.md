@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-22 (PaginationMeta class for reusable pagination logic)
+> **Last Updated:** 2026-06-22 (Routing Structure Reorganization - Separate admin/customer portals)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -72,11 +72,12 @@ d:\restaurant/
 │   └── frontend/               # Next.js App
 │       ├── app/
 │       │   ├── layout.tsx       # Root layout with AuthProvider and CustomerAuthProvider
-│       │   ├── page.tsx         # Landing page
+│       │   ├── page.tsx         # Root redirect to /customer
 │       │   ├── customer/        # Customer-facing page
 │       │   │   └── page.tsx     # Browse outlets, order food
-│       │   ├── login/
-│       │   │   └── page.tsx     # Admin login page
+│       │   ├── admin/
+│       │   │   └── login/
+│       │   │       └── page.tsx # Admin login page
 │       │   └── dashboard/
 │       │       ├── layout.tsx   # Dashboard layout with sidebar navigation
 │       │       ├── page.tsx     # Dashboard home
@@ -172,13 +173,14 @@ d:\restaurant/
 | Feature | Status | Notes |
 |---------|--------|-------|
 | App Structure | ✅ Complete | Layout with AuthProvider and CustomerAuthProvider |
-| Landing Page | ✅ Complete | Food delivery themed hero with framer-motion animations, links to customer ordering |
-| Background Effects | ✅ Complete | Floating food icons, wave animations, glass-morphism |
+| Routing Structure | ✅ Complete | Separate routes for admin and customer portals |
+| Root Page | ✅ Complete | Redirects to /customer by default |
+| Admin Login | ✅ Complete | Dedicated /admin/login page for admin authentication |
+| Customer Portal | ✅ Complete | /customer page for browsing outlets and ordering |
+| Admin Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
 | Authentication | ✅ Complete | Login, logout, JWT handling (admin users) |
 | Customer Authentication | ✅ Complete | Customer registration, login, profile management |
-| Customer Auth Sheet | ✅ Complete | Bottom slide-up for sign-in/sign-up |
-| Customer Page | ✅ Complete | Browse outlets, order food (requires sign-in) |
-| Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
+| Customer Auth Sheet | ✅ Complete | Responsive dialog modal for sign-in/sign-up (centered on desktop, bottom sheet on mobile) |
 | User Management | ✅ Complete | Users list, create, edit, delete, change password |
 | Restaurant Management | ✅ Complete | Restaurants list, create (SUPER_ADMIN), add/remove users (SUPER_ADMIN, RESTAURANT_ADMIN) |
 | Outlet Management | ✅ Complete | Outlets list, create with restaurant filter, user management (SUPER_ADMIN, RESTAURANT_ADMIN) |
@@ -188,40 +190,54 @@ d:\restaurant/
 | Customer Auth Context | ✅ Complete | State management with useCustomerAuth hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check and multiple role support |
 | UI Components | ✅ Complete | shadcn/ui components installed (Button, Card, Input, Sheet, etc.) |
-| Theme System | ✅ Complete | Red/Orange/Amber theme (light mode only) |
+| Theme System | ✅ Complete | Orange/Amber theme (light mode only) |
+
+### Routing Structure
+
+The application uses separate routing for admin and customer portals:
+
+| Path | Purpose | Authentication |
+|------|---------|----------------|
+| `/` | Root redirect → `/customer` | Public |
+| `/customer` | Customer portal - browse outlets, order food | Customer JWT (optional for browsing, required for ordering) |
+| `/admin/login` | Admin login page | Public (redirects to `/dashboard` after login) |
+| `/dashboard` | Admin dashboard with all management features | Admin JWT required |
+
+**Benefits:**
+- Clear separation between admin and customer-facing interfaces
+- Professional URLs (e.g., `/admin/login` for admin authentication)
+- No shared landing page - each audience has their dedicated entry point
+- Easy to extend (e.g., `/admin/settings`, `/customer/orders`)
 
 ---
 
-## Landing Page Features
+## Customer Portal Features
+
+The `/customer` page provides a modern, food delivery themed experience for browsing and ordering from outlets.
 
 ### Visual Design
 - **Food Delivery Theme**: Warm orange/amber/rose color palette evoking appetite
 - **Glass-morphism**: Semi-transparent cards with backdrop-blur effects
-- **Viewport-Fit**: Hero section designed to fit screen without scrolling
-- **Responsive Design**: Optimized for all screen sizes
-- **Light Mode Only**: Clean, light theme optimized for readability
+- **Responsive Design**: Optimized for all screen sizes (mobile, tablet, desktop)
+- **Light Mode**: Clean theme optimized for readability
 
-### Animations (Framer Motion + Custom CSS)
-- **Floating Food Icons**: 20 animated food/kitchen icons floating upward
-  - Coffee, ShoppingBag, Clock, Star, Beef, Cake, Egg, ChefHat, Sandwich, GlassWater, Cookie
-  - Varying speeds (17-24s), rotations, and delays for natural movement
-- **Wave Background**: Animated SVG waves at top and bottom edges
-- **Floating Orbs**: Large blurred gradient circles with gentle movement
-- **Hero Animations**: Fade-in, slide-up effects with stagger timing
-- **Hover Effects**: Scale, rotate, and shadow transitions on interactive elements
+### Key Components
+- **Sticky Header**: Brand logo, user info, logout button
+- **Hero Section**: Gradient banner with branding and outlet count
+- **Outlet Grid**: Responsive card layout showing available outlets
+- **Auth Modal**: Centered dialog for sign-in/sign-up (480px max-width on desktop)
+- **Pagination**: Navigate through multiple pages of outlets
 
-### Custom CSS Animations (globals.css)
-```css
-@keyframes float-up    /* Float upward with scale */
-@keyframes float-down  /* Float downward with scale */
-@keyframes pulse-warm   /* Gentle pulse effect */
-@keyframes drift       /* Horizontal/vertical drift */
-```
+### Animations (Framer Motion)
+- **Header Animation**: Slide-down effect on page load
+- **Outlet Cards**: Staggered fade-in with slide-up animation
+- **Hover Effects**: Scale, shadow transitions on interactive elements
+- **Auth Sheet**: Smooth slide-in/out transitions
 
 ### Theme System
-- **Light Mode**: Orange/amber gradient (`from-orange-100 via-amber-100 to-rose-100`)
-- **No Dark Mode**: Light-only theme for consistent branding
-- **Color Palette**: Warm oranges, ambers, and rose tones throughout
+- **Color Palette**: Orange/amber gradient throughout
+- **Consistent Branding**: FoodHub logo and gradient accents
+- **Professional Typography**: Clear hierarchy with appropriate sizing
 
 ### Components
 - **Header**: Sticky glass-morphism header with logo, theme toggle, sign in button
@@ -496,8 +512,9 @@ npx tsc --noEmit
 | `components/ui/table.tsx` | shadcn Table component |
 | `components/ui/badge.tsx` | shadcn Badge component |
 | `components/ui/dialog.tsx` | shadcn Dialog component |
-| `app/page.tsx` | Landing page - food delivery theme with animations |
-| `app/login/page.tsx` | Login form (email/phone + password) |
+| `app/page.tsx` | Root page - redirects to /customer |
+| `app/customer/page.tsx` | Customer-facing page with outlet browsing |
+| `app/admin/login/page.tsx` | Admin login form (email/phone + password) |
 | `app/dashboard/layout.tsx` | Dashboard layout with sidebar navigation (collapsible on desktop, hamburger menu on mobile), logout, change password button |
 | `app/dashboard/page.tsx` | Dashboard home page |
 | `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) - legacy, replaced by modal |
@@ -649,6 +666,8 @@ npx shadcn@latest add dialog -y
 - ✅ **Customer Page** - Created customer-facing page with outlet browsing and order flow - 2026-06-22
 - ✅ **Public Outlet API** - Created public endpoints for browsing outlets without authentication - 2026-06-22
 - ✅ **Customer JWT Strategy** - Implemented separate JWT strategy for customer authentication - 2026-06-22
+- ✅ **Customer Auth UI Enhancement** - Improved customer sign-in/sign-up UI with centered dialog modal on desktop (480px max-width), proper spacing, and responsive design - 2026-06-22
+- ✅ **Routing Structure Reorganization** - Separated admin and customer routing with dedicated paths: `/` → `/customer`, `/admin/login` for admin authentication, `/dashboard` for admin management - 2026-06-22
 
 ### In Progress
 - No tasks currently in progress
