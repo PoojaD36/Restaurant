@@ -5,9 +5,19 @@ import { useAuth } from '../../contexts/auth-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
-import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X } from 'lucide-react';
+import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '../../components/change-password-modal';
+
+type UserRole = 'SUPER_ADMIN' | 'RESTAURANT_ADMIN' | 'OUTLET_ADMIN';
+
+interface NavItem {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  requiresRole?: UserRole;
+  allowedRoles?: UserRole[];
+}
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth();
@@ -22,14 +32,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push('/login');
   };
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { href: '/dashboard/users', icon: Users, label: 'Manage Users', requiresRole: 'SUPER_ADMIN' as const },
+    { href: '/dashboard/users', icon: Users, label: 'Manage Users', requiresRole: 'SUPER_ADMIN' },
+    { href: '/dashboard/restaurants', icon: Building2, label: 'My Restaurants', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
+    { href: '/dashboard/outlets', icon: MapPin, label: 'My Outlets', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
   ];
 
-  const filteredNavItems = navItems.filter(
-    (item) => !item.requiresRole || user?.role === item.requiresRole
-  );
+  const filteredNavItems = navItems.filter((item) => {
+    if (item.requiresRole) {
+      return user?.role === item.requiresRole;
+    }
+    if (item.allowedRoles) {
+      return item.allowedRoles.includes(user?.role as UserRole);
+    }
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">

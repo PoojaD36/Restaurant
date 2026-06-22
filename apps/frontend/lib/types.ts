@@ -77,3 +77,157 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+// Restaurant Types
+export interface Restaurant {
+  id: string;
+  name: string;
+  slug: string;
+  logo?: string;
+  description?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt: string;
+  updatedAt: string;
+  outletsCount?: number;
+  usersCount?: number;
+}
+
+export interface RestaurantListItem {
+  id: string;
+  name: string;
+  slug: string;
+  logo?: string;
+  description?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt: string;
+  updatedAt: string;
+  outletsCount: number;
+  usersCount: number;
+}
+
+export interface CreateRestaurantRequest {
+  name: string;
+  slug: string;
+  logo?: string;
+  description?: string;
+  adminId: number;
+}
+
+export interface UpdateRestaurantRequest {
+  name?: string;
+  slug?: string;
+  logo?: string;
+  description?: string;
+}
+
+export interface AddRestaurantUserRequest {
+  userId: number;
+}
+
+export interface RestaurantUser {
+  id: string;
+  firstName: string;
+  lastName: string | null;
+  email: string;
+  phone: string;
+  role: UserRole;
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  addedAt: string;
+}
+
+export interface RestaurantDetail extends Restaurant {
+  outlets: Array<{
+    id: string;
+    name: string;
+    city: string;
+    status: 'ACTIVE' | 'INACTIVE' | 'CLOSED';
+  }>;
+  users: Array<{
+    id: string;
+    firstName: string;
+    lastName: string | null;
+    email: string;
+    phone: string;
+    role: UserRole;
+  }>;
+}
+
+// Outlet Types
+export interface Outlet {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  latitude?: string;
+  longitude?: string;
+  openingTime?: string;
+  closingTime?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'CLOSED';
+  createdAt: string;
+  updatedAt: string;
+  restaurant: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+}
+
+export interface OutletListItem {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  openingTime?: string;
+  closingTime?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'CLOSED';
+  createdAt: string;
+  updatedAt: string;
+  restaurant: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+}
+
+export interface CreateOutletRequest {
+  restaurantId: number;
+  name: string;
+  phone?: string;
+  email?: string;
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  country: string;
+  postalCode: string;
+  latitude?: string;
+  longitude?: string;
+  openingTime?: string;
+  closingTime?: string;
+}
+
+export interface UpdateOutletRequest {
+  name?: string;
+  phone?: string;
+  email?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+  latitude?: string;
+  longitude?: string;
+  openingTime?: string;
+  closingTime?: string;
+}
