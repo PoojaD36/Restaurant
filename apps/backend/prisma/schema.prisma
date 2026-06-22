@@ -97,6 +97,7 @@ model Restaurant {
   // Relations
   outlets Outlet[]
   users   RestaurantUser[]
+  menus   Menu[]
 
   @@map("restaurants")
 }
@@ -259,4 +260,144 @@ model CustomerAddress {
 
   @@index([customerId])
   @@map("customer_addresses")
+}
+
+// Menu models - Restaurant level with outlet-specific pricing
+model Menu {
+  id          Int     @id @default(autoincrement())
+  restaurantId Int
+
+  name        String
+  description String?
+  status      MenuStatus @default(ACTIVE)
+
+  restaurant  Restaurant           @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  categories  MenuCategory[]
+  outletPricing MenuItemOutletPricing[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([restaurantId])
+  @@map("menus")
+}
+
+model MenuCategory {
+  id           Int         @id @default(autoincrement())
+  menuId       Int
+
+  name         String
+  displayOrder Int         @default(0)
+  status       MenuStatus @default(ACTIVE)
+
+  menu         Menu        @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  items        MenuItem[]
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([menuId])
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id             Int              @id @default(autoincrement())
+  categoryId     Int
+
+  name           String
+  description    String?
+  basePrice      Decimal          @db.Decimal(10, 2)
+  imageUrl       String?
+  isVegetarian   Boolean          @default(false)
+  isSpicy        Boolean          @default(false)
+  preparationTime Int?            // in minutes
+  calories       Int?
+  status         MenuItemStatus   @default(AVAILABLE)
+
+  category       MenuCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  modifiers      ModifierGroup[]
+  outletPricing  MenuItemOutletPricing[]
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@map("menu_items")
+}
+
+// Outlet-specific pricing for menu items
+model MenuItemOutletPricing {
+  id        Int      @id @default(autoincrement())
+  menuId    Int
+  itemId    Int
+  outletId  Int
+
+  price     Decimal  @db.Decimal(10, 2)
+  available Boolean  @default(true)
+
+  menu      Menu     @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  item      MenuItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([menuId, itemId, outletId])
+  @@index([outletId])
+  @@map("menu_item_outlet_pricing")
+}
+
+// Modifier groups (e.g., "Size", "Add-ons")
+model ModifierGroup {
+  id       Int          @id @default(autoincrement())
+  itemId   Int
+
+  name     String
+  type     ModifierType @default(SINGLE) // SINGLE or MULTIPLE selection
+  required Boolean      @default(false)
+  minSelect Int         @default(0)
+  maxSelect Int         @default(1)
+  displayOrder Int      @default(0)
+
+  item     MenuItem     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  options  ModifierOption[]
+
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([itemId])
+  @@map("modifier_groups")
+}
+
+// Individual modifier options (e.g., "Small", "Medium", "Large")
+model ModifierOption {
+  id             Int           @id @default(autoincrement())
+  modifierGroupId Int
+
+  name           String
+  priceAdjustment Decimal     @default(0) @db.Decimal(10, 2)
+  isDefault      Boolean      @default(false)
+  displayOrder   Int          @default(0)
+
+  modifierGroup  ModifierGroup @relation(fields: [modifierGroupId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([modifierGroupId])
+  @@map("modifier_options")
+}
+
+enum MenuStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum MenuItemStatus {
+  AVAILABLE
+  UNAVAILABLE
+}
+
+enum ModifierType {
+  SINGLE    // User can select only one option (e.g., Size)
+  MULTIPLE  // User can select multiple options (e.g., Add-ons)
 }

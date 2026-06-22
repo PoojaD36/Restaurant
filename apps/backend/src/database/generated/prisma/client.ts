@@ -86,3 +86,33 @@ export type CustomerPassword = Prisma.CustomerPasswordModel
  * 
  */
 export type CustomerAddress = Prisma.CustomerAddressModel
+/**
+ * Model Menu
+ * 
+ */
+export type Menu = Prisma.MenuModel
+/**
+ * Model MenuCategory
+ * 
+ */
+export type MenuCategory = Prisma.MenuCategoryModel
+/**
+ * Model MenuItem
+ * 
+ */
+export type MenuItem = Prisma.MenuItemModel
+/**
+ * Model MenuItemOutletPricing
+ * 
+ */
+export type MenuItemOutletPricing = Prisma.MenuItemOutletPricingModel
+/**
+ * Model ModifierGroup
+ * 
+ */
+export type ModifierGroup = Prisma.ModifierGroupModel
+/**
+ * Model ModifierOption
+ * 
+ */
+export type ModifierOption = Prisma.ModifierOptionModel

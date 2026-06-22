@@ -10,6 +10,8 @@ import { UserModuleService } from './user-module/user-module.service';
 import { RestaurantModule } from './restaurant-module/restaurant-module.module';
 import { OutletModule } from './outlet-module/outlet-module.module';
 import { CustomerModule } from './customer-module/customer-module.module';
+import { StorageModule } from './storage/storage.module';
+import { MenuModule } from './menu-module/menu-module.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { CustomerModule } from './customer-module/customer-module.module';
     RestaurantModule,
     OutletModule,
     CustomerModule,
+    StorageModule,
+    MenuModule,
   ],
   controllers: [AppController, UserModuleController],
   providers: [AppService, UserModuleService],
