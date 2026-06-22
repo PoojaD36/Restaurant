@@ -8,6 +8,7 @@ import { RestaurantStatus } from 'src/database/generated/prisma/enums';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { AddRestaurantUserDto } from './dto/add-restaurant-user.dto';
+import { ApiResponse, PaginatedResponse } from '../common';
 
 @Injectable()
 export class RestaurantModuleService {
@@ -18,10 +19,7 @@ export class RestaurantModuleService {
    */
   async createRestaurant(
     createRestaurantDto: CreateRestaurantDto,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<ApiResponse> {
     try {
       // Check if restaurant with same slug exists
       const existingRestaurant = await this.prisma.restaurant.findUnique({
@@ -80,17 +78,7 @@ export class RestaurantModuleService {
     limit: number = 10,
     userId?: number,
     userRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data: any[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-  }> {
+  ): Promise<PaginatedResponse<any>> {
     try {
       const skip = (page - 1) * limit;
 
@@ -173,11 +161,7 @@ export class RestaurantModuleService {
     id: number,
     userId?: number,
     userRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data: any;
-  }> {
+  ): Promise<ApiResponse<any>> {
     try {
       // For RESTAURANT_ADMIN, verify they have access to this restaurant
       if (userRole === 'RESTAURANT_ADMIN' && userId) {
@@ -271,10 +255,7 @@ export class RestaurantModuleService {
     updateRestaurantDto: UpdateRestaurantDto,
     userId?: number,
     userRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<ApiResponse> {
     try {
       // For RESTAURANT_ADMIN, verify they have access to this restaurant
       if (userRole === 'RESTAURANT_ADMIN' && userId) {
@@ -346,10 +327,7 @@ export class RestaurantModuleService {
   /**
    * Delete restaurant (Super Admin only)
    */
-  async deleteRestaurant(id: number): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  async deleteRestaurant(id: number): Promise<ApiResponse> {
     try {
       const existingRestaurant = await this.prisma.restaurant.findUnique({
         where: { id },
@@ -383,10 +361,7 @@ export class RestaurantModuleService {
     addRestaurantUserDto: AddRestaurantUserDto,
     requestingUserId?: number,
     requestingUserRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<ApiResponse> {
     try {
       // For RESTAURANT_ADMIN, verify they have access to this restaurant
       if (
@@ -470,10 +445,7 @@ export class RestaurantModuleService {
     userId: number,
     requestingUserId?: number,
     requestingUserRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<ApiResponse> {
     try {
       // For RESTAURANT_ADMIN, verify they have access to this restaurant
       if (
@@ -536,11 +508,7 @@ export class RestaurantModuleService {
     restaurantId: number,
     requestingUserId?: number,
     requestingUserRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data: any[];
-  }> {
+  ): Promise<ApiResponse<any[]>> {
     try {
       // For RESTAURANT_ADMIN, verify they have access to this restaurant
       if (
@@ -621,11 +589,7 @@ export class RestaurantModuleService {
   async getUserRestaurants(
     userId: number,
     userRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data: any[];
-  }> {
+  ): Promise<ApiResponse<any[]>> {
     try {
       // SUPER_ADMIN gets all restaurants
       const whereClause = userRole === 'SUPER_ADMIN'
