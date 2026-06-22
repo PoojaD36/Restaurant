@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-22 (Updated with RESTAURANT_ADMIN access and role permissions)
+> **Last Updated:** 2026-06-22 (Fixed TypeScript build error in dashboard layout)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -47,6 +47,10 @@ d:\restaurant/
 │   │   │   │   ├── dto/        # Data transfer objects
 │   │   │   │   ├── interfaces/ # JwtPayload interface
 │   │   │   │   └── constants/  # Auth constants
+│   │   │   ├── common/         # Shared DTOs, interfaces, and types
+│   │   │   │   ├── dto/        # Common DTOs (PaginationDto)
+│   │   │   │   ├── interfaces/ # Response interfaces (ApiResponse, PaginatedResponse)
+│   │   │   │   └── common.module.ts
 │   │   │   ├── database/       # Prisma service & module
 │   │   │   ├── user-module/    # User management module
 │   │   │   ├── restaurant-module/  # Restaurant management module
@@ -567,6 +571,8 @@ npx shadcn@latest add dialog -y
 - ✅ **Restaurant Admin Dashboard Access** - RESTAURANT_ADMIN can now access their assigned restaurants and outlets, manage users - 2026-06-22
 - ✅ **Contextual Page Titles** - Page titles change based on user role (My Restaurants/Outlets for RESTAURANT_ADMIN) - 2026-06-22
 - ✅ **Super Admin Restaurant Access** - SUPER_ADMIN sees all restaurants when creating outlets, not just assigned ones - 2026-06-22
+- ✅ **Dashboard Layout TypeScript Fix** - Fixed TypeScript build error by adding proper NavItem interface and UserRole type, improving type inference in filter logic - 2026-06-22
+- ✅ **Common Types Refactoring** - Created common folder with shared DTOs (PaginationDto) and response interfaces (ApiResponse, PaginatedResponse) to eliminate duplicate code across all services - 2026-06-22
 
 ### In Progress
 - No tasks currently in progress

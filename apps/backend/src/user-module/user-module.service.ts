@@ -12,6 +12,7 @@ import { authConstants } from '../auth/constants/auth.constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ApiResponse, PaginatedResponse } from '../common';
 
 @Injectable()
 export class UserModuleService {
@@ -23,10 +24,7 @@ export class UserModuleService {
   /**
    * Create a new user (Super Admin only - role check at controller level)
    */
-  async createUser(createUserDto: CreateUserDto): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  async createUser(createUserDto: CreateUserDto): Promise<ApiResponse> {
     try {
       const existingUser = await this.prisma.user.findUnique({
         where: { email: createUserDto.email },
@@ -76,17 +74,7 @@ export class UserModuleService {
   async getAllUsers(
     page: number = 1,
     limit: number = 10,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data: any[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-  }> {
+  ): Promise<PaginatedResponse<any>> {
     try {
       const skip = (page - 1) * limit;
 
@@ -148,10 +136,7 @@ export class UserModuleService {
   async changePassword(
     userId: number,
     changePasswordDto: ChangePasswordDto,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<ApiResponse> {
     try {
       const userPassword = await this.prisma.userPassword.findUnique({
         where: { userId },
@@ -194,10 +179,7 @@ export class UserModuleService {
   async changeUserPassword(
     userId: number,
     changePasswordDto: ChangePasswordDto,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<ApiResponse> {
     try {
       await this.updateUserPassword(userId, changePasswordDto.newPassword);
 
@@ -236,11 +218,7 @@ export class UserModuleService {
   /**
    * Get user by ID
    */
-  async getUserById(userId: number): Promise<{
-    success: boolean;
-    message: string;
-    data: any;
-  }> {
+  async getUserById(userId: number): Promise<ApiResponse<any>> {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -292,11 +270,7 @@ export class UserModuleService {
   async updateUser(
     userId: number,
     updateUserDto: UpdateUserDto,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data: any;
-  }> {
+  ): Promise<ApiResponse<any>> {
     try {
       const existingUser = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -316,7 +290,7 @@ export class UserModuleService {
         }
       }
 
-      const updatedUser = await this.prisma.user.update({
+      await this.prisma.user.update({
         where: { id: userId },
         data: {
           ...(updateUserDto.email && { email: updateUserDto.email }),
@@ -329,23 +303,12 @@ export class UserModuleService {
           }),
           ...(updateUserDto.role && { role: updateUserDto.role }),
         },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          phone: true,
-          role: true,
-          status: true,
-          createdAt: true,
-          updatedAt: true,
-        },
       });
 
       return {
         success: true,
         message: 'User updated successfully',
-        data: null, // Return null or updatedUser based on your preference. Be cautious about returning sensitive info.
+        data: null,
       };
     } catch (error) {
       if (
@@ -361,10 +324,7 @@ export class UserModuleService {
   /**
    * Delete user (Super Admin only)
    */
-  async deleteUser(userId: number): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  async deleteUser(userId: number): Promise<ApiResponse> {
     try {
       const existingUser = await this.prisma.user.findUnique({
         where: { id: userId },

@@ -8,6 +8,7 @@ import { PrismaService } from 'src/database/prisma.service';
 import { OutletStatus } from 'src/database/generated/prisma/enums';
 import { CreateOutletDto } from './dto/create-outlet.dto';
 import { UpdateOutletDto } from './dto/update-outlet.dto';
+import { ApiResponse, PaginatedResponse } from '../common';
 
 @Injectable()
 export class OutletModuleService {
@@ -39,10 +40,7 @@ export class OutletModuleService {
     createOutletDto: CreateOutletDto,
     requestingUserId?: number,
     requestingUserRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<ApiResponse> {
     try {
       // For RESTAURANT_ADMIN, verify they have access to the restaurant
       if (
@@ -113,17 +111,7 @@ export class OutletModuleService {
     restaurantId?: number,
     userId?: number,
     userRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data: any[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
-  }> {
+  ): Promise<PaginatedResponse<any>> {
     try {
       const skip = (page - 1) * limit;
 
@@ -223,11 +211,7 @@ export class OutletModuleService {
   /**
    * Get outlet by ID
    */
-  async getOutletById(id: number): Promise<{
-    success: boolean;
-    message: string;
-    data: any;
-  }> {
+  async getOutletById(id: number): Promise<ApiResponse<any>> {
     try {
       const outlet = await this.prisma.outlet.findUnique({
         where: { id },
@@ -290,10 +274,7 @@ export class OutletModuleService {
     updateOutletDto: UpdateOutletDto,
     requestingUserId?: number,
     requestingUserRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<ApiResponse> {
     try {
       const existingOutlet = await this.prisma.outlet.findUnique({
         where: { id },
@@ -378,10 +359,7 @@ export class OutletModuleService {
     id: number,
     requestingUserId?: number,
     requestingUserRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-  }> {
+  ): Promise<ApiResponse> {
     try {
       const existingOutlet = await this.prisma.outlet.findUnique({
         where: { id },
@@ -429,11 +407,7 @@ export class OutletModuleService {
     restaurantId: number,
     requestingUserId?: number,
     requestingUserRole?: string,
-  ): Promise<{
-    success: boolean;
-    message: string;
-    data: any[];
-  }> {
+  ): Promise<ApiResponse<any[]>> {
     try {
       // For RESTAURANT_ADMIN, verify they have access to the restaurant
       if (

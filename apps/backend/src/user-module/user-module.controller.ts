@@ -6,8 +6,8 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { UserRole } from 'src/database/generated/prisma/enums';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { PaginationDto } from './dto/pagination.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PaginationDto } from '../common';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
