@@ -8,6 +8,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PaginationDto } from '../common';
+import { GetUserDto } from './dto/get-user.dto';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -31,8 +32,8 @@ export class UserModuleController {
   @Get('list')
   @UseGuards(RolesGuard)
   @Roles(UserRole.SUPER_ADMIN)
-  async getAllUsers(@Query() paginationDto: PaginationDto) {
-    return this.userModuleService.getAllUsers(paginationDto.pageValue, paginationDto.limitValue);
+  async getAllUsers(@Query() getUserDto: GetUserDto) {
+    return this.userModuleService.getAllUsers(getUserDto);
   }
 
   /**

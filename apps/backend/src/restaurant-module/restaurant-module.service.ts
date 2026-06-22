@@ -8,7 +8,7 @@ import { RestaurantStatus } from 'src/database/generated/prisma/enums';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { AddRestaurantUserDto } from './dto/add-restaurant-user.dto';
-import { ApiResponse, PaginatedResponse } from '../common';
+import { ApiResponse, PaginatedResponse, PaginationMeta } from '../common';
 
 @Injectable()
 export class RestaurantModuleService {
@@ -124,7 +124,7 @@ export class RestaurantModuleService {
         }),
       ]);
 
-      const totalPages = Math.ceil(total / limit);
+      const pagination = new PaginationMeta(total, page, limit);
 
       return {
         success: true,
@@ -141,12 +141,7 @@ export class RestaurantModuleService {
           outletsCount: r._count.outlets,
           usersCount: r._count.users,
         })),
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages,
-        },
+        pagination,
       };
     } catch (error) {
       console.error('Error in getAllRestaurants:', error);

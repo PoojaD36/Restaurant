@@ -1,14 +1,4 @@
 /**
- * Pagination metadata interface
- */
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
-/**
  * Standard API response with success, message, and optional data
  */
 export interface ApiResponse<T = void> {
@@ -24,5 +14,16 @@ export interface PaginatedResponse<T> {
   success: boolean;
   message: string;
   data: T[];
-  pagination: PaginationMeta;
+  pagination: {
+    total: number;
+    currentPage: number;
+    perPage: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+    nextPage: number | null;
+    prevPage: number | null;
+    from: number;
+    to: number;
+  };
 }

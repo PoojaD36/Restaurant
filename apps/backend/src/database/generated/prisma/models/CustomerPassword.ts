@@ -42,6 +42,7 @@ export type CustomerPasswordMinAggregateOutputType = {
   id: number | null
   customerId: number | null
   passwordHash: string | null
+  refreshTokenHash: string | null
   lastLoginAt: Date | null
   passwordChangedAt: Date | null
   failedAttempts: number | null
@@ -54,6 +55,7 @@ export type CustomerPasswordMaxAggregateOutputType = {
   id: number | null
   customerId: number | null
   passwordHash: string | null
+  refreshTokenHash: string | null
   lastLoginAt: Date | null
   passwordChangedAt: Date | null
   failedAttempts: number | null
@@ -66,6 +68,7 @@ export type CustomerPasswordCountAggregateOutputType = {
   id: number
   customerId: number
   passwordHash: number
+  refreshTokenHash: number
   lastLoginAt: number
   passwordChangedAt: number
   failedAttempts: number
@@ -92,6 +95,7 @@ export type CustomerPasswordMinAggregateInputType = {
   id?: true
   customerId?: true
   passwordHash?: true
+  refreshTokenHash?: true
   lastLoginAt?: true
   passwordChangedAt?: true
   failedAttempts?: true
@@ -104,6 +108,7 @@ export type CustomerPasswordMaxAggregateInputType = {
   id?: true
   customerId?: true
   passwordHash?: true
+  refreshTokenHash?: true
   lastLoginAt?: true
   passwordChangedAt?: true
   failedAttempts?: true
@@ -116,6 +121,7 @@ export type CustomerPasswordCountAggregateInputType = {
   id?: true
   customerId?: true
   passwordHash?: true
+  refreshTokenHash?: true
   lastLoginAt?: true
   passwordChangedAt?: true
   failedAttempts?: true
@@ -215,6 +221,7 @@ export type CustomerPasswordGroupByOutputType = {
   id: number
   customerId: number
   passwordHash: string
+  refreshTokenHash: string | null
   lastLoginAt: Date | null
   passwordChangedAt: Date | null
   failedAttempts: number
@@ -250,6 +257,7 @@ export type CustomerPasswordWhereInput = {
   id?: Prisma.IntFilter<"CustomerPassword"> | number
   customerId?: Prisma.IntFilter<"CustomerPassword"> | number
   passwordHash?: Prisma.StringFilter<"CustomerPassword"> | string
+  refreshTokenHash?: Prisma.StringNullableFilter<"CustomerPassword"> | string | null
   lastLoginAt?: Prisma.DateTimeNullableFilter<"CustomerPassword"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"CustomerPassword"> | Date | string | null
   failedAttempts?: Prisma.IntFilter<"CustomerPassword"> | number
@@ -263,6 +271,7 @@ export type CustomerPasswordOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   failedAttempts?: Prisma.SortOrder
@@ -279,6 +288,7 @@ export type CustomerPasswordWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.CustomerPasswordWhereInput[]
   NOT?: Prisma.CustomerPasswordWhereInput | Prisma.CustomerPasswordWhereInput[]
   passwordHash?: Prisma.StringFilter<"CustomerPassword"> | string
+  refreshTokenHash?: Prisma.StringNullableFilter<"CustomerPassword"> | string | null
   lastLoginAt?: Prisma.DateTimeNullableFilter<"CustomerPassword"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableFilter<"CustomerPassword"> | Date | string | null
   failedAttempts?: Prisma.IntFilter<"CustomerPassword"> | number
@@ -292,6 +302,7 @@ export type CustomerPasswordOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrderInput | Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrderInput | Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   failedAttempts?: Prisma.SortOrder
@@ -312,6 +323,7 @@ export type CustomerPasswordScalarWhereWithAggregatesInput = {
   id?: Prisma.IntWithAggregatesFilter<"CustomerPassword"> | number
   customerId?: Prisma.IntWithAggregatesFilter<"CustomerPassword"> | number
   passwordHash?: Prisma.StringWithAggregatesFilter<"CustomerPassword"> | string
+  refreshTokenHash?: Prisma.StringNullableWithAggregatesFilter<"CustomerPassword"> | string | null
   lastLoginAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CustomerPassword"> | Date | string | null
   passwordChangedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"CustomerPassword"> | Date | string | null
   failedAttempts?: Prisma.IntWithAggregatesFilter<"CustomerPassword"> | number
@@ -322,6 +334,7 @@ export type CustomerPasswordScalarWhereWithAggregatesInput = {
 
 export type CustomerPasswordCreateInput = {
   passwordHash: string
+  refreshTokenHash?: string | null
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   failedAttempts?: number
@@ -335,6 +348,7 @@ export type CustomerPasswordUncheckedCreateInput = {
   id?: number
   customerId: number
   passwordHash: string
+  refreshTokenHash?: string | null
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   failedAttempts?: number
@@ -345,6 +359,7 @@ export type CustomerPasswordUncheckedCreateInput = {
 
 export type CustomerPasswordUpdateInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -358,6 +373,7 @@ export type CustomerPasswordUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   customerId?: Prisma.IntFieldUpdateOperationsInput | number
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -370,6 +386,7 @@ export type CustomerPasswordCreateManyInput = {
   id?: number
   customerId: number
   passwordHash: string
+  refreshTokenHash?: string | null
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   failedAttempts?: number
@@ -380,6 +397,7 @@ export type CustomerPasswordCreateManyInput = {
 
 export type CustomerPasswordUpdateManyMutationInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -392,6 +410,7 @@ export type CustomerPasswordUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   customerId?: Prisma.IntFieldUpdateOperationsInput | number
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -409,6 +428,7 @@ export type CustomerPasswordCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
   failedAttempts?: Prisma.SortOrder
@@ -427,6 +447,7 @@ export type CustomerPasswordMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
   failedAttempts?: Prisma.SortOrder
@@ -439,6 +460,7 @@ export type CustomerPasswordMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   customerId?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
+  refreshTokenHash?: Prisma.SortOrder
   lastLoginAt?: Prisma.SortOrder
   passwordChangedAt?: Prisma.SortOrder
   failedAttempts?: Prisma.SortOrder
@@ -487,6 +509,7 @@ export type CustomerPasswordUncheckedUpdateOneWithoutCustomerNestedInput = {
 
 export type CustomerPasswordCreateWithoutCustomerInput = {
   passwordHash: string
+  refreshTokenHash?: string | null
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   failedAttempts?: number
@@ -498,6 +521,7 @@ export type CustomerPasswordCreateWithoutCustomerInput = {
 export type CustomerPasswordUncheckedCreateWithoutCustomerInput = {
   id?: number
   passwordHash: string
+  refreshTokenHash?: string | null
   lastLoginAt?: Date | string | null
   passwordChangedAt?: Date | string | null
   failedAttempts?: number
@@ -524,6 +548,7 @@ export type CustomerPasswordUpdateToOneWithWhereWithoutCustomerInput = {
 
 export type CustomerPasswordUpdateWithoutCustomerInput = {
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -535,6 +560,7 @@ export type CustomerPasswordUpdateWithoutCustomerInput = {
 export type CustomerPasswordUncheckedUpdateWithoutCustomerInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  refreshTokenHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   failedAttempts?: Prisma.IntFieldUpdateOperationsInput | number
@@ -549,6 +575,7 @@ export type CustomerPasswordSelect<ExtArgs extends runtime.Types.Extensions.Inte
   id?: boolean
   customerId?: boolean
   passwordHash?: boolean
+  refreshTokenHash?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
   failedAttempts?: boolean
@@ -562,6 +589,7 @@ export type CustomerPasswordSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   id?: boolean
   customerId?: boolean
   passwordHash?: boolean
+  refreshTokenHash?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
   failedAttempts?: boolean
@@ -575,6 +603,7 @@ export type CustomerPasswordSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   id?: boolean
   customerId?: boolean
   passwordHash?: boolean
+  refreshTokenHash?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
   failedAttempts?: boolean
@@ -588,6 +617,7 @@ export type CustomerPasswordSelectScalar = {
   id?: boolean
   customerId?: boolean
   passwordHash?: boolean
+  refreshTokenHash?: boolean
   lastLoginAt?: boolean
   passwordChangedAt?: boolean
   failedAttempts?: boolean
@@ -596,7 +626,7 @@ export type CustomerPasswordSelectScalar = {
   updatedAt?: boolean
 }
 
-export type CustomerPasswordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "customerId" | "passwordHash" | "lastLoginAt" | "passwordChangedAt" | "failedAttempts" | "lockedUntil" | "createdAt" | "updatedAt", ExtArgs["result"]["customerPassword"]>
+export type CustomerPasswordOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "customerId" | "passwordHash" | "refreshTokenHash" | "lastLoginAt" | "passwordChangedAt" | "failedAttempts" | "lockedUntil" | "createdAt" | "updatedAt", ExtArgs["result"]["customerPassword"]>
 export type CustomerPasswordInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   customer?: boolean | Prisma.CustomerDefaultArgs<ExtArgs>
 }
@@ -616,6 +646,7 @@ export type $CustomerPasswordPayload<ExtArgs extends runtime.Types.Extensions.In
     id: number
     customerId: number
     passwordHash: string
+    refreshTokenHash: string | null
     lastLoginAt: Date | null
     passwordChangedAt: Date | null
     failedAttempts: number
@@ -1049,6 +1080,7 @@ export interface CustomerPasswordFieldRefs {
   readonly id: Prisma.FieldRef<"CustomerPassword", 'Int'>
   readonly customerId: Prisma.FieldRef<"CustomerPassword", 'Int'>
   readonly passwordHash: Prisma.FieldRef<"CustomerPassword", 'String'>
+  readonly refreshTokenHash: Prisma.FieldRef<"CustomerPassword", 'String'>
   readonly lastLoginAt: Prisma.FieldRef<"CustomerPassword", 'DateTime'>
   readonly passwordChangedAt: Prisma.FieldRef<"CustomerPassword", 'DateTime'>
   readonly failedAttempts: Prisma.FieldRef<"CustomerPassword", 'Int'>

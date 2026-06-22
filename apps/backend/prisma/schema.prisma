@@ -214,6 +214,7 @@ model CustomerPassword {
   customerId Int @unique
 
   passwordHash String
+  refreshTokenHash   String?
 
   lastLoginAt       DateTime?
   passwordChangedAt DateTime?

@@ -9,7 +9,7 @@ import { OutletStatus } from 'src/database/generated/prisma/enums';
 import { CreateOutletDto } from './dto/create-outlet.dto';
 import { UpdateOutletDto } from './dto/update-outlet.dto';
 import { AddOutletUserDto } from './dto/add-outlet-user.dto';
-import { ApiResponse, PaginatedResponse } from '../common';
+import { ApiResponse, PaginatedResponse, PaginationMeta } from '../common';
 
 @Injectable()
 export class OutletModuleService {
@@ -209,7 +209,7 @@ export class OutletModuleService {
         }),
       ]);
 
-      const totalPages = Math.ceil(total / limit);
+      const pagination = new PaginationMeta(total, page, limit);
 
       return {
         success: true,
@@ -234,15 +234,99 @@ export class OutletModuleService {
             slug: o.restaurant.slug,
           },
         })),
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages,
-        },
+        pagination,
       };
     } catch (error) {
       console.error('Error in getAllOutlets:', error);
+      throw new BadRequestException('Failed to fetch outlets');
+    }
+  }
+
+  /**
+   * Get public outlets (no authentication required)
+   * Only returns ACTIVE outlets for customer browsing
+   */
+  async getPublicOutlets(
+    page: number = 1,
+    limit: number = 10,
+    restaurantId?: number,
+  ): Promise<PaginatedResponse<any>> {
+    try {
+      const skip = (page - 1) * limit;
+
+      let whereClause: any = {
+        status: OutletStatus.ACTIVE,
+      };
+
+      if (restaurantId) {
+        whereClause.restaurantId = restaurantId;
+      }
+
+      const [outlets, total] = await Promise.all([
+        this.prisma.outlet.findMany({
+          where: whereClause,
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            email: true,
+            addressLine1: true,
+            city: true,
+            state: true,
+            country: true,
+            postalCode: true,
+            openingTime: true,
+            closingTime: true,
+            status: true,
+            restaurant: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                logo: true,
+              },
+            },
+          },
+          orderBy: {
+            name: 'asc',
+          },
+          skip,
+          take: limit,
+        }),
+        this.prisma.outlet.count({
+          where: whereClause,
+        }),
+      ]);
+
+      const pagination = new PaginationMeta(total, page, limit);
+
+      return {
+        success: true,
+        message: 'Outlets retrieved successfully',
+        data: outlets.map((o) => ({
+          id: o.id.toString(),
+          name: o.name,
+          phone: o.phone,
+          email: o.email,
+          addressLine1: o.addressLine1,
+          city: o.city,
+          state: o.state,
+          country: o.country,
+          postalCode: o.postalCode,
+          openingTime: o.openingTime,
+          closingTime: o.closingTime,
+          status: o.status,
+          restaurant: {
+            id: o.restaurant.id.toString(),
+            name: o.restaurant.name,
+            slug: o.restaurant.slug,
+            logo: o.restaurant.logo,
+          },
+        })),
+        pagination,
+      };
+    } catch (error) {
+      console.error('Error in getPublicOutlets:', error);
       throw new BadRequestException('Failed to fetch outlets');
     }
   }

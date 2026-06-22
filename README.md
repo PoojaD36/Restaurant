@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-22 (Implemented outlet-user management with role-based auto-assignment)
+> **Last Updated:** 2026-06-22 (PaginationMeta class for reusable pagination logic)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -40,13 +40,22 @@ d:\restaurant/
 │   │   │   ├── schema.prisma   # Database schema
 │   │   │   └── seed.ts         # Database seeder (Super Admin)
 │   │   ├── src/
-│   │   │   ├── auth/           # Authentication module
+│   │   │   ├── auth/           # Authentication module (admin users)
 │   │   │   │   ├── guards/     # JWTAuthGuard, RolesGuard
 │   │   │   │   ├── strategies/ # JWT strategy
 │   │   │   │   ├── decorators/ # @Roles() decorator
 │   │   │   │   ├── dto/        # Data transfer objects
 │   │   │   │   ├── interfaces/ # JwtPayload interface
 │   │   │   │   └── constants/  # Auth constants
+│   │   │   ├── customer-module/    # Customer authentication & management
+│   │   │   │   ├── guards/         # Customer JWT auth guard
+│   │   │   │   ├── strategies/     # Customer JWT strategy
+│   │   │   │   ├── dto/            # Customer DTOs (register, login, address)
+│   │   │   │   ├── interfaces/     # Customer JWT payload interface
+│   │   │   │   ├── constants/      # Customer auth constants
+│   │   │   │   ├── customer-module.controller.ts
+│   │   │   │   ├── customer-module.service.ts
+│   │   │   │   └── customer-module.module.ts
 │   │   │   ├── common/         # Shared DTOs, interfaces, and types
 │   │   │   │   ├── dto/        # Common DTOs (PaginationDto)
 │   │   │   │   ├── interfaces/ # Response interfaces (ApiResponse, PaginatedResponse)
@@ -62,10 +71,12 @@ d:\restaurant/
 │   │
 │   └── frontend/               # Next.js App
 │       ├── app/
-│       │   ├── layout.tsx       # Root layout with AuthProvider
+│       │   ├── layout.tsx       # Root layout with AuthProvider and CustomerAuthProvider
 │       │   ├── page.tsx         # Landing page
+│       │   ├── customer/        # Customer-facing page
+│       │   │   └── page.tsx     # Browse outlets, order food
 │       │   ├── login/
-│       │   │   └── page.tsx     # Login page
+│       │   │   └── page.tsx     # Admin login page
 │       │   └── dashboard/
 │       │       ├── layout.tsx   # Dashboard layout with sidebar navigation
 │       │       ├── page.tsx     # Dashboard home
@@ -73,20 +84,25 @@ d:\restaurant/
 │       │       ├── restaurants/ # Restaurants list page (Super Admin, Restaurant Admin)
 │       │       └── outlets/     # Outlets list page (Super Admin, Restaurant Admin)
 │       ├── components/
-│       │   ├── ui/             # shadcn/ui components
+│       │   ├── ui/             # shadcn/ui components (Button, Card, Input, Sheet, etc.)
 │       │   ├── protected-route.tsx
+│       │   ├── customer-auth-sheet.tsx  # Bottom slide-up for customer auth
 │       │   ├── change-password-modal.tsx
 │       │   ├── create-user-modal.tsx
 │       │   ├── edit-user-modal.tsx
 │       │   ├── create-restaurant-modal.tsx
 │       │   ├── add-restaurant-user-modal.tsx
-│       │   └── create-outlet-modal.tsx
-│       │   ├── add-outlet-user-modal.tsx
+│       │   ├── create-outlet-modal.tsx
+│       │   └── add-outlet-user-modal.tsx
 │       ├── contexts/
-│       │   └── auth-context.tsx   # Auth state management
+│       │   ├── auth-context.tsx       # Admin auth state management
+│       │   └── customer-auth-context.tsx  # Customer auth state management
 │       ├── lib/
-│       │   ├── types.ts            # TypeScript types
+│       │   ├── types.ts            # TypeScript types (admin)
+│       │   ├── customer-types.ts   # TypeScript types (customer)
 │       │   ├── auth-api.ts         # API functions for auth
+│       │   ├── customer-api.ts     # API functions for customers
+│       │   ├── public-api.ts       # Public API (outlets)
 │       │   ├── users-api.ts        # API functions for users
 │       │   ├── restaurants-api.ts  # API functions for restaurants
 │       │   └── outlets-api.ts      # API functions for outlets
@@ -135,13 +151,14 @@ d:\restaurant/
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule imported |
-| Auth Module | ✅ Complete | JWT auth, role-based guards, decorators |
+| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule imported |
+| Auth Module | ✅ Complete | JWT auth, role-based guards, decorators (for admin users) |
+| Customer Module | ✅ Complete | Customer auth, profile, address management |
 | User Module | ✅ Complete | Full CRUD operations for users |
 | Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction, auto-adds Admin/Manager to outlets |
-| Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment |
+| Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment, public endpoint for customer browsing |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
-| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction |
+| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress |
 | Database Seeder | ✅ Complete | Creates Super Admin via npm run seed |
 
 **Port:** 3001 (configurable via `PORT` env var)
@@ -154,10 +171,13 @@ d:\restaurant/
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| App Structure | ✅ Complete | Layout with AuthProvider |
-| Landing Page | ✅ Complete | Food delivery themed hero with framer-motion animations |
+| App Structure | ✅ Complete | Layout with AuthProvider and CustomerAuthProvider |
+| Landing Page | ✅ Complete | Food delivery themed hero with framer-motion animations, links to customer ordering |
 | Background Effects | ✅ Complete | Floating food icons, wave animations, glass-morphism |
-| Authentication | ✅ Complete | Login, logout, JWT handling |
+| Authentication | ✅ Complete | Login, logout, JWT handling (admin users) |
+| Customer Authentication | ✅ Complete | Customer registration, login, profile management |
+| Customer Auth Sheet | ✅ Complete | Bottom slide-up for sign-in/sign-up |
+| Customer Page | ✅ Complete | Browse outlets, order food (requires sign-in) |
 | Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
 | User Management | ✅ Complete | Users list, create, edit, delete, change password |
 | Restaurant Management | ✅ Complete | Restaurants list, create (SUPER_ADMIN), add/remove users (SUPER_ADMIN, RESTAURANT_ADMIN) |
@@ -165,8 +185,9 @@ d:\restaurant/
 | Outlet User Management | ✅ Complete | Manage outlet users with role-based auto-assignment modal |
 | Restaurant Admin Access | ✅ Complete | RESTAURANT_ADMIN can view assigned restaurants, manage users, create outlets |
 | Auth Context | ✅ Complete | State management with useAuth hook |
+| Customer Auth Context | ✅ Complete | State management with useCustomerAuth hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check and multiple role support |
-| UI Components | ✅ Complete | shadcn/ui components installed |
+| UI Components | ✅ Complete | shadcn/ui components installed (Button, Card, Input, Sheet, etc.) |
 | Theme System | ✅ Complete | Red/Orange/Amber theme (light mode only) |
 
 ---
@@ -263,6 +284,33 @@ d:\restaurant/
 | `/outlets/:id/users/available` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Get available CHEF/DELIVERY_AGENT | - |
 | `/outlets/:id/users` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Add user to outlet (manual) | - |
 | `/outlets/:id/users/:userId` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Remove user from outlet | - |
+
+### Customer Authentication
+
+| Endpoint | Method | Auth Required | Description |
+|----------|--------|---------------|-------------|
+| `/customers/register` | POST | No | Register new customer (returns tokens) |
+| `/customers/login` | POST | No | Login customer with email/phone |
+| `/customers/profile` | GET | Customer JWT | Get customer profile with addresses |
+| `/customers/profile` | PUT | Customer JWT | Update customer profile |
+| `/customers/logout` | POST | Customer JWT | Logout customer |
+| `/customers/validate` | GET | Customer JWT | Validate customer token |
+
+### Customer Address Management
+
+| Endpoint | Method | Auth Required | Description |
+|----------|--------|---------------|-------------|
+| `/customers/addresses` | POST | Customer JWT | Add new address |
+| `/customers/addresses/:addressId` | PUT | Customer JWT | Update address |
+| `/customers/addresses/:addressId` | DELETE | Customer JWT | Delete address |
+| `/customers/addresses/:addressId/default` | POST | Customer JWT | Set default address |
+
+### Public Outlet Endpoints (No Authentication)
+
+| Endpoint | Method | Auth Required | Description | Query Params |
+|----------|--------|---------------|-------------|--------------|
+| `/public/outlets/list` | GET | No | Get active outlets (public) | `page`, `limit`, `restaurantId` |
+| `/public/outlets/:id` | GET | No | Get outlet by ID (public) | - |
 
 ### Authentication Flow
 
@@ -590,16 +638,25 @@ npx shadcn@latest add dialog -y
 - ✅ **Super Admin Restaurant Access** - SUPER_ADMIN sees all restaurants when creating outlets, not just assigned ones - 2026-06-22
 - ✅ **Dashboard Layout TypeScript Fix** - Fixed TypeScript build error by adding proper NavItem interface and UserRole type, improving type inference in filter logic - 2026-06-22
 - ✅ **Common Types Refactoring** - Created common folder with shared DTOs (PaginationDto) and response interfaces (ApiResponse, PaginatedResponse) to eliminate duplicate code across all services - 2026-06-22
+- ✅ **PaginationMeta Implementation** - Added PaginationMeta class with auto-calculated pagination metadata (totalPages, hasNextPage, hasPrevPage, nextPage, prevPage, from, to) to eliminate repeated pagination logic across all services - 2026-06-22
 - ✅ **Outlet User Backend** - Implemented outlet-user management endpoints with role-based auto-assignment (RESTAURANT_ADMIN/MANAGER auto-added to all outlets) - 2026-06-22
 - ✅ **Outlet User Auto-Assignment** - When creating outlet, auto-adds RESTAURANT_ADMIN and MANAGER from restaurant; when adding user to restaurant, auto-adds to all outlets for oversight roles - 2026-06-22
 - ✅ **Outlet User Frontend** - Created add-outlet-user-modal for managing outlet users with manual assignment for CHEF/DELIVERY_AGENT - 2026-06-22
 - ✅ **Outlet User Types & API** - Added OutletUser, AddOutletUserRequest, AvailableOutletUser types and API functions - 2026-06-22
+- ✅ **Customer Module Backend** - Implemented customer authentication, registration, profile, and address management - 2026-06-22
+- ✅ **Customer Auth Frontend** - Created customer types, API functions, and auth context - 2026-06-22
+- ✅ **Customer Auth Sheet** - Created bottom slide-up component for customer sign-in/sign-up - 2026-06-22
+- ✅ **Customer Page** - Created customer-facing page with outlet browsing and order flow - 2026-06-22
+- ✅ **Public Outlet API** - Created public endpoints for browsing outlets without authentication - 2026-06-22
+- ✅ **Customer JWT Strategy** - Implemented separate JWT strategy for customer authentication - 2026-06-22
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
-- [ ] **Customer Portal** - Implement customer registration and auth
+- [ ] **Customer Address Management UI** - Create customer address management page with add/edit/delete
+- [ ] **Menu Module** - Implement menu items, categories for restaurants/outlets
+- [ ] **Cart & Orders** - Implement shopping cart and order placement
 - [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and features
 - [ ] **API Documentation** - Add Swagger/OpenAPI docs
 - [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
@@ -681,6 +738,24 @@ npx shadcn@latest add dialog -y
   - Return only necessary data
   - For mutations (create, update, delete), return success messages, not full objects
   - Example: `{ message: 'User created successfully' }` instead of full user object
+
+- **Pagination:** Always use the shared `PaginationMeta` class for paginated responses
+  - Extend `PaginationDto` in your module's query DTO (e.g., `GetUserDto extends PaginationDto`)
+  - Use `PaginationMeta` to automatically calculate all pagination metadata
+  - Example:
+    ```typescript
+    // In your DTO file
+    export class GetUserDto extends PaginationDto {}
+
+    // In your service
+    async getAllUsers(dto: GetUserDto): Promise<PaginatedResponse<any>> {
+      const { page, limit, skip } = dto;
+      const [data, total] = await Promise.all([...]);
+      const pagination = new PaginationMeta(total, page, limit);
+      return { success: true, message: '...', data, pagination };
+    }
+    ```
+  - `PaginationMeta` provides: `total`, `currentPage`, `perPage`, `totalPages`, `hasNextPage`, `hasPrevPage`, `nextPage`, `prevPage`, `from`, `to`
 
 ### Module Structure
 

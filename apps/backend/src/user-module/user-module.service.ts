@@ -12,7 +12,8 @@ import { authConstants } from '../auth/constants/auth.constants';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiResponse, PaginatedResponse } from '../common';
+import { ApiResponse, PaginatedResponse, PaginationDto, PaginationMeta } from '../common';
+import { GetUserDto } from './dto/get-user.dto';
 
 @Injectable()
 export class UserModuleService {
@@ -71,12 +72,9 @@ export class UserModuleService {
   /**
    * Get all users excluding superadmin with limited details and pagination
    */
-  async getAllUsers(
-    page: number = 1,
-    limit: number = 10,
-  ): Promise<PaginatedResponse<any>> {
+  async getAllUsers(getUserDto: GetUserDto): Promise<PaginatedResponse<any>> {
     try {
-      const skip = (page - 1) * limit;
+      const { page, limit, skip } = getUserDto;
 
       const [users, total] = await Promise.all([
         this.prisma.user.findMany({
@@ -110,18 +108,13 @@ export class UserModuleService {
         }),
       ]);
 
-      const totalPages = Math.ceil(total / limit);
+      const pagination = new PaginationMeta(total, page, limit);
 
       return {
         success: true,
         message: 'Users retrieved successfully',
         data: users,
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages,
-        },
+        pagination,
       };
     } catch (error) {
       console.error('Error in getAllUsers:', error);
@@ -351,8 +344,8 @@ export class UserModuleService {
   }
 
   // Placeholder methods for future CRUD operations
-  findAll() {
-    return this.getAllUsers();
+  findAll(getUserDto: GetUserDto) {
+    return this.getAllUsers(getUserDto);
   }
 
   findOne(id: number) {
