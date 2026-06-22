@@ -9,7 +9,7 @@ import { OutletStatus } from 'src/database/generated/prisma/enums';
 import { CreateOutletDto } from './dto/create-outlet.dto';
 import { UpdateOutletDto } from './dto/update-outlet.dto';
 import { AddOutletUserDto } from './dto/add-outlet-user.dto';
-import { ApiResponse, PaginatedResponse } from '../common';
+import { ApiResponse, PaginatedResponse, PaginationMeta } from '../common';
 
 @Injectable()
 export class OutletModuleService {
@@ -209,7 +209,7 @@ export class OutletModuleService {
         }),
       ]);
 
-      const totalPages = Math.ceil(total / limit);
+      const pagination = new PaginationMeta(total, page, limit);
 
       return {
         success: true,
@@ -234,12 +234,7 @@ export class OutletModuleService {
             slug: o.restaurant.slug,
           },
         })),
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages,
-        },
+        pagination,
       };
     } catch (error) {
       console.error('Error in getAllOutlets:', error);
@@ -303,7 +298,7 @@ export class OutletModuleService {
         }),
       ]);
 
-      const totalPages = Math.ceil(total / limit);
+      const pagination = new PaginationMeta(total, page, limit);
 
       return {
         success: true,
@@ -328,12 +323,7 @@ export class OutletModuleService {
             logo: o.restaurant.logo,
           },
         })),
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages,
-        },
+        pagination,
       };
     } catch (error) {
       console.error('Error in getPublicOutlets:', error);

@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-22 (Implemented customer authentication with bottom slide-up)
+> **Last Updated:** 2026-06-22 (PaginationMeta class for reusable pagination logic)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -638,6 +638,7 @@ npx shadcn@latest add dialog -y
 - ✅ **Super Admin Restaurant Access** - SUPER_ADMIN sees all restaurants when creating outlets, not just assigned ones - 2026-06-22
 - ✅ **Dashboard Layout TypeScript Fix** - Fixed TypeScript build error by adding proper NavItem interface and UserRole type, improving type inference in filter logic - 2026-06-22
 - ✅ **Common Types Refactoring** - Created common folder with shared DTOs (PaginationDto) and response interfaces (ApiResponse, PaginatedResponse) to eliminate duplicate code across all services - 2026-06-22
+- ✅ **PaginationMeta Implementation** - Added PaginationMeta class with auto-calculated pagination metadata (totalPages, hasNextPage, hasPrevPage, nextPage, prevPage, from, to) to eliminate repeated pagination logic across all services - 2026-06-22
 - ✅ **Outlet User Backend** - Implemented outlet-user management endpoints with role-based auto-assignment (RESTAURANT_ADMIN/MANAGER auto-added to all outlets) - 2026-06-22
 - ✅ **Outlet User Auto-Assignment** - When creating outlet, auto-adds RESTAURANT_ADMIN and MANAGER from restaurant; when adding user to restaurant, auto-adds to all outlets for oversight roles - 2026-06-22
 - ✅ **Outlet User Frontend** - Created add-outlet-user-modal for managing outlet users with manual assignment for CHEF/DELIVERY_AGENT - 2026-06-22
@@ -737,6 +738,24 @@ npx shadcn@latest add dialog -y
   - Return only necessary data
   - For mutations (create, update, delete), return success messages, not full objects
   - Example: `{ message: 'User created successfully' }` instead of full user object
+
+- **Pagination:** Always use the shared `PaginationMeta` class for paginated responses
+  - Extend `PaginationDto` in your module's query DTO (e.g., `GetUserDto extends PaginationDto`)
+  - Use `PaginationMeta` to automatically calculate all pagination metadata
+  - Example:
+    ```typescript
+    // In your DTO file
+    export class GetUserDto extends PaginationDto {}
+
+    // In your service
+    async getAllUsers(dto: GetUserDto): Promise<PaginatedResponse<any>> {
+      const { page, limit, skip } = dto;
+      const [data, total] = await Promise.all([...]);
+      const pagination = new PaginationMeta(total, page, limit);
+      return { success: true, message: '...', data, pagination };
+    }
+    ```
+  - `PaginationMeta` provides: `total`, `currentPage`, `perPage`, `totalPages`, `hasNextPage`, `hasPrevPage`, `nextPage`, `prevPage`, `from`, `to`
 
 ### Module Structure
 
