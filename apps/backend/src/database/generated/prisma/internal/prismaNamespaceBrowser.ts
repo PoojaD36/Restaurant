@@ -59,7 +59,13 @@ export const ModelName = {
   OutletUser: 'OutletUser',
   Customer: 'Customer',
   CustomerPassword: 'CustomerPassword',
-  CustomerAddress: 'CustomerAddress'
+  CustomerAddress: 'CustomerAddress',
+  Menu: 'Menu',
+  MenuCategory: 'MenuCategory',
+  MenuItem: 'MenuItem',
+  MenuItemOutletPricing: 'MenuItemOutletPricing',
+  ModifierGroup: 'ModifierGroup',
+  ModifierOption: 'ModifierOption'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -219,6 +225,95 @@ export const CustomerAddressScalarFieldEnum = {
 } as const
 
 export type CustomerAddressScalarFieldEnum = (typeof CustomerAddressScalarFieldEnum)[keyof typeof CustomerAddressScalarFieldEnum]
+
+
+export const MenuScalarFieldEnum = {
+  id: 'id',
+  restaurantId: 'restaurantId',
+  name: 'name',
+  description: 'description',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MenuScalarFieldEnum = (typeof MenuScalarFieldEnum)[keyof typeof MenuScalarFieldEnum]
+
+
+export const MenuCategoryScalarFieldEnum = {
+  id: 'id',
+  menuId: 'menuId',
+  name: 'name',
+  displayOrder: 'displayOrder',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MenuCategoryScalarFieldEnum = (typeof MenuCategoryScalarFieldEnum)[keyof typeof MenuCategoryScalarFieldEnum]
+
+
+export const MenuItemScalarFieldEnum = {
+  id: 'id',
+  categoryId: 'categoryId',
+  name: 'name',
+  description: 'description',
+  basePrice: 'basePrice',
+  imageUrl: 'imageUrl',
+  isVegetarian: 'isVegetarian',
+  isSpicy: 'isSpicy',
+  preparationTime: 'preparationTime',
+  calories: 'calories',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MenuItemScalarFieldEnum = (typeof MenuItemScalarFieldEnum)[keyof typeof MenuItemScalarFieldEnum]
+
+
+export const MenuItemOutletPricingScalarFieldEnum = {
+  id: 'id',
+  menuId: 'menuId',
+  itemId: 'itemId',
+  outletId: 'outletId',
+  price: 'price',
+  available: 'available',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type MenuItemOutletPricingScalarFieldEnum = (typeof MenuItemOutletPricingScalarFieldEnum)[keyof typeof MenuItemOutletPricingScalarFieldEnum]
+
+
+export const ModifierGroupScalarFieldEnum = {
+  id: 'id',
+  itemId: 'itemId',
+  name: 'name',
+  type: 'type',
+  required: 'required',
+  minSelect: 'minSelect',
+  maxSelect: 'maxSelect',
+  displayOrder: 'displayOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ModifierGroupScalarFieldEnum = (typeof ModifierGroupScalarFieldEnum)[keyof typeof ModifierGroupScalarFieldEnum]
+
+
+export const ModifierOptionScalarFieldEnum = {
+  id: 'id',
+  modifierGroupId: 'modifierGroupId',
+  name: 'name',
+  priceAdjustment: 'priceAdjustment',
+  isDefault: 'isDefault',
+  displayOrder: 'displayOrder',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ModifierOptionScalarFieldEnum = (typeof ModifierOptionScalarFieldEnum)[keyof typeof ModifierOptionScalarFieldEnum]
 
 
 export const SortOrder = {

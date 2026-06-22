@@ -255,3 +255,210 @@ export interface AvailableOutletUser {
   role: UserRole;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 }
+
+// Menu Types
+export interface Menu {
+  id: number;
+  restaurantId: number;
+  name: string;
+  description?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  categories: MenuCategory[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MenuListItem {
+  id: number;
+  name: string;
+  description?: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  restaurant: {
+    id: number;
+    name: string;
+  };
+  categoryCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MenuCategory {
+  id: number;
+  menuId: number;
+  name: string;
+  displayOrder: number;
+  status: 'ACTIVE' | 'INACTIVE';
+  items: MenuItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface MenuItem {
+  id: number;
+  categoryId: number;
+  name: string;
+  description?: string;
+  basePrice: number;
+  imageUrl?: string;
+  isVegetarian: boolean;
+  isSpicy: boolean;
+  preparationTime?: number;
+  calories?: number;
+  status: 'AVAILABLE' | 'UNAVAILABLE';
+  modifiers: ModifierGroup[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ModifierGroup {
+  id: number;
+  itemId: number;
+  name: string;
+  type: 'SINGLE' | 'MULTIPLE';
+  required: boolean;
+  minSelect: number;
+  maxSelect: number;
+  displayOrder: number;
+  options: ModifierOption[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ModifierOption {
+  id: number;
+  modifierGroupId: number;
+  name: string;
+  priceAdjustment: number;
+  isDefault: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OutletPricing {
+  id: number;
+  menuId: number;
+  itemId: number;
+  outletId: number;
+  price: number;
+  available: boolean;
+  item: {
+    id: number;
+    name: string;
+    basePrice: number;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMenuRequest {
+  name: string;
+  description?: string;
+  restaurantId: number;
+}
+
+export interface UpdateMenuRequest {
+  name?: string;
+  description?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
+}
+
+export interface CreateCategoryRequest {
+  name: string;
+  displayOrder?: number;
+}
+
+export interface CreateMenuItemRequest {
+  name: string;
+  description?: string;
+  basePrice: number;
+  imageUrl?: string;
+  isVegetarian?: boolean;
+  isSpicy?: boolean;
+  preparationTime?: number;
+  calories?: number;
+  status?: 'AVAILABLE' | 'UNAVAILABLE';
+}
+
+export interface UpdateMenuItemRequest {
+  name?: string;
+  description?: string;
+  basePrice?: number;
+  imageUrl?: string;
+  isVegetarian?: boolean;
+  isSpicy?: boolean;
+  preparationTime?: number;
+  calories?: number;
+  status?: 'AVAILABLE' | 'UNAVAILABLE';
+}
+
+export interface CreateModifierGroupRequest {
+  name: string;
+  type: 'SINGLE' | 'MULTIPLE';
+  required?: boolean;
+  minSelect?: number;
+  maxSelect?: number;
+  displayOrder?: number;
+}
+
+export interface CreateModifierOptionRequest {
+  name: string;
+  priceAdjustment: number;
+  isDefault?: boolean;
+  displayOrder?: number;
+}
+
+export interface SetOutletPricingRequest {
+  itemId: number;
+  price: number;
+  available?: boolean;
+}
+
+// Public menu for customers (with outlet pricing applied)
+export interface PublicMenu {
+  id: number;
+  name: string;
+  description?: string;
+  restaurantId: number;
+  categories: PublicMenuCategory[];
+}
+
+export interface PublicMenuCategory {
+  id: number;
+  menuId: number;
+  name: string;
+  displayOrder: number;
+  status: 'ACTIVE' | 'INACTIVE';
+  items: PublicMenuItem[];
+}
+
+export interface PublicMenuItem {
+  id: number;
+  name: string;
+  description?: string;
+  price: number;
+  imageUrl?: string;
+  isVegetarian: boolean;
+  isSpicy: boolean;
+  preparationTime?: number;
+  calories?: number;
+  available: boolean;
+  modifiers: PublicModifierGroup[];
+}
+
+export interface PublicModifierGroup {
+  id: number;
+  name: string;
+  type: 'SINGLE' | 'MULTIPLE';
+  required: boolean;
+  minSelect: number;
+  maxSelect: number;
+  options: PublicModifierOption[];
+}
+
+export interface PublicModifierOption {
+  id: number;
+  name: string;
+  price: number;
+  isDefault: boolean;
+}

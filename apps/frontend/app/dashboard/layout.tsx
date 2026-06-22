@@ -5,11 +5,11 @@ import { useAuth } from '../../contexts/auth-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
-import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon } from 'lucide-react';
+import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '../../components/change-password-modal';
 
-type UserRole = 'SUPER_ADMIN' | 'RESTAURANT_ADMIN' | 'OUTLET_ADMIN';
+type UserRole = 'SUPER_ADMIN' | 'RESTAURANT_ADMIN' | 'MANAGER' | 'CHEF' | 'DELIVERY_AGENT';
 
 interface NavItem {
   href: string;
@@ -37,6 +37,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: '/dashboard/users', icon: Users, label: 'Manage Users', requiresRole: 'SUPER_ADMIN' },
     { href: '/dashboard/restaurants', icon: Building2, label: 'My Restaurants', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
     { href: '/dashboard/outlets', icon: MapPin, label: 'My Outlets', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
+    { href: '/dashboard/menus', icon: BookOpen, label: 'Menus', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'MANAGER'] },
   ];
 
   const filteredNavItems = navItems.filter((item) => {

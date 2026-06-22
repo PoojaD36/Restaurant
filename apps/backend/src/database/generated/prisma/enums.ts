@@ -53,3 +53,27 @@ export const CustomerStatus = {
 } as const
 
 export type CustomerStatus = (typeof CustomerStatus)[keyof typeof CustomerStatus]
+
+
+export const MenuStatus = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE'
+} as const
+
+export type MenuStatus = (typeof MenuStatus)[keyof typeof MenuStatus]
+
+
+export const MenuItemStatus = {
+  AVAILABLE: 'AVAILABLE',
+  UNAVAILABLE: 'UNAVAILABLE'
+} as const
+
+export type MenuItemStatus = (typeof MenuItemStatus)[keyof typeof MenuItemStatus]
+
+
+export const ModifierType = {
+  SINGLE: 'SINGLE',
+  MULTIPLE: 'MULTIPLE'
+} as const
+
+export type ModifierType = (typeof ModifierType)[keyof typeof ModifierType]

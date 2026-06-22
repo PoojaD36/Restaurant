@@ -137,12 +137,25 @@ d:\restaurant/
 - `CustomerPassword` - Customer credentials
 - `CustomerAddress` - Customer delivery addresses
 
+### Menu Management
+
+**Models:**
+- `Menu` - Restaurant-level menus with categories and outlet-specific pricing
+- `MenuCategory` - Menu categories (e.g., Appetizers, Main Course, Desserts)
+- `MenuItem` - Individual menu items with images, pricing, dietary info
+- `MenuItemOutletPricing` - Outlet-specific pricing overrides for menu items
+- `ModifierGroup` - Modifier groups (e.g., Size, Add-ons) with SINGLE/MULTIPLE selection types
+- `ModifierOption` - Individual modifier options with price adjustments
+
 **Key Enums:**
 - `UserRole`: SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER, CHEF, DELIVERY_AGENT
 - `UserStatus`: ACTIVE, INACTIVE, SUSPENDED
 - `RestaurantStatus`: ACTIVE, INACTIVE
 - `OutletStatus`: ACTIVE, INACTIVE, CLOSED
 - `CustomerStatus`: ACTIVE, INACTIVE, BLOCKED
+- `MenuStatus`: ACTIVE, INACTIVE
+- `MenuItemStatus`: AVAILABLE, UNAVAILABLE
+- `ModifierType`: SINGLE (one option), MULTIPLE (multiple options)
 
 ---
 
@@ -152,14 +165,16 @@ d:\restaurant/
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule imported |
+| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule imported |
 | Auth Module | ✅ Complete | JWT auth, role-based guards, decorators (for admin users) |
 | Customer Module | ✅ Complete | Customer auth, profile, address management |
 | User Module | ✅ Complete | Full CRUD operations for users |
 | Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction, auto-adds Admin/Manager to outlets |
 | Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment, public endpoint for customer browsing |
+| Menu Module | ✅ Complete | Restaurant-level menus with categories, items, modifiers, and outlet-specific pricing |
+| Storage Module | ✅ Complete | Supabase storage service for image uploads |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
-| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress |
+| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models |
 | Database Seeder | ✅ Complete | Creates Super Admin via npm run seed |
 
 **Port:** 3001 (configurable via `PORT` env var)
@@ -185,7 +200,8 @@ d:\restaurant/
 | Restaurant Management | ✅ Complete | Restaurants list, create (SUPER_ADMIN), add/remove users (SUPER_ADMIN, RESTAURANT_ADMIN) |
 | Outlet Management | ✅ Complete | Outlets list, create with restaurant filter, user management (SUPER_ADMIN, RESTAURANT_ADMIN) |
 | Outlet User Management | ✅ Complete | Manage outlet users with role-based auto-assignment modal |
-| Restaurant Admin Access | ✅ Complete | RESTAURANT_ADMIN can view assigned restaurants, manage users, create outlets |
+| Menu Management | ✅ Complete | Restaurant-level menus with categories, items, modifiers, image uploads, outlet pricing |
+| Restaurant Admin Access | ✅ Complete | RESTAURANT_ADMIN can view assigned restaurants, manage users, create outlets, menus |
 | Auth Context | ✅ Complete | State management with useAuth hook |
 | Customer Auth Context | ✅ Complete | State management with useCustomerAuth hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check and multiple role support |
@@ -328,6 +344,38 @@ The `/customer` page provides a modern, food delivery themed experience for brow
 | `/public/outlets/list` | GET | No | Get active outlets (public) | `page`, `limit`, `restaurantId` |
 | `/public/outlets/:id` | GET | No | Get outlet by ID (public) | - |
 
+### Menu Management
+
+| Endpoint | Method | Auth Required | Role Required | Description | Query Params |
+|----------|--------|---------------|---------------|-------------|--------------|
+| `/menus/create` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Create menu for restaurant | - |
+| `/menus/list` | GET | JWT | - | Get menus (paginated, filtered by user access) | `page`, `limit`, `restaurantId` |
+| `/menus/:id` | GET | JWT | - | Get menu by ID with full details | - |
+| `/menus/:id` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Update menu | - |
+| `/menus/:id` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Delete menu | - |
+| `/menus/:id/categories` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Add category to menu | - |
+| `/menus/:id/categories/:categoryId` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Update category | - |
+| `/menus/:id/categories/:categoryId` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Delete category | - |
+| `/menus/:id/categories/:categoryId/items` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Add item to category | - |
+| `/menus/:id/items/:itemId` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Update menu item | - |
+| `/menus/:id/items/:itemId` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Delete item | - |
+| `/menus/:id/items/:itemId/modifiers` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Add modifier group | - |
+| `/menus/:id/modifiers/:modifierId` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Update modifier group | - |
+| `/menus/:id/modifiers/:modifierId` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Delete modifier group | - |
+| `/menus/:id/modifiers/:modifierId/options` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Add modifier option | - |
+| `/menus/:id/modifiers/:modifierId/options/:optionId` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Update option | - |
+| `/menus/:id/modifiers/:modifierId/options/:optionId` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Delete option | - |
+| `/menus/:id/outlets/:outletId/pricing` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Set outlet-specific pricing | - |
+| `/menus/:id/outlets/:outletId/pricing` | GET | JWT | - | Get outlet pricing for menu | - |
+| `/menus/upload-image` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Upload menu image to Supabase | - |
+
+### Public Menu Endpoints (No Authentication)
+
+| Endpoint | Method | Auth Required | Description | Query Params |
+|----------|--------|---------------|-------------|--------------|
+| `/public/menus/outlet/:outletId` | GET | No | Get public menu with outlet pricing | - |
+| `/public/menus/restaurant/:restaurantId` | GET | No | Get public menu for restaurant | - |
+
 ### Authentication Flow
 
 1. **Database Seeding:** Run `pnpm run seed` to create Super Admin
@@ -354,6 +402,15 @@ The `/customer` page provides a modern, food delivery themed experience for brow
 | Remove users from restaurant | ✅ (any) | ✅ (own only) | ❌ | ❌ | ❌ |
 | **Outlet Management** |
 | Create outlets | ✅ (any) | ✅ (own restaurants) | ❌ | ❌ | ❌ |
+| **Menu Management** |
+| Create menus | ✅ (any) | ✅ (own restaurants) | ❌ (via assigned restaurants) | ❌ | ❌ |
+| View all menus | ✅ | ❌ | ❌ | ❌ | ❌ |
+| View assigned menus | ✅ | ✅ (own restaurants) | ✅ (via assigned outlets) | ✅ (via assigned outlets) | ✅ (via assigned outlets) |
+| Update/delete menu | ✅ (any) | ✅ (own restaurants) | ❌ | ❌ | ❌ |
+| Add categories/items | ✅ (any) | ✅ (own restaurants) | ✅ (own menus) | ❌ | ❌ |
+| Upload menu images | ✅ | ✅ (own restaurants) | ✅ (own menus) | ❌ | ❌ |
+| Set outlet pricing | ✅ | ✅ (own outlets) | ✅ (own outlets) | ❌ | ❌ |
+| **Outlet User Management** |
 | View all outlets | ✅ | ❌ | ❌ | ❌ | ❌ |
 | View restaurant outlets | ✅ | ✅ (own only) | ❌ | ❌ | ❌ |
 | Update outlet | ✅ (any) | ✅ (own restaurants) | ❌ | ❌ | ❌ |
@@ -416,6 +473,9 @@ Located at `apps/backend/.env`
 PORT=3001
 DATABASE_URL="postgresql://user:password@host/database?sslmode=require"
 FRONTEND_URL=https://restaurant-frontend-kappa-ten.vercel.app
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_KEY=your_supabase_service_key
+SUPABASE_BUCKET=restaurant-menu-images
 ```
 
 **For Local Development:**
@@ -452,10 +512,27 @@ NEXT_PUBLIC_API_URL=https://restaurant-t24q.onrender.com
 **Render (Backend):**
 1. Set `FRONTEND_URL=https://restaurant-frontend-kappa-ten.vercel.app` in Render environment variables
 2. CORS configuration automatically includes the production frontend URL
+3. Add Supabase environment variables:
+   - `SUPABASE_URL=https://your-project-id.supabase.co`
+   - `SUPABASE_SERVICE_KEY=your-service-role-key`
+   - `SUPABASE_BUCKET=restaurant-menu-images`
 
 **Vercel (Frontend):**
 1. Add `NEXT_PUBLIC_API_URL=https://restaurant-t24q.onrender.com` in Vercel Dashboard → Settings → Environment Variables
 2. The `NEXT_PUBLIC_` prefix makes the variable available in browser code
+
+**Supabase Setup:**
+1. Create a Supabase project at https://supabase.com
+2. Create a storage bucket named `restaurant-menu-images`
+3. Make the bucket public (Storage → Policies → New Policy)
+4. Add public read access policy:
+   ```sql
+   CREATE POLICY "Public Read Access" ON "storage"."objects"
+   FOR SELECT TO public USING ( bucket_id = 'restaurant-menu-images' );
+   ```
+5. Get credentials from Project Settings → API:
+   - `Project URL` → `SUPABASE_URL`
+   - `service_role` → `SUPABASE_SERVICE_KEY`
 
 ### Prerequisites
 - Node.js >= 18
@@ -490,11 +567,12 @@ npx tsc --noEmit
 
 | File | Purpose |
 |------|---------|
-| `lib/types.ts` | TypeScript types for User, LoginResponse, CreateUserRequest, ChangePasswordRequest, UserListItem, Restaurant, Outlet |
+| `lib/types.ts` | TypeScript types for User, LoginResponse, CreateUserRequest, ChangePasswordRequest, UserListItem, Restaurant, Outlet, Menu, MenuItem, Modifier, etc. |
 | `lib/auth-api.ts` | API functions for auth endpoints (login, logout, getCurrentUser) |
 | `lib/users-api.ts` | API functions for user endpoints (createUser, getAllUsers, updateUser, deleteUser) |
 | `lib/restaurants-api.ts` | API functions for restaurant endpoints (createRestaurant, getAllRestaurants, addUserToRestaurant, etc.) |
 | `lib/outlets-api.ts` | API functions for outlet endpoints (createOutlet, getAllOutlets, updateOutlet, deleteOutlet) |
+| `lib/menus-api.ts` | API functions for menu endpoints (createMenu, getAllMenus, createMenuItem, uploadMenuImage, etc.) |
 | `contexts/auth-context.tsx` | Auth state management with useAuth hook |
 | `components/protected-route.tsx` | Route protection wrapper with role check (supports single role or multiple allowedRoles) |
 | `components/change-password-modal.tsx` | Reusable modal for password changes (uses shadcn Dialog, with confirm password field) |
@@ -504,6 +582,10 @@ npx tsc --noEmit
 | `components/add-restaurant-user-modal.tsx` | Modal for adding/removing users from restaurants |
 | `components/create-outlet-modal.tsx` | Modal for creating outlets for restaurants |
 | `components/add-outlet-user-modal.tsx` | Modal for adding/removing users from outlets with role-based auto-assignment |
+| `components/create-menu-modal.tsx` | Modal for creating restaurant menus with restaurant selection |
+| `components/create-category-modal.tsx` | Modal for adding categories to menus (e.g., Appetizers, Main Course) |
+| `components/create-menu-item-modal.tsx` | Modal for adding items to categories with image upload, pricing, dietary info |
+| `components/image-upload-component.tsx` | Reusable image upload component with Supabase integration |
 | `components/ui/button.tsx` | shadcn Button component |
 | `components/ui/card.tsx` | shadcn Card component |
 | `components/ui/input.tsx` | shadcn Input component |
@@ -521,6 +603,7 @@ npx tsc --noEmit
 | `app/dashboard/users/page.tsx` | Users list page with Create User button and password reset modal (Super Admin only) |
 | `app/dashboard/restaurants/page.tsx` | Restaurants list page with pagination, Create Restaurant button (SUPER_ADMIN), and Add User modal (SUPER_ADMIN, RESTAURANT_ADMIN) |
 | `app/dashboard/outlets/page.tsx` | Outlets list page with pagination, restaurant filter, and Create Outlet button (SUPER_ADMIN, RESTAURANT_ADMIN) |
+| `app/dashboard/menus/page.tsx` | Menus list page with expandable menu details, inline category/item creation (SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER) |
 | `app/globals.css` | Custom CSS animations (float-up, float-down, pulse-warm, drift) |
 
 ### API Communication
@@ -668,16 +751,20 @@ npx shadcn@latest add dialog -y
 - ✅ **Customer JWT Strategy** - Implemented separate JWT strategy for customer authentication - 2026-06-22
 - ✅ **Customer Auth UI Enhancement** - Improved customer sign-in/sign-up UI with centered dialog modal on desktop (480px max-width), proper spacing, and responsive design - 2026-06-22
 - ✅ **Routing Structure Reorganization** - Separated admin and customer routing with dedicated paths: `/` → `/customer`, `/admin/login` for admin authentication, `/dashboard` for admin management - 2026-06-22
+- ✅ **Menu Module Implementation** - Implemented complete menu management system with restaurant-level menus, categories, items, modifiers, Supabase image storage, and outlet-specific pricing - 2026-06-22
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
 - [ ] **Customer Address Management UI** - Create customer address management page with add/edit/delete
-- [ ] **Menu Module** - Implement menu items, categories for restaurants/outlets
+- [ ] **Menu Enhancements** - Add edit menu, edit category, edit item, and modifier management UI
+- [ ] **Menu Preview** - Add customer-facing menu preview with outlet-specific pricing
 - [ ] **Cart & Orders** - Implement shopping cart and order placement
 - [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and features
 - [ ] **API Documentation** - Add Swagger/OpenAPI docs
+- [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
+- [ ] **Restaurant Edit Feature** - Add edit restaurant modal for updating restaurant details
 - [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
 - [ ] **Restaurant Edit Feature** - Add edit restaurant modal for updating restaurant details
 
