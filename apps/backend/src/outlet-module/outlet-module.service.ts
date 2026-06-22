@@ -8,6 +8,7 @@ import { PrismaService } from 'src/database/prisma.service';
 import { OutletStatus } from 'src/database/generated/prisma/enums';
 import { CreateOutletDto } from './dto/create-outlet.dto';
 import { UpdateOutletDto } from './dto/update-outlet.dto';
+import { AddOutletUserDto } from './dto/add-outlet-user.dto';
 import { ApiResponse, PaginatedResponse } from '../common';
 
 @Injectable()
@@ -31,6 +32,39 @@ export class OutletModuleService {
     });
 
     return !!restaurantUser;
+  }
+
+  /**
+   * Auto-add RESTAURANT_ADMIN and MANAGER users from restaurant to outlet
+   * Called when creating a new outlet
+   */
+  private async autoAddOversightUsersToOutlet(
+    outletId: number,
+    restaurantId: number,
+  ): Promise<void> {
+    const oversightUsers = await this.prisma.restaurantUser.findMany({
+      where: {
+        restaurantId,
+        user: {
+          role: {
+            in: ['RESTAURANT_ADMIN', 'MANAGER'],
+          },
+        },
+      },
+      select: {
+        userId: true,
+      },
+    });
+
+    if (oversightUsers.length > 0) {
+      await this.prisma.outletUser.createMany({
+        data: oversightUsers.map((ou) => ({
+          outletId,
+          userId: ou.userId,
+        })),
+        skipDuplicates: true,
+      });
+    }
   }
 
   /**
@@ -66,7 +100,7 @@ export class OutletModuleService {
         throw new BadRequestException('Restaurant not found');
       }
 
-      await this.prisma.outlet.create({
+      const outlet = await this.prisma.outlet.create({
         data: {
           restaurantId: createOutletDto.restaurantId,
           name: createOutletDto.name,
@@ -89,6 +123,11 @@ export class OutletModuleService {
           status: OutletStatus.ACTIVE,
         },
       });
+
+      await this.autoAddOversightUsersToOutlet(
+        outlet.id,
+        createOutletDto.restaurantId,
+      );
 
       return {
         success: true,
@@ -469,6 +508,323 @@ export class OutletModuleService {
         throw error;
       }
       throw new BadRequestException('Failed to fetch outlets');
+    }
+  }
+
+  /**
+   * Get all users in an outlet
+   */
+  async getOutletUsers(
+    outletId: number,
+    requestingUserId?: number,
+    requestingUserRole?: string,
+  ): Promise<ApiResponse<any[]>> {
+    try {
+      const outlet = await this.prisma.outlet.findUnique({
+        where: { id: outletId },
+        include: { restaurant: true },
+      });
+
+      if (!outlet) {
+        throw new BadRequestException('Outlet not found');
+      }
+
+      if (
+        requestingUserRole === 'RESTAURANT_ADMIN' &&
+        requestingUserId
+      ) {
+        const hasAccess = await this.verifyRestaurantAccess(
+          outlet.restaurantId,
+          requestingUserId,
+        );
+
+        if (!hasAccess) {
+          throw new BadRequestException('Access denied to this outlet');
+        }
+      }
+
+      const outletUsers = await this.prisma.outletUser.findMany({
+        where: {
+          outletId,
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              role: true,
+              status: true,
+            },
+          },
+        },
+        orderBy: {
+          user: {
+            role: 'asc',
+          },
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Outlet users retrieved successfully',
+        data: outletUsers.map((ou) => ({
+          id: ou.user.id.toString(),
+          firstName: ou.user.firstName,
+          lastName: ou.user.lastName,
+          email: ou.user.email,
+          phone: ou.user.phone,
+          role: ou.user.role,
+          status: ou.user.status,
+          addedAt: ou.createdAt.toISOString(),
+        })),
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to fetch outlet users');
+    }
+  }
+
+  /**
+   * Get users available for manual outlet assignment
+   * Returns CHEF and DELIVERY_AGENT users who are in the restaurant but not yet in this outlet
+   */
+  async getAvailableOutletUsers(
+    outletId: number,
+    requestingUserId?: number,
+    requestingUserRole?: string,
+  ): Promise<ApiResponse<any[]>> {
+    try {
+      const outlet = await this.prisma.outlet.findUnique({
+        where: { id: outletId },
+      });
+
+      if (!outlet) {
+        throw new BadRequestException('Outlet not found');
+      }
+
+      if (
+        requestingUserRole === 'RESTAURANT_ADMIN' &&
+        requestingUserId
+      ) {
+        const hasAccess = await this.verifyRestaurantAccess(
+          outlet.restaurantId,
+          requestingUserId,
+        );
+
+        if (!hasAccess) {
+          throw new BadRequestException('Access denied to this outlet');
+        }
+      }
+
+      const existingOutletUsers = await this.prisma.outletUser.findMany({
+        where: { outletId },
+        select: { userId: true },
+      });
+      const existingUserIds = new Set(existingOutletUsers.map((ou) => ou.userId));
+
+      const availableUsers = await this.prisma.restaurantUser.findMany({
+        where: {
+          restaurantId: outlet.restaurantId,
+          userId: { notIn: Array.from(existingUserIds) },
+          user: {
+            role: {
+              in: ['CHEF', 'DELIVERY_AGENT'],
+            },
+          },
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+              status: true,
+            },
+          },
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Available users retrieved successfully',
+        data: availableUsers.map((ru) => ({
+          id: ru.user.id.toString(),
+          firstName: ru.user.firstName,
+          lastName: ru.user.lastName,
+          email: ru.user.email,
+          role: ru.user.role,
+          status: ru.user.status,
+        })),
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to fetch available users');
+    }
+  }
+
+  /**
+   * Add user to outlet (manual assignment for CHEF/DELIVERY_AGENT)
+   */
+  async addUserToOutlet(
+    outletId: number,
+    addOutletUserDto: AddOutletUserDto,
+    requestingUserId?: number,
+    requestingUserRole?: string,
+  ): Promise<ApiResponse> {
+    try {
+      const outlet = await this.prisma.outlet.findUnique({
+        where: { id: outletId },
+        include: { restaurant: true },
+      });
+
+      if (!outlet) {
+        throw new BadRequestException('Outlet not found');
+      }
+
+      if (
+        requestingUserRole === 'RESTAURANT_ADMIN' &&
+        requestingUserId
+      ) {
+        const hasAccess = await this.verifyRestaurantAccess(
+          outlet.restaurantId,
+          requestingUserId,
+        );
+
+        if (!hasAccess) {
+          throw new BadRequestException('Access denied to this outlet');
+        }
+      }
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: addOutletUserDto.userId },
+      });
+
+      if (!user) {
+        throw new BadRequestException('User not found');
+      }
+
+      const restaurantUser = await this.prisma.restaurantUser.findUnique({
+        where: {
+          restaurantId_userId: {
+            restaurantId: outlet.restaurantId,
+            userId: addOutletUserDto.userId,
+          },
+        },
+      });
+
+      if (!restaurantUser) {
+        throw new BadRequestException(
+          'User must be added to the restaurant first',
+        );
+      }
+
+      const existingRelation = await this.prisma.outletUser.findUnique({
+        where: {
+          outletId_userId: {
+            outletId,
+            userId: addOutletUserDto.userId,
+          },
+        },
+      });
+
+      if (existingRelation) {
+        throw new ConflictException('User is already in this outlet');
+      }
+
+      await this.prisma.outletUser.create({
+        data: {
+          outletId,
+          userId: addOutletUserDto.userId,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'User added to outlet successfully',
+      };
+    } catch (error) {
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ConflictException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to add user to outlet');
+    }
+  }
+
+  /**
+   * Remove user from outlet
+   */
+  async removeUserFromOutlet(
+    outletId: number,
+    userId: number,
+    requestingUserId?: number,
+    requestingUserRole?: string,
+  ): Promise<ApiResponse> {
+    try {
+      const outlet = await this.prisma.outlet.findUnique({
+        where: { id: outletId },
+      });
+
+      if (!outlet) {
+        throw new BadRequestException('Outlet not found');
+      }
+
+      if (
+        requestingUserRole === 'RESTAURANT_ADMIN' &&
+        requestingUserId
+      ) {
+        const hasAccess = await this.verifyRestaurantAccess(
+          outlet.restaurantId,
+          requestingUserId,
+        );
+
+        if (!hasAccess) {
+          throw new BadRequestException('Access denied to this outlet');
+        }
+      }
+
+      const existingRelation = await this.prisma.outletUser.findUnique({
+        where: {
+          outletId_userId: {
+            outletId,
+            userId,
+          },
+        },
+      });
+
+      if (!existingRelation) {
+        throw new BadRequestException('User is not in this outlet');
+      }
+
+      await this.prisma.outletUser.delete({
+        where: {
+          outletId_userId: {
+            outletId,
+            userId,
+          },
+        },
+      });
+
+      return {
+        success: true,
+        message: 'User removed from outlet successfully',
+      };
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException('Failed to remove user from outlet');
     }
   }
 }

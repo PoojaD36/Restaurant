@@ -16,6 +16,7 @@ import { OutletModuleService } from './outlet-module.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateOutletDto } from './dto/create-outlet.dto';
 import { UpdateOutletDto } from './dto/update-outlet.dto';
+import { AddOutletUserDto } from './dto/add-outlet-user.dto';
 
 @Controller('outlets')
 @UseGuards(JwtAuthGuard)
@@ -126,6 +127,78 @@ export class OutletModuleController {
 
     return this.outletModuleService.deleteOutlet(
       parseInt(id),
+      requestingUserId,
+      requestingUserRole,
+    );
+  }
+
+  /**
+   * Get all users in an outlet
+   */
+  @Get(':id/users')
+  async getOutletUsers(@Param('id') id: string, @Request() req?: any) {
+    const requestingUserId = req?.user?.userId;
+    const requestingUserRole = req?.user?.role;
+
+    return this.outletModuleService.getOutletUsers(
+      parseInt(id),
+      requestingUserId,
+      requestingUserRole,
+    );
+  }
+
+  /**
+   * Get available users for manual outlet assignment
+   */
+  @Get(':id/users/available')
+  async getAvailableOutletUsers(@Param('id') id: string, @Request() req?: any) {
+    const requestingUserId = req?.user?.userId;
+    const requestingUserRole = req?.user?.role;
+
+    return this.outletModuleService.getAvailableOutletUsers(
+      parseInt(id),
+      requestingUserId,
+      requestingUserRole,
+    );
+  }
+
+  /**
+   * Add user to outlet (manual assignment for CHEF/DELIVERY_AGENT)
+   */
+  @Post(':id/users')
+  @HttpCode(HttpStatus.CREATED)
+  async addUserToOutlet(
+    @Param('id') id: string,
+    @Body() addOutletUserDto: AddOutletUserDto,
+    @Request() req?: any,
+  ) {
+    const requestingUserId = req?.user?.userId;
+    const requestingUserRole = req?.user?.role;
+
+    return this.outletModuleService.addUserToOutlet(
+      parseInt(id),
+      addOutletUserDto,
+      requestingUserId,
+      requestingUserRole,
+    );
+  }
+
+  /**
+   * Remove user from outlet
+   */
+  @Delete(':id/users/:userId')
+  @HttpCode(HttpStatus.OK)
+  async removeUserFromOutlet(
+    @Param('id') id: string,
+    @Param('userId') userId: string,
+    @Request() req?: any,
+  ) {
+    const requestingUserId = req?.user?.userId;
+    const requestingUserRole = req?.user?.role;
+
+    return this.outletModuleService.removeUserFromOutlet(
+      parseInt(id),
+      parseInt(userId),
       requestingUserId,
       requestingUserRole,
     );

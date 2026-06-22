@@ -422,6 +422,24 @@ export class RestaurantModuleService {
         },
       });
 
+      // If user is RESTAURANT_ADMIN or MANAGER, auto-add to all existing outlets
+      if (user.role === 'RESTAURANT_ADMIN' || user.role === 'MANAGER') {
+        const outlets = await this.prisma.outlet.findMany({
+          where: { restaurantId },
+          select: { id: true },
+        });
+
+        if (outlets.length > 0) {
+          await this.prisma.outletUser.createMany({
+            data: outlets.map((outlet) => ({
+              outletId: outlet.id,
+              userId: addRestaurantUserDto.userId,
+            })),
+            skipDuplicates: true,
+          });
+        }
+      }
+
       return {
         success: true,
         message: 'User added to restaurant successfully',

@@ -10,8 +10,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
-import { MapPin, Loader2, Trash2, Phone, Mail, Clock, Building2 } from 'lucide-react';
+import { MapPin, Loader2, Trash2, Phone, Mail, Clock, Building2, Users } from 'lucide-react';
 import { CreateOutletModal } from '../../../components/create-outlet-modal';
+import { AddOutletUserModal } from '../../../components/add-outlet-user-modal';
 import { useAuth } from '../../../contexts/auth-context';
 import {
   Select,
@@ -35,6 +36,7 @@ export default function OutletsListPage() {
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
   const [selectedOutlet, setSelectedOutlet] = useState<OutletListItem | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -110,6 +112,16 @@ export default function OutletsListPage() {
   const handleCloseDeleteConfirm = () => {
     setSelectedOutlet(null);
     setShowDeleteConfirm(false);
+  };
+
+  const handleOpenUserModal = (outlet: OutletListItem) => {
+    setSelectedOutlet(outlet);
+    setShowUserModal(true);
+  };
+
+  const handleCloseUserModal = () => {
+    setSelectedOutlet(null);
+    setShowUserModal(false);
   };
 
   return (
@@ -239,15 +251,26 @@ export default function OutletsListPage() {
                         </TableCell>
                         {canDelete && (
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleOpenDeleteConfirm(outlet)}
-                              className="text-slate-600 hover:text-red-600 hover:bg-red-50"
-                              title="Delete Outlet"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenUserModal(outlet)}
+                                className="text-slate-600 hover:text-blue-600 hover:bg-blue-50"
+                                title="Manage Users"
+                              >
+                                <Users className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenDeleteConfirm(outlet)}
+                                className="text-slate-600 hover:text-red-600 hover:bg-red-50"
+                                title="Delete Outlet"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         )}
                       </TableRow>
@@ -293,6 +316,14 @@ export default function OutletsListPage() {
           open={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onSuccess={handleOutletCreated}
+        />
+
+        {/* Outlet User Management Modal */}
+        <AddOutletUserModal
+          open={showUserModal}
+          onClose={handleCloseUserModal}
+          onSuccess={handleOutletCreated}
+          outlet={selectedOutlet}
         />
 
         {/* Delete Confirmation Modal */}

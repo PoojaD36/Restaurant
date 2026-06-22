@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-22 (Fixed TypeScript build error in dashboard layout)
+> **Last Updated:** 2026-06-22 (Implemented outlet-user management with role-based auto-assignment)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -81,6 +81,7 @@ d:\restaurant/
 │       │   ├── create-restaurant-modal.tsx
 │       │   ├── add-restaurant-user-modal.tsx
 │       │   └── create-outlet-modal.tsx
+│       │   ├── add-outlet-user-modal.tsx
 │       ├── contexts/
 │       │   └── auth-context.tsx   # Auth state management
 │       ├── lib/
@@ -137,10 +138,10 @@ d:\restaurant/
 | App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule imported |
 | Auth Module | ✅ Complete | JWT auth, role-based guards, decorators |
 | User Module | ✅ Complete | Full CRUD operations for users |
-| Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction |
-| Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships |
+| Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction, auto-adds Admin/Manager to outlets |
+| Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
-| Prisma Schema | ✅ Complete | Full schema with relations |
+| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction |
 | Database Seeder | ✅ Complete | Creates Super Admin via npm run seed |
 
 **Port:** 3001 (configurable via `PORT` env var)
@@ -160,7 +161,8 @@ d:\restaurant/
 | Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
 | User Management | ✅ Complete | Users list, create, edit, delete, change password |
 | Restaurant Management | ✅ Complete | Restaurants list, create (SUPER_ADMIN), add/remove users (SUPER_ADMIN, RESTAURANT_ADMIN) |
-| Outlet Management | ✅ Complete | Outlets list, create with restaurant filter (SUPER_ADMIN, RESTAURANT_ADMIN) |
+| Outlet Management | ✅ Complete | Outlets list, create with restaurant filter, user management (SUPER_ADMIN, RESTAURANT_ADMIN) |
+| Outlet User Management | ✅ Complete | Manage outlet users with role-based auto-assignment modal |
 | Restaurant Admin Access | ✅ Complete | RESTAURANT_ADMIN can view assigned restaurants, manage users, create outlets |
 | Auth Context | ✅ Complete | State management with useAuth hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check and multiple role support |
@@ -251,12 +253,16 @@ d:\restaurant/
 
 | Endpoint | Method | Auth Required | Role Required | Description | Query Params |
 |----------|--------|---------------|---------------|-------------|--------------|
-| `/outlets/create` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Create outlet | - |
+| `/outlets/create` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Create outlet (auto-adds Admin/Manager) | - |
 | `/outlets/list` | GET | JWT | - | Get outlets (paginated) | `page`, `limit`, `restaurantId` |
 | `/outlets/restaurant/:restaurantId` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Get outlets by restaurant | - |
 | `/outlets/:id` | GET | JWT | - | Get outlet by ID | - |
 | `/outlets/:id` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Update outlet | - |
 | `/outlets/:id` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Delete outlet | - |
+| `/outlets/:id/users` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Get outlet users | - |
+| `/outlets/:id/users/available` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Get available CHEF/DELIVERY_AGENT | - |
+| `/outlets/:id/users` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Add user to outlet (manual) | - |
+| `/outlets/:id/users/:userId` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Remove user from outlet | - |
 
 ### Authentication Flow
 
@@ -288,6 +294,12 @@ d:\restaurant/
 | View restaurant outlets | ✅ | ✅ (own only) | ❌ | ❌ | ❌ |
 | Update outlet | ✅ (any) | ✅ (own restaurants) | ❌ | ❌ | ❌ |
 | Delete outlet | ✅ (any) | ✅ (own restaurants) | ❌ | ❌ | ❌ |
+| **Outlet User Management** |
+| Auto-add to outlet on creation | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Auto-add to existing outlets on restaurant assignment | ✅ (Admin/Manager) | ✅ (Admin/Manager) | ❌ | ❌ | ❌ |
+| View outlet users | ✅ | ✅ (own only) | ❌ | ❌ | ❌ |
+| Add CHEF/DELIVERY_AGENT to outlet | ✅ | ✅ (own only) | ❌ | ❌ | ❌ |
+| Remove CHEF/DELIVERY_AGENT from outlet | ✅ | ✅ (own only) | ❌ | ❌ | ❌ |
 
 ### API Response Format
 
@@ -427,6 +439,7 @@ npx tsc --noEmit
 | `components/create-restaurant-modal.tsx` | Modal for creating restaurants with admin assignment |
 | `components/add-restaurant-user-modal.tsx` | Modal for adding/removing users from restaurants |
 | `components/create-outlet-modal.tsx` | Modal for creating outlets for restaurants |
+| `components/add-outlet-user-modal.tsx` | Modal for adding/removing users from outlets with role-based auto-assignment |
 | `components/ui/button.tsx` | shadcn Button component |
 | `components/ui/card.tsx` | shadcn Card component |
 | `components/ui/input.tsx` | shadcn Input component |
@@ -463,6 +476,10 @@ npx tsc --noEmit
 | `/restaurants/my-restaurants` | GET | Create Outlet modal | Get user's accessible restaurants |
 | `/outlets/create` | POST | Create Outlet modal | Create outlet for restaurant |
 | `/outlets/list` | GET | Outlets list page | Get outlets with pagination and optional restaurant filter |
+| `/outlets/:id/users` | GET | Add Outlet User modal | Get users in outlet |
+| `/outlets/:id/users/available` | GET | Add Outlet User modal | Get available CHEF/DELIVERY_AGENT for assignment |
+| `/outlets/:id/users` | POST | Add Outlet User modal | Add user to outlet |
+| `/outlets/:id/users/:userId` | DELETE | Add Outlet User modal | Remove user from outlet |
 | `/outlets/:id` | DELETE | Outlets list page | Delete outlet |
 
 ### Environment Variables
@@ -573,6 +590,10 @@ npx shadcn@latest add dialog -y
 - ✅ **Super Admin Restaurant Access** - SUPER_ADMIN sees all restaurants when creating outlets, not just assigned ones - 2026-06-22
 - ✅ **Dashboard Layout TypeScript Fix** - Fixed TypeScript build error by adding proper NavItem interface and UserRole type, improving type inference in filter logic - 2026-06-22
 - ✅ **Common Types Refactoring** - Created common folder with shared DTOs (PaginationDto) and response interfaces (ApiResponse, PaginatedResponse) to eliminate duplicate code across all services - 2026-06-22
+- ✅ **Outlet User Backend** - Implemented outlet-user management endpoints with role-based auto-assignment (RESTAURANT_ADMIN/MANAGER auto-added to all outlets) - 2026-06-22
+- ✅ **Outlet User Auto-Assignment** - When creating outlet, auto-adds RESTAURANT_ADMIN and MANAGER from restaurant; when adding user to restaurant, auto-adds to all outlets for oversight roles - 2026-06-22
+- ✅ **Outlet User Frontend** - Created add-outlet-user-modal for managing outlet users with manual assignment for CHEF/DELIVERY_AGENT - 2026-06-22
+- ✅ **Outlet User Types & API** - Added OutletUser, AddOutletUserRequest, AvailableOutletUser types and API functions - 2026-06-22
 
 ### In Progress
 - No tasks currently in progress
