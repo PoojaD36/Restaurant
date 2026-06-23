@@ -82,7 +82,15 @@ export function EditOutletModal({
     setError('');
     try {
       const response = await getOutletById(outletId);
-      const outletData = response.data;
+      const outletData: Outlet | undefined = response.data;
+
+      if (!outletData) {
+        setError('Failed to load outlet: No data received');
+        setOutlet(null);
+        setIsLoadingOutlet(false);
+        return;
+      }
+
       setOutlet(outletData);
       setFormData({
         name: outletData.name || '',
