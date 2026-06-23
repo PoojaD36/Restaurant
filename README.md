@@ -245,38 +245,66 @@ The application uses separate routing for admin and customer portals:
 
 ## Customer Portal Features
 
-The `/customer` page provides a modern, food delivery themed experience for browsing and ordering from outlets.
+The `/customer` page provides a Zomato-inspired, modern food delivery experience for browsing and ordering from outlets.
 
-### Visual Design
-- **Food Delivery Theme**: Warm orange/amber/rose color palette evoking appetite
-- **Glass-morphism**: Semi-transparent cards with backdrop-blur effects
+### Visual Design (Zomato-Inspired)
+- **Clean & Minimal**: White background with subtle gray accents
+- **Professional Layout**: Horizontal restaurant cards with image thumbnails
 - **Responsive Design**: Optimized for all screen sizes (mobile, tablet, desktop)
 - **Light Mode**: Clean theme optimized for readability
 
 ### Key Components
-- **Sticky Header**: Brand logo, user info, logout button
-- **Hero Section**: Gradient banner with branding and outlet count
-- **Outlet Grid**: Responsive card layout showing available outlets
+- **Sticky Header**: Brand logo, GPS location detection, login/signup buttons
+- **Breadcrumb Navigation**: Home / India / City / Restaurants hierarchy
+- **Tabbed Navigation**: Dining Out / Delivery tabs with active state styling
+- **Filters Section**: Chip-style filters (Rating 4.0+, Offers, Open Now, Free Delivery)
+- **Restaurant List**: Horizontal cards with image, rating badge, cuisines, location, cost
+- **Explore Options**: Popular cuisines and restaurant types near you
+- **Footer**: Multi-column layout with About, For Restaurants, Learn More, Social Links
 - **Auth Modal**: Centered dialog for sign-in/sign-up (480px max-width on desktop)
-- **Pagination**: Navigate through multiple pages of outlets
+
+### Restaurant Card Layout
+Each restaurant card features:
+- **Left**: Restaurant image thumbnail (64x40 on mobile, 256px on desktop)
+- **Right**: Restaurant name with rating badge (green/white)
+  - Cuisines (e.g., "North Indian, Chinese, Fast Food")
+  - Location with distance badge (e.g., "594 m")
+  - Opening hours status
+  - Cost for two (e.g., "₹350 for two")
+  - Order Now button
 
 ### Animations (Framer Motion)
 - **Header Animation**: Slide-down effect on page load
-- **Outlet Cards**: Staggered fade-in with slide-up animation
+- **Restaurant Cards**: Staggered fade-in with slide-up animation (0.05s delay per card)
 - **Hover Effects**: Scale, shadow transitions on interactive elements
 - **Auth Sheet**: Smooth slide-in/out transitions
+- **Filter Chips**: Active state with color transitions
+
+### Filter System
+- **Filter Options**:
+  - Rating: 4.0+ (high-rated restaurants)
+  - Offers (restaurants with active offers)
+  - Open Now (currently open restaurants)
+  - Free Delivery (no delivery fee)
+- **Toggle Behavior**: Click to activate/deactivate filters
+- **Visual Feedback**: Active filters shown in orange, inactive in gray
+
+### Explore Section
+- **Popular Cuisines**: 12 cuisine types (Beverages, Burger, Chinese, Coffee, etc.)
+- **Restaurant Types**: Dhabas, Quick Bites, Sweet Shops, Casual Dining, Fine Dining
+- **Interactive Chips**: Hover effects with orange accent color
 
 ### Theme System
-- **Color Palette**: Orange/amber gradient throughout
+- **Color Palette**: Orange/amber primary colors, white/gray background
 - **Consistent Branding**: FoodHub logo and gradient accents
 - **Professional Typography**: Clear hierarchy with appropriate sizing
+- **Responsive Spacing**: Adaptive padding for mobile/tablet/desktop
 
-### Components
-- **Header**: Sticky glass-morphism header with logo, theme toggle, sign in button
-- **Badge**: "Fast & Fresh Food Delivery" with animated pulsing dot
-- **Heading**: Large gradient text with animated color shift
-- **CTA Buttons**: "Order Now" and "View Restaurants" with hover effects
-- **Stats Bar**: Quick stats (500+ Restaurants, 10K+ Customers, 4.9 Rating)
+### Location Features
+- **GPS Detection**: "Detect current location" button in header
+- **Distance Sorting**: Automatic distance calculation and sorting
+- **Location Display**: Current city shown in breadcrumb navigation
+- **Distance Badges**: Color-coded distance badges on restaurant cards
 
 ---
 
@@ -786,6 +814,10 @@ npx shadcn@latest add dialog -y
 - ✅ **Category Navigation** - Added horizontal scrollable category tabs with active highlighting and smooth scroll to category sections - 2026-06-23
 - ✅ **CommonModule GeocodingService Export** - Exported GeocodingService from CommonModule for use in OutletModule and CustomerModule - 2026-06-23
 - ✅ **Module Dependencies Update** - Imported CommonModule in OutletModule and CustomerModule to provide GeocodingService injection - 2026-06-23
+- ✅ **Zomato-Inspired Customer Page Redesign** - Redesigned /customer page with Zomato-style layout including breadcrumb navigation, tabbed navigation (Dining Out/Delivery), chip-style filters, horizontal restaurant cards (mobile) and grid layout (PC, 3-4 per row), explore section with cuisine chips, and multi-column footer - 2026-06-23
+- ✅ **Restaurant Edit Feature** - Added edit restaurant modal with logo upload support via Supabase, allowing SUPER_ADMIN and RESTAURANT_ADMIN to update restaurant details including name, slug, description, and logo - 2026-06-23
+- ✅ **Restaurant Logo Upload** - Implemented POST /restaurants/upload-logo endpoint for uploading restaurant logos to Supabase storage with file validation (5MB max, JPEG/PNG/WebP) - 2026-06-23
+- ✅ **Restaurant Logos on Customer Page** - Updated customer page to display restaurant logos on outlet cards when available, both in desktop grid and mobile horizontal layouts - 2026-06-23
 
 ### In Progress
 - No tasks currently in progress
@@ -797,7 +829,6 @@ npx shadcn@latest add dialog -y
 - [ ] **Order Placement** - Implement order creation API and frontend integration
 - [ ] **Menu Edit Features** - Add edit menu, edit category, edit item, and modifier management UI
 - [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
-- [ ] **Restaurant Edit Feature** - Add edit restaurant modal for updating restaurant details
 - [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and features
 - [ ] **API Documentation** - Add Swagger/OpenAPI docs
 - [ ] **Prisma Database Migration** - Run `npx prisma db push` when database is available to make lat/lng required fields

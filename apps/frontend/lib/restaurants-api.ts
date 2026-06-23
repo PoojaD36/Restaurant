@@ -101,3 +101,24 @@ export async function getRestaurantUsers(
 export async function getMyRestaurants(): Promise<ApiResponse<Restaurant[]>> {
   return request('/restaurants/my-restaurants');
 }
+
+export async function uploadRestaurantLogo(file: File): Promise<ApiResponse<{ url: string }>> {
+  const token = localStorage.getItem('accessToken');
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch(`${API_URL}/restaurants/upload-logo`, {
+    method: 'POST',
+    headers: {
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Upload failed' }));
+    throw new Error(error.message || 'Upload failed');
+  }
+
+  return response.json();
+}
