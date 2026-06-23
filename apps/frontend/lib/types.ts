@@ -116,8 +116,8 @@ export interface CreateRestaurantRequest {
 export interface UpdateRestaurantRequest {
   name?: string;
   slug?: string;
-  logo?: string;
-  description?: string;
+  logo?: string | null;
+  description?: string | null;
 }
 
 export interface AddRestaurantUserRequest {

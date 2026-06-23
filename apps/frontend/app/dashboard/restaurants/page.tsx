@@ -2,16 +2,17 @@
 
 import { useState, useEffect } from 'react';
 import { ProtectedRoute } from '../../../components/protected-route';
-import { getAllRestaurants, deleteRestaurant } from '../../../lib/restaurants-api';
-import type { RestaurantListItem } from '../../../lib/types';
+import { getAllRestaurants, deleteRestaurant, getRestaurantById } from '../../../lib/restaurants-api';
+import type { RestaurantListItem, RestaurantDetail } from '../../../lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../../../components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../../components/ui/table';
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
-import { Building2, MapPin, Users, Loader2, Trash2, UserPlus } from 'lucide-react';
+import { Building2, MapPin, Users, Loader2, Trash2, UserPlus, Edit } from 'lucide-react';
 import { CreateRestaurantModal } from '../../../components/create-restaurant-modal';
 import { AddRestaurantUserModal } from '../../../components/add-restaurant-user-modal';
+import { EditRestaurantModal } from '../../../components/edit-restaurant-modal';
 import { useAuth } from '../../../contexts/auth-context';
 
 const statusColors = {
@@ -27,7 +28,9 @@ export default function RestaurantsListPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedRestaurant, setSelectedRestaurant] = useState<RestaurantListItem | null>(null);
+  const [selectedRestaurantDetail, setSelectedRestaurantDetail] = useState<RestaurantDetail | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalRestaurants, setTotalRestaurants] = useState(0);
@@ -99,6 +102,23 @@ export default function RestaurantsListPage() {
   const handleCloseDeleteConfirm = () => {
     setSelectedRestaurant(null);
     setShowDeleteConfirm(false);
+  };
+
+  const handleOpenEditModal = async (restaurant: RestaurantListItem) => {
+    try {
+      const response = await getRestaurantById(restaurant.id);
+      if (response.success && response.data) {
+        setSelectedRestaurantDetail(response.data);
+        setShowEditModal(true);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load restaurant details');
+    }
+  };
+
+  const handleCloseEditModal = () => {
+    setSelectedRestaurantDetail(null);
+    setShowEditModal(false);
   };
 
   return (
@@ -215,6 +235,17 @@ export default function RestaurantsListPage() {
                                 <UserPlus className="h-4 w-4" />
                               </Button>
                             )}
+                            {canManage && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenEditModal(restaurant)}
+                                className="text-slate-600 hover:text-blue-600 hover:bg-blue-50"
+                                title="Edit Restaurant"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
                             {user?.role === 'SUPER_ADMIN' && (
                               <Button
                                 variant="ghost"
@@ -321,6 +352,14 @@ export default function RestaurantsListPage() {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Edit Restaurant Modal */}
+        <EditRestaurantModal
+          open={showEditModal}
+          onClose={handleCloseEditModal}
+          onSuccess={handleRestaurantCreated}
+          restaurant={selectedRestaurantDetail}
+        />
       </div>
     </ProtectedRoute>
   );

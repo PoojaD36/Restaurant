@@ -11,6 +11,12 @@ import {
   HttpStatus,
   Param,
   Query,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  BadRequestException,
 } from '@nestjs/common';
 import { RestaurantModuleService } from './restaurant-module.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,12 +26,15 @@ import { UserRole } from 'src/database/generated/prisma/enums';
 import { CreateRestaurantDto } from './dto/create-restaurant.dto';
 import { UpdateRestaurantDto } from './dto/update-restaurant.dto';
 import { AddRestaurantUserDto } from './dto/add-restaurant-user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { SupabaseService } from '../storage/supabase.service';
 
 @Controller('restaurants')
 @UseGuards(JwtAuthGuard)
 export class RestaurantModuleController {
   constructor(
     private readonly restaurantModuleService: RestaurantModuleService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   /**
@@ -174,5 +183,48 @@ export class RestaurantModuleController {
       requestingUserId,
       requestingUserRole,
     );
+  }
+
+  /**
+   * Upload restaurant logo image
+   */
+  @Post('upload-logo')
+  @HttpCode(HttpStatus.OK)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadRestaurantLogo(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5MB
+          new FileTypeValidator({ fileType: /(image\/jpeg|image\/png|image\/jpg|image\/webp)$/ }),
+        ],
+      }),
+    )
+    file: any,
+  ) {
+    if (!this.supabaseService.isConfigured()) {
+      return {
+        success: false,
+        message: 'Image upload service is not configured',
+      };
+    }
+
+    try {
+      const uploadedFile = {
+        originalname: file.originalname,
+        buffer: file.buffer,
+        mimetype: file.mimetype,
+      };
+
+      const publicUrl = await this.supabaseService.uploadImage(uploadedFile, 'restaurant-logos');
+
+      return {
+        success: true,
+        message: 'Logo uploaded successfully',
+        data: { url: publicUrl },
+      };
+    } catch (error) {
+      throw new BadRequestException('Logo upload failed');
+    }
   }
 }
