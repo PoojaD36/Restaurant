@@ -4,43 +4,84 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CustomerAuthSheet } from '../../components/customer-auth-sheet';
 import { useCustomerAuth } from '../../contexts/customer-auth-context';
+import { useLocation } from '../../contexts/location-context';
 import { getPublicOutlets, PublicOutlet } from '../../lib/public-api';
-import { Utensils, MapPin, Clock, Star, ShoppingBag, User, LogOut, Loader2 } from 'lucide-react';
+import { calculateDistance, formatDistance } from '../../lib/location-utils';
+import { useRouter } from 'next/navigation';
+import { Utensils, MapPin, Clock, Star, ShoppingBag, User, LogOut, Loader2, Navigation } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
-import Image from 'next/image';
+
+interface OutletWithDistance extends PublicOutlet {
+  distance?: number;
+}
 
 export default function CustomerPage() {
   const { customer, isAuthenticated, logout } = useCustomerAuth();
-  const [outlets, setOutlets] = useState<PublicOutlet[]>([]);
+  const { location, permissionStatus, requestLocation } = useLocation();
+  const router = useRouter();
+
+  const [outlets, setOutlets] = useState<OutletWithDistance[]>([]);
+  const [rawOutlets, setRawOutlets] = useState<PublicOutlet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
+  const [showLocationPrompt, setShowLocationPrompt] = useState(false);
 
   const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   useEffect(() => {
-    // Show auth sheet if not authenticated
-    if (!isAuthenticated) {
+    // Show location prompt on first visit
+    const hasSeenPrompt = localStorage.getItem('location_prompt_seen');
+    if (!hasSeenPrompt && permissionStatus === 'prompt') {
+      setTimeout(() => {
+        setShowLocationPrompt(true);
+      }, 2000);
+    }
+  }, [permissionStatus]);
+
+  useEffect(() => {
+    // Show auth sheet if not authenticated (after location prompt)
+    if (!isAuthenticated && !showLocationPrompt) {
       setTimeout(() => {
         setIsAuthSheetOpen(true);
       }, 1500);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, showLocationPrompt]);
 
   useEffect(() => {
     loadOutlets();
   }, [page]);
 
+  // Calculate and sort by distance when location or outlets change
+  useEffect(() => {
+    if (location && rawOutlets.length > 0) {
+      const outletsWithDistance = rawOutlets.map(outlet => ({
+        ...outlet,
+        distance: outlet.latitude && outlet.longitude
+          ? calculateDistance(location.latitude, location.longitude, outlet.latitude, outlet.longitude)
+          : undefined,
+      })).filter(outlet => outlet.distance !== undefined); // Filter out outlets without coordinates
+
+      // Sort by distance
+      outletsWithDistance.sort((a, b) => (a.distance || Infinity) - (b.distance || Infinity));
+
+      setOutlets(outletsWithDistance);
+    } else {
+      // No location, show unsorted
+      setOutlets(rawOutlets.map(o => ({ ...o })));
+    }
+  }, [location, rawOutlets]);
+
   const loadOutlets = async () => {
     try {
       setIsLoading(true);
-      const response = await getPublicOutlets(page, 20);
+      const response = await getPublicOutlets(page, 100); // Load more for distance sorting
       if (response.success) {
-        setOutlets(response.data);
+        setRawOutlets(response.data);
         setTotalPages(response.pagination.totalPages);
         setTotal(response.pagination.total);
       }
@@ -51,8 +92,15 @@ export default function CustomerPage() {
     }
   };
 
-  const handleAuthSuccess = () => {
-    setIsAuthSheetOpen(false);
+  const handleAllowLocation = async () => {
+    setShowLocationPrompt(false);
+    localStorage.setItem('location_prompt_seen', 'true');
+    await requestLocation();
+  };
+
+  const handleDenyLocation = () => {
+    setShowLocationPrompt(false);
+    localStorage.setItem('location_prompt_seen', 'true');
   };
 
   const handleLogout = async () => {
@@ -143,7 +191,7 @@ export default function CustomerPage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-            Order from the Best Restaurants
+            {location ? 'Restaurants Near You' : 'Order from the Best Restaurants'}
           </h1>
           <p className="text-lg text-orange-100 max-w-2xl mx-auto">
             Discover delicious food from {total}+ outlets near you
@@ -189,6 +237,11 @@ export default function CustomerPage() {
                       <Badge className="absolute top-3 right-3 bg-white/90 text-orange-800">
                         {outlet.restaurant.name}
                       </Badge>
+                      {outlet.distance !== undefined && (
+                        <Badge className="absolute top-3 left-3 bg-green-500 text-white">
+                          {formatDistance(outlet.distance)}
+                        </Badge>
+                      )}
                     </div>
 
                     <div className="p-4">
@@ -225,8 +278,7 @@ export default function CustomerPage() {
                           className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white"
                           onClick={() => {
                             if (isAuthenticated) {
-                              // Navigate to menu
-                              console.log('Navigate to menu for outlet:', outlet.id);
+                              router.push(`/customer/menu/${outlet.id}`);
                             } else {
                               setAuthMode('login');
                               setIsAuthSheetOpen(true);
@@ -272,6 +324,52 @@ export default function CustomerPage() {
           </div>
         )}
       </main>
+
+      {/* Location Permission Modal */}
+      <AnimatePresence>
+        {showLocationPrompt && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Navigation className="h-8 w-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">
+                  Show restaurants near you
+                </h3>
+                <p className="text-gray-600 mb-6">
+                  We'll use your location to show nearby restaurants and calculate delivery distances.
+                </p>
+                <div className="flex gap-3">
+                  <Button
+                    variant="outline"
+                    onClick={handleDenyLocation}
+                    className="flex-1 border-gray-300 hover:bg-gray-100 text-gray-700"
+                  >
+                    Not now
+                  </Button>
+                  <Button
+                    onClick={handleAllowLocation}
+                    className="flex-1 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white"
+                  >
+                    Allow location
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Auth Sheet */}
       <CustomerAuthSheet

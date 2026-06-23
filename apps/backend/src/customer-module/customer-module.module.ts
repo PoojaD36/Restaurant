@@ -6,11 +6,13 @@ import { CustomerModuleController } from './customer-module.controller';
 import { CustomerModuleService } from './customer-module.service';
 import { CustomerJwtStrategy } from './strategies/customer-jwt.strategy';
 import { PrismaModule } from 'src/database/database.module';
+import { CommonModule } from '../common/common.module';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
+    CommonModule,
     PassportModule.register({ defaultStrategy: 'customer-jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

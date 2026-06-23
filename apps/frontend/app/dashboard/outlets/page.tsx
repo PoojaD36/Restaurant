@@ -10,9 +10,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
-import { MapPin, Loader2, Trash2, Phone, Mail, Clock, Building2, Users } from 'lucide-react';
+import { MapPin, Loader2, Trash2, Phone, Mail, Clock, Building2, Users, Pencil } from 'lucide-react';
 import { CreateOutletModal } from '../../../components/create-outlet-modal';
 import { AddOutletUserModal } from '../../../components/add-outlet-user-modal';
+import { EditOutletModal } from '../../../components/edit-outlet-modal';
 import { useAuth } from '../../../contexts/auth-context';
 import {
   Select,
@@ -35,6 +36,7 @@ export default function OutletsListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUserModal, setShowUserModal] = useState(false);
   const [selectedOutlet, setSelectedOutlet] = useState<OutletListItem | null>(null);
@@ -122,6 +124,16 @@ export default function OutletsListPage() {
   const handleCloseUserModal = () => {
     setSelectedOutlet(null);
     setShowUserModal(false);
+  };
+
+  const handleOpenEditModal = (outlet: OutletListItem) => {
+    setSelectedOutlet(outlet);
+    setShowEditModal(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setSelectedOutlet(null);
+    setShowEditModal(false);
   };
 
   return (
@@ -255,6 +267,15 @@ export default function OutletsListPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
+                                onClick={() => handleOpenEditModal(outlet)}
+                                className="text-slate-600 hover:text-amber-600 hover:bg-amber-50"
+                                title="Edit Outlet"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
                                 onClick={() => handleOpenUserModal(outlet)}
                                 className="text-slate-600 hover:text-blue-600 hover:bg-blue-50"
                                 title="Manage Users"
@@ -316,6 +337,14 @@ export default function OutletsListPage() {
           open={showCreateModal}
           onClose={() => setShowCreateModal(false)}
           onSuccess={handleOutletCreated}
+        />
+
+        {/* Edit Outlet Modal */}
+        <EditOutletModal
+          open={showEditModal}
+          onClose={handleCloseEditModal}
+          onSuccess={handleOutletCreated}
+          outletId={selectedOutlet?.id || null}
         />
 
         {/* Outlet User Management Modal */}
