@@ -142,7 +142,20 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       if (quantity <= 0) {
         // Remove item if quantity is 0 or negative
-        return removeFromCart(tempId);
+        const newItems = prev.items.filter(item => item.tempId !== tempId);
+        const subtotal = newItems.reduce((sum, item) => {
+          const itemTotal = item.price * item.quantity;
+          const modifiersTotal = item.modifiers.reduce((modSum, modifier) =>
+            modSum + modifier.selectedOptions.reduce((optSum, option) =>
+              optSum + option.priceAdjustment, 0
+            ), 0) * item.quantity;
+          return sum + itemTotal + modifiersTotal;
+        }, 0);
+        return {
+          ...prev,
+          items: newItems,
+          subtotal: Math.round(subtotal * 100) / 100,
+        };
       }
 
       const newItems = prev.items.map(item =>
@@ -164,7 +177,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         subtotal: Math.round(subtotal * 100) / 100,
       };
     });
-  }, [removeFromCart]);
+  }, []);
 
   /**
    * Clear entire cart
