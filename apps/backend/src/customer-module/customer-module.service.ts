@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException, BadRequestException, ConflictException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, BadRequestException, ConflictException, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
@@ -10,13 +10,17 @@ import { RegisterCustomerDto } from './dto/register-customer.dto';
 import { AddAddressDto } from './dto/add-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
+import { GeocodingService } from '../common';
 
 @Injectable()
 export class CustomerModuleService {
+  private readonly logger = new Logger(CustomerModuleService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private geocodingService: GeocodingService,
   ) {}
 
   /**
@@ -275,7 +279,7 @@ export class CustomerModuleService {
   }
 
   /**
-   * Add address to customer
+   * Add address to customer with automatic geocoding
    */
   async addAddress(customerId: number, addressDto: AddAddressDto): Promise<{
     success: boolean;
@@ -290,9 +294,44 @@ export class CustomerModuleService {
         });
       }
 
+      // Build full address for geocoding
+      const fullAddress = this.geocodingService.buildFullAddress({
+        addressLine1: addressDto.addressLine1,
+        addressLine2: addressDto.addressLine2,
+        city: addressDto.city,
+        state: addressDto.state,
+        country: addressDto.country,
+        postalCode: addressDto.postalCode,
+      });
+
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+
+      // Geocode address to get coordinates
+      try {
+        const coords = await this.geocodingService.geocodeAddress(fullAddress);
+        latitude = coords.latitude;
+        longitude = coords.longitude;
+        this.logger.log(`Geocoded customer address: ${fullAddress} -> ${latitude}, ${longitude}`);
+      } catch (geocodeError) {
+        this.logger.warn(`Geocoding failed for customer address: ${fullAddress}. Address will be saved without coordinates.`);
+        // Continue with null coordinates
+      }
+
       const address = await this.prisma.customerAddress.create({
         data: {
-          ...addressDto,
+          label: addressDto.label,
+          name: addressDto.name,
+          phone: addressDto.phone,
+          addressLine1: addressDto.addressLine1,
+          addressLine2: addressDto.addressLine2 || null,
+          city: addressDto.city,
+          state: addressDto.state,
+          country: addressDto.country,
+          postalCode: addressDto.postalCode,
+          latitude,
+          longitude,
+          isDefault: addressDto.isDefault || false,
           customerId,
         },
       });
@@ -308,7 +347,7 @@ export class CustomerModuleService {
   }
 
   /**
-   * Update customer address
+   * Update customer address with automatic geocoding if address changes
    */
   async updateAddress(
     customerId: number,
@@ -338,9 +377,59 @@ export class CustomerModuleService {
         });
       }
 
+      // Check if any address fields have changed
+      const addressFieldsChanged =
+        (updateDto.addressLine1 && updateDto.addressLine1 !== address.addressLine1) ||
+        (updateDto.addressLine2 !== undefined && updateDto.addressLine2 !== address.addressLine2) ||
+        (updateDto.city && updateDto.city !== address.city) ||
+        (updateDto.state && updateDto.state !== address.state) ||
+        (updateDto.country && updateDto.country !== address.country) ||
+        (updateDto.postalCode && updateDto.postalCode !== address.postalCode);
+
+      let latitude: number | null = address.latitude ? parseFloat(address.latitude.toString()) : null;
+      let longitude: number | null = address.longitude ? parseFloat(address.longitude.toString()) : null;
+
+      // Re-geocode if address fields changed
+      if (addressFieldsChanged) {
+        const fullAddress = this.geocodingService.buildFullAddress({
+          addressLine1: updateDto.addressLine1 || address.addressLine1,
+          addressLine2: (updateDto.addressLine2 !== undefined ? updateDto.addressLine2 : address.addressLine2) || undefined,
+          city: updateDto.city || address.city,
+          state: updateDto.state || address.state,
+          country: updateDto.country || address.country,
+          postalCode: updateDto.postalCode || address.postalCode,
+        });
+
+        try {
+          const coords = await this.geocodingService.geocodeAddress(fullAddress);
+          latitude = coords.latitude;
+          longitude = coords.longitude;
+          this.logger.log(`Re-geocoded customer address: ${fullAddress} -> ${latitude}, ${longitude}`);
+        } catch (geocodeError) {
+          this.logger.warn(`Geocoding failed for customer address update: ${fullAddress}. Keeping existing coordinates.`);
+          // Keep existing coordinates if geocoding fails
+        }
+      }
+
       const updatedAddress = await this.prisma.customerAddress.update({
         where: { id: addressId },
-        data: updateDto,
+        data: {
+          ...(updateDto.label !== undefined && { label: updateDto.label }),
+          ...(updateDto.name !== undefined && { name: updateDto.name }),
+          ...(updateDto.phone !== undefined && { phone: updateDto.phone }),
+          ...(updateDto.addressLine1 && { addressLine1: updateDto.addressLine1 }),
+          ...(updateDto.addressLine2 !== undefined && { addressLine2: updateDto.addressLine2 || null }),
+          ...(updateDto.city && { city: updateDto.city }),
+          ...(updateDto.state && { state: updateDto.state }),
+          ...(updateDto.country && { country: updateDto.country }),
+          ...(updateDto.postalCode && { postalCode: updateDto.postalCode }),
+          ...(updateDto.isDefault !== undefined && { isDefault: updateDto.isDefault }),
+          // Always update coordinates if address changed, otherwise keep existing
+          ...(addressFieldsChanged && {
+            latitude,
+            longitude,
+          }),
+        },
       });
 
       return {

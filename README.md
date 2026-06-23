@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-22 (Routing Structure Reorganization - Separate admin/customer portals)
+> **Last Updated:** 2026-06-23 (Customer Menu Browsing, Location Features & Shopping Cart)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -56,9 +56,10 @@ d:\restaurant/
 │   │   │   │   ├── customer-module.controller.ts
 │   │   │   │   ├── customer-module.service.ts
 │   │   │   │   └── customer-module.module.ts
-│   │   │   ├── common/         # Shared DTOs, interfaces, and types
+│   │   │   ├── common/         # Shared DTOs, interfaces, services
 │   │   │   │   ├── dto/        # Common DTOs (PaginationDto)
 │   │   │   │   ├── interfaces/ # Response interfaces (ApiResponse, PaginatedResponse)
+│   │   │   │   ├── geocoding.service.ts # Geocoding with Nominatim API
 │   │   │   │   └── common.module.ts
 │   │   │   ├── database/       # Prisma service & module
 │   │   │   ├── user-module/    # User management module
@@ -73,8 +74,9 @@ d:\restaurant/
 │       ├── app/
 │       │   ├── layout.tsx       # Root layout with AuthProvider and CustomerAuthProvider
 │       │   ├── page.tsx         # Root redirect to /customer
-│       │   ├── customer/        # Customer-facing page
-│       │   │   └── page.tsx     # Browse outlets, order food
+│       │   ├── customer/        # Customer-facing pages
+│       │   │   ├── page.tsx     # Browse outlets with geolocation
+│       │   │   └── menu/[outletId]/page.tsx # Menu browsing with cart
 │       │   ├── admin/
 │       │   │   └── login/
 │       │   │       └── page.tsx # Admin login page
@@ -97,13 +99,18 @@ d:\restaurant/
 │       │   └── add-outlet-user-modal.tsx
 │       ├── contexts/
 │       │   ├── auth-context.tsx       # Admin auth state management
-│       │   └── customer-auth-context.tsx  # Customer auth state management
+│       │   ├── customer-auth-context.tsx  # Customer auth state management
+│       │   ├── cart-context.tsx       # Shopping cart state management
+│       │   └── location-context.tsx   # Customer location state
 │       ├── lib/
 │       │   ├── types.ts            # TypeScript types (admin)
 │       │   ├── customer-types.ts   # TypeScript types (customer)
+│       │   ├── menu-types.ts       # Menu browsing types
+│       │   ├── cart-types.ts       # Shopping cart types
+│       │   ├── location-utils.ts  # Distance calculation (Haversine)
 │       │   ├── auth-api.ts         # API functions for auth
 │       │   ├── customer-api.ts     # API functions for customers
-│       │   ├── public-api.ts       # Public API (outlets)
+│       │   ├── public-api.ts       # Public API (outlets, menus)
 │       │   ├── users-api.ts        # API functions for users
 │       │   ├── restaurants-api.ts  # API functions for restaurants
 │       │   └── outlets-api.ts      # API functions for outlets
@@ -131,11 +138,11 @@ d:\restaurant/
 - `UserPassword` - User credentials with security features (lockout, refresh tokens)
 - `Restaurant` - Restaurant entities
 - `RestaurantUser` - Junction table for User-Restaurant relationships
-- `Outlet` - Physical restaurant locations
+- `Outlet` - Physical restaurant locations with **required** latitude/longitude (auto-geocoded from address)
 - `OutletUser` - Junction table for User-Outlet relationships
 - `Customer` - End customers
 - `CustomerPassword` - Customer credentials
-- `CustomerAddress` - Customer delivery addresses
+- `CustomerAddress` - Customer delivery addresses with **required** latitude/longitude (auto-geocoded from address)
 
 ### Menu Management
 
@@ -146,6 +153,8 @@ d:\restaurant/
 - `MenuItemOutletPricing` - Outlet-specific pricing overrides for menu items
 - `ModifierGroup` - Modifier groups (e.g., Size, Add-ons) with SINGLE/MULTIPLE selection types
 - `ModifierOption` - Individual modifier options with price adjustments
+
+**Important:** Outlet and CustomerAddress latitude/longitude fields are **required** and automatically calculated from addresses using the GeocodingService (Nominatim API). No manual entry needed.
 
 **Key Enums:**
 - `UserRole`: SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER, CHEF, DELIVERY_AGENT
@@ -167,14 +176,15 @@ d:\restaurant/
 |--------|--------|-------|
 | App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule imported |
 | Auth Module | ✅ Complete | JWT auth, role-based guards, decorators (for admin users) |
-| Customer Module | ✅ Complete | Customer auth, profile, address management |
+| Customer Module | ✅ Complete | Customer auth, profile, address management with auto-geocoding |
 | User Module | ✅ Complete | Full CRUD operations for users |
 | Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction, auto-adds Admin/Manager to outlets |
-| Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment, public endpoint for customer browsing |
+| Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment, public endpoint for customer browsing, auto-geocoding |
 | Menu Module | ✅ Complete | Restaurant-level menus with categories, items, modifiers, and outlet-specific pricing |
 | Storage Module | ✅ Complete | Supabase storage service for image uploads |
+| Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
-| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models |
+| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, required lat/lng |
 | Database Seeder | ✅ Complete | Creates Super Admin via npm run seed |
 
 **Port:** 3001 (configurable via `PORT` env var)
@@ -187,11 +197,14 @@ d:\restaurant/
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| App Structure | ✅ Complete | Layout with AuthProvider and CustomerAuthProvider |
-| Routing Structure | ✅ Complete | Separate routes for admin and customer portals |
+| App Structure | ✅ Complete | Layout with AuthProvider, CustomerAuthProvider, CartProvider, LocationProvider |
+| Routing Structure | ✅ Complete | Separate routes for admin and customer portals with /customer/menu/[outletId] |
 | Root Page | ✅ Complete | Redirects to /customer by default |
 | Admin Login | ✅ Complete | Dedicated /admin/login page for admin authentication |
-| Customer Portal | ✅ Complete | /customer page for browsing outlets and ordering |
+| Customer Portal | ✅ Complete | /customer page with geolocation permission prompt, distance-based outlet sorting, manual location entry |
+| Customer Menu Browsing | ✅ Complete | /customer/menu/[outletId] with categories, items, modifiers, add to cart, cart drawer |
+| Shopping Cart | ✅ Complete | CartContext with localStorage persistence, quantity controls, modifier support |
+| Location Features | ✅ Complete | Browser geolocation API, distance calculation (Haversine), manual address geocoding, distance badges |
 | Admin Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
 | Authentication | ✅ Complete | Login, logout, JWT handling (admin users) |
 | Customer Authentication | ✅ Complete | Customer registration, login, profile management |
@@ -204,6 +217,8 @@ d:\restaurant/
 | Restaurant Admin Access | ✅ Complete | RESTAURANT_ADMIN can view assigned restaurants, manage users, create outlets, menus |
 | Auth Context | ✅ Complete | State management with useAuth hook |
 | Customer Auth Context | ✅ Complete | State management with useCustomerAuth hook |
+| Cart Context | ✅ Complete | Shopping cart state management with useCart hook |
+| Location Context | ✅ Complete | Customer location state management with useLocation hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check and multiple role support |
 | UI Components | ✅ Complete | shadcn/ui components installed (Button, Card, Input, Sheet, etc.) |
 | Theme System | ✅ Complete | Orange/Amber theme (light mode only) |
@@ -215,7 +230,8 @@ The application uses separate routing for admin and customer portals:
 | Path | Purpose | Authentication |
 |------|---------|----------------|
 | `/` | Root redirect → `/customer` | Public |
-| `/customer` | Customer portal - browse outlets, order food | Customer JWT (optional for browsing, required for ordering) |
+| `/customer` | Customer portal - browse outlets with geolocation, distance sorting | Customer JWT (optional for browsing, required for ordering) |
+| `/customer/menu/[outletId]` | Menu browsing page with categories, items, modifiers, add to cart | Public (cart requires customer auth for checkout) |
 | `/admin/login` | Admin login page | Public (redirects to `/dashboard` after login) |
 | `/dashboard` | Admin dashboard with all management features | Admin JWT required |
 
@@ -341,8 +357,10 @@ The `/customer` page provides a modern, food delivery themed experience for brow
 
 | Endpoint | Method | Auth Required | Description | Query Params |
 |----------|--------|---------------|-------------|--------------|
-| `/public/outlets/list` | GET | No | Get active outlets (public) | `page`, `limit`, `restaurantId` |
-| `/public/outlets/:id` | GET | No | Get outlet by ID (public) | - |
+| `/public/outlets/list` | GET | No | Get active outlets with latitude/longitude (public) | `page`, `limit`, `restaurantId` |
+| `/public/outlets/:id` | GET | No | Get outlet by ID with latitude/longitude (public) | - |
+
+**Response includes:** `id`, `name`, `description`, `address`, `city`, `state`, `country`, `postalCode`, `phone`, `email`, `latitude`, `longitude`, `status`, `restaurant` |
 
 ### Menu Management
 
@@ -752,21 +770,37 @@ npx shadcn@latest add dialog -y
 - ✅ **Customer Auth UI Enhancement** - Improved customer sign-in/sign-up UI with centered dialog modal on desktop (480px max-width), proper spacing, and responsive design - 2026-06-22
 - ✅ **Routing Structure Reorganization** - Separated admin and customer routing with dedicated paths: `/` → `/customer`, `/admin/login` for admin authentication, `/dashboard` for admin management - 2026-06-22
 - ✅ **Menu Module Implementation** - Implemented complete menu management system with restaurant-level menus, categories, items, modifiers, Supabase image storage, and outlet-specific pricing - 2026-06-22
+- ✅ **GeocodingService Implementation** - Created geocoding service using Nominatim API (OpenStreetMap) for address-to-coordinate conversion with Haversine distance calculation - 2026-06-23
+- ✅ **Auto-Geocoding for Outlets** - Outlet creation/update now auto-calculates latitude/longitude from address fields, removed manual lat/lng input from DTOs - 2026-06-23
+- ✅ **Auto-Geocoding for Customer Addresses** - Customer address creation/update now auto-calculates latitude/longitude from address fields, removed manual lat/lng input from DTOs - 2026-06-23
+- ✅ **Prisma Schema Latitude/Longitude Required** - Updated Outlet and CustomerAddress models to make latitude/longitude required fields (no longer optional) - 2026-06-23
+- ✅ **Menu Browsing Types** - Created menu-types.ts with PublicMenu, MenuCategory, MenuItem, ModifierGroup, ModifierOption interfaces for customer menu browsing - 2026-06-23
+- ✅ **Cart Context & Types** - Created cart-context.tsx with CartProvider, useCart hook, localStorage persistence, and cart management functions (add, remove, update, clear) - 2026-06-23
+- ✅ **Location Context & Types** - Created location-context.tsx with LocationProvider for customer location state management (browser geolocation, manual address entry) - 2026-06-23
+- ✅ **Location Utilities** - Created location-utils.ts with calculateDistance (Haversine formula), formatDistance, requestGeolocation, geocodeAddress, and sortByDistance functions - 2026-06-23
+- ✅ **Customer Menu Browsing Page** - Created /customer/menu/[outletId] page with categories, menu items, modifier selection, add to cart, cart drawer, and outlet-specific pricing - 2026-06-23
+- ✅ **Public API Extension** - Added getPublicMenuByOutlet() function and updated PublicOutlet interface to include latitude/longitude - 2026-06-23
+- ✅ **Customer Geolocation Features** - Updated /customer page with browser geolocation permission prompt, distance calculation and sorting for outlets, distance badges, manual location entry option - 2026-06-23
+- ✅ **Cart UI Integration** - Added cart indicator badge to menu page header, cart drawer with item management, subtotal calculation, and checkout button - 2026-06-23
+- ✅ **Modifier Selection UI** - Created modal-based modifier selector with SINGLE (radio) and MULTIPLE (checkbox) modifier types, price adjustments, and validation - 2026-06-23
+- ✅ **Category Navigation** - Added horizontal scrollable category tabs with active highlighting and smooth scroll to category sections - 2026-06-23
+- ✅ **CommonModule GeocodingService Export** - Exported GeocodingService from CommonModule for use in OutletModule and CustomerModule - 2026-06-23
+- ✅ **Module Dependencies Update** - Imported CommonModule in OutletModule and CustomerModule to provide GeocodingService injection - 2026-06-23
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
-- [ ] **Customer Address Management UI** - Create customer address management page with add/edit/delete
-- [ ] **Menu Enhancements** - Add edit menu, edit category, edit item, and modifier management UI
-- [ ] **Menu Preview** - Add customer-facing menu preview with outlet-specific pricing
-- [ ] **Cart & Orders** - Implement shopping cart and order placement
+- [ ] **Checkout Page** - Create /customer/checkout page with address selection/entry, order review, confirmation
+- [ ] **Customer Address Management UI** - Create address selector, address form, address card components for checkout flow
+- [ ] **Customer Profile Page** - Create /customer/profile page for customer information and address management
+- [ ] **Order Placement** - Implement order creation API and frontend integration
+- [ ] **Menu Edit Features** - Add edit menu, edit category, edit item, and modifier management UI
+- [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
+- [ ] **Restaurant Edit Feature** - Add edit restaurant modal for updating restaurant details
 - [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and features
 - [ ] **API Documentation** - Add Swagger/OpenAPI docs
-- [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
-- [ ] **Restaurant Edit Feature** - Add edit restaurant modal for updating restaurant details
-- [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
-- [ ] **Restaurant Edit Feature** - Add edit restaurant modal for updating restaurant details
+- [ ] **Prisma Database Migration** - Run `npx prisma db push` when database is available to make lat/lng required fields
 
 ---
 

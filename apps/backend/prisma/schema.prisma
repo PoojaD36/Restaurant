@@ -144,8 +144,8 @@ model Outlet {
   country    String
   postalCode String
 
-  latitude  Decimal?
-  longitude Decimal?
+  latitude  Decimal
+  longitude Decimal
 
   openingTime String?
   closingTime String?
@@ -248,8 +248,8 @@ model CustomerAddress {
   country    String
   postalCode String
 
-  latitude  Decimal?
-  longitude Decimal?
+  latitude  Decimal
+  longitude Decimal
 
   isDefault Boolean @default(false)
 

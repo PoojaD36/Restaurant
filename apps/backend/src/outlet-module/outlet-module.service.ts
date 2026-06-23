@@ -1,8 +1,8 @@
 import {
   Injectable,
   BadRequestException,
-  NotFoundException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { PrismaService } from 'src/database/prisma.service';
 import { OutletStatus } from 'src/database/generated/prisma/enums';
@@ -10,10 +10,16 @@ import { CreateOutletDto } from './dto/create-outlet.dto';
 import { UpdateOutletDto } from './dto/update-outlet.dto';
 import { AddOutletUserDto } from './dto/add-outlet-user.dto';
 import { ApiResponse, PaginatedResponse, PaginationMeta } from '../common';
+import { GeocodingService } from '../common';
 
 @Injectable()
 export class OutletModuleService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(OutletModuleService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly geocodingService: GeocodingService,
+  ) {}
 
   /**
    * Check if user has access to restaurant (for RESTAURANT_ADMIN)
@@ -68,7 +74,7 @@ export class OutletModuleService {
   }
 
   /**
-   * Create a new outlet
+   * Create a new outlet with automatic geocoding
    */
   async createOutlet(
     createOutletDto: CreateOutletDto,
@@ -100,6 +106,46 @@ export class OutletModuleService {
         throw new BadRequestException('Restaurant not found');
       }
 
+      // Build full address for geocoding
+      const fullAddress = this.geocodingService.buildFullAddress({
+        addressLine1: createOutletDto.addressLine1,
+        addressLine2: createOutletDto.addressLine2,
+        city: createOutletDto.city,
+        state: createOutletDto.state,
+        country: createOutletDto.country,
+        postalCode: createOutletDto.postalCode,
+      });
+
+      let latitude: number | null = null;
+      let longitude: number | null = null;
+
+      // Check if user provided manual coordinates
+      const manualCoordsProvided =
+        (createOutletDto.latitude !== undefined && createOutletDto.latitude !== null && createOutletDto.latitude !== '') ||
+        (createOutletDto.longitude !== undefined && createOutletDto.longitude !== null && createOutletDto.longitude !== '');
+
+      if (manualCoordsProvided) {
+        // Use manually provided coordinates
+        if (createOutletDto.latitude && createOutletDto.latitude !== '') {
+          latitude = parseFloat(createOutletDto.latitude);
+        }
+        if (createOutletDto.longitude && createOutletDto.longitude !== '') {
+          longitude = parseFloat(createOutletDto.longitude);
+        }
+        this.logger.log(`Using manually provided coordinates for outlet: ${latitude}, ${longitude}`);
+      } else {
+        // Geocode address to get coordinates
+        try {
+          const coords = await this.geocodingService.geocodeAddress(fullAddress);
+          latitude = coords.latitude;
+          longitude = coords.longitude;
+          this.logger.log(`Geocoded outlet address: ${fullAddress} -> ${latitude}, ${longitude}`);
+        } catch (geocodeError) {
+          this.logger.warn(`Geocoding failed for outlet: ${fullAddress}. Outlet will be created without coordinates.`);
+          // Continue with null coordinates - outlet can still be created
+        }
+      }
+
       const outlet = await this.prisma.outlet.create({
         data: {
           restaurantId: createOutletDto.restaurantId,
@@ -112,12 +158,8 @@ export class OutletModuleService {
           state: createOutletDto.state,
           country: createOutletDto.country,
           postalCode: createOutletDto.postalCode,
-          latitude: createOutletDto.latitude
-            ? parseFloat(createOutletDto.latitude)
-            : null,
-          longitude: createOutletDto.longitude
-            ? parseFloat(createOutletDto.longitude)
-            : null,
+          latitude,
+          longitude,
           openingTime: createOutletDto.openingTime || null,
           closingTime: createOutletDto.closingTime || null,
           status: OutletStatus.ACTIVE,
@@ -275,6 +317,8 @@ export class OutletModuleService {
             state: true,
             country: true,
             postalCode: true,
+            latitude: true,
+            longitude: true,
             openingTime: true,
             closingTime: true,
             status: true,
@@ -313,6 +357,8 @@ export class OutletModuleService {
           state: o.state,
           country: o.country,
           postalCode: o.postalCode,
+          latitude: o.latitude ? parseFloat(o.latitude.toString()) : null,
+          longitude: o.longitude ? parseFloat(o.longitude.toString()) : null,
           openingTime: o.openingTime,
           closingTime: o.closingTime,
           status: o.status,
@@ -390,7 +436,7 @@ export class OutletModuleService {
   }
 
   /**
-   * Update outlet
+   * Update outlet with automatic geocoding if address changes
    */
   async updateOutlet(
     id: number,
@@ -422,6 +468,55 @@ export class OutletModuleService {
         }
       }
 
+      // Check if any address fields have changed
+      const addressFieldsChanged =
+        (updateOutletDto.addressLine1 && updateOutletDto.addressLine1 !== existingOutlet.addressLine1) ||
+        (updateOutletDto.addressLine2 !== undefined && updateOutletDto.addressLine2 !== existingOutlet.addressLine2) ||
+        (updateOutletDto.city && updateOutletDto.city !== existingOutlet.city) ||
+        (updateOutletDto.state && updateOutletDto.state !== existingOutlet.state) ||
+        (updateOutletDto.country && updateOutletDto.country !== existingOutlet.country) ||
+        (updateOutletDto.postalCode && updateOutletDto.postalCode !== existingOutlet.postalCode);
+
+      // Convert Decimal to number for existing coordinates
+      let latitude: number | null = existingOutlet.latitude ? parseFloat(existingOutlet.latitude.toString()) : null;
+      let longitude: number | null = existingOutlet.longitude ? parseFloat(existingOutlet.longitude.toString()) : null;
+
+      // Check if user provided manual coordinates
+      const manualCoordsProvided =
+        (updateOutletDto.latitude !== undefined && updateOutletDto.latitude !== null && updateOutletDto.latitude !== '') ||
+        (updateOutletDto.longitude !== undefined && updateOutletDto.longitude !== null && updateOutletDto.longitude !== '');
+
+      if (manualCoordsProvided) {
+        // Use manually provided coordinates
+        if (updateOutletDto.latitude && updateOutletDto.latitude !== '') {
+          latitude = parseFloat(updateOutletDto.latitude);
+        }
+        if (updateOutletDto.longitude && updateOutletDto.longitude !== '') {
+          longitude = parseFloat(updateOutletDto.longitude);
+        }
+        this.logger.log(`Using manually provided coordinates: ${latitude}, ${longitude}`);
+      } else if (addressFieldsChanged) {
+        // Re-geocode if address fields changed and no manual coordinates provided
+        const fullAddress = this.geocodingService.buildFullAddress({
+          addressLine1: updateOutletDto.addressLine1 || existingOutlet.addressLine1,
+          addressLine2: (updateOutletDto.addressLine2 !== undefined ? updateOutletDto.addressLine2 : existingOutlet.addressLine2) || undefined,
+          city: updateOutletDto.city || existingOutlet.city,
+          state: updateOutletDto.state || existingOutlet.state,
+          country: updateOutletDto.country || existingOutlet.country,
+          postalCode: updateOutletDto.postalCode || existingOutlet.postalCode,
+        });
+
+        try {
+          const coords = await this.geocodingService.geocodeAddress(fullAddress);
+          latitude = coords.latitude;
+          longitude = coords.longitude;
+          this.logger.log(`Re-geocoded outlet address: ${fullAddress} -> ${latitude}, ${longitude}`);
+        } catch (geocodeError) {
+          this.logger.warn(`Geocoding failed for outlet update: ${fullAddress}. Keeping existing coordinates.`);
+          // Keep existing coordinates if geocoding fails
+        }
+      }
+
       await this.prisma.outlet.update({
         where: { id },
         data: {
@@ -444,15 +539,12 @@ export class OutletModuleService {
           ...(updateOutletDto.postalCode && {
             postalCode: updateOutletDto.postalCode,
           }),
-          ...(updateOutletDto.latitude !== undefined && {
-            latitude: updateOutletDto.latitude
-              ? parseFloat(updateOutletDto.latitude)
-              : null,
-          }),
-          ...(updateOutletDto.longitude !== undefined && {
-            longitude: updateOutletDto.longitude
-              ? parseFloat(updateOutletDto.longitude)
-              : null,
+          // Update coordinates if:
+          // 1. Manual coordinates were provided, OR
+          // 2. Address fields changed (auto-geocoded)
+          ...((manualCoordsProvided || addressFieldsChanged) && latitude !== null && longitude !== null && {
+            latitude,
+            longitude,
           }),
           ...(updateOutletDto.openingTime !== undefined && {
             openingTime: updateOutletDto.openingTime || null,

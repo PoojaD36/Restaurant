@@ -10,6 +10,8 @@ export interface PublicOutlet {
   state: string;
   country: string;
   postalCode: string;
+  latitude?: number | null;
+  longitude?: number | null;
   openingTime?: string;
   closingTime?: string;
   status: string;
@@ -66,6 +68,24 @@ export async function getPublicOutletById(id: string): Promise<{
 
   if (!response.ok) {
     throw new Error('Failed to fetch outlet');
+  }
+
+  return response.json();
+}
+
+/**
+ * Get public menu by outlet ID (no authentication required)
+ * Returns menu with outlet-specific pricing
+ */
+export async function getPublicMenuByOutlet(outletId: string): Promise<{
+  success: boolean;
+  message: string;
+  data: import('./menu-types').PublicMenu;
+}> {
+  const response = await fetch(`${API_URL}/public/menus/outlet/${outletId}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch menu');
   }
 
   return response.json();
