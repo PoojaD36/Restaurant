@@ -19,6 +19,7 @@ interface CustomerAuthContextType {
   logout: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   clearError: () => void;
+  getCustomerToken: () => string | null;
 }
 
 const CustomerAuthContext = createContext<CustomerAuthContextType | undefined>(undefined);
@@ -116,6 +117,10 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     setError(null);
   };
 
+  const getCustomerToken = () => {
+    return localStorage.getItem(CUSTOMER_TOKEN_KEY);
+  };
+
   const value: CustomerAuthContextType = {
     customer,
     isLoading,
@@ -126,6 +131,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     logout,
     refreshProfile,
     clearError,
+    getCustomerToken,
   };
 
   return <CustomerAuthContext.Provider value={value}>{children}</CustomerAuthContext.Provider>;

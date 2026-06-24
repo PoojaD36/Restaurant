@@ -91,7 +91,12 @@ export class CustomerModuleService {
       if (error instanceof ConflictException) {
         throw error;
       }
-      throw new BadRequestException('Registration failed');
+      this.logger.error(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -161,7 +166,12 @@ export class CustomerModuleService {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new UnauthorizedException('Login failed');
+      this.logger.error(`Login failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Login failed';
+      throw new UnauthorizedException(`${errorMessage}`);
     }
   }
 
@@ -241,7 +251,12 @@ export class CustomerModuleService {
         },
       };
     } catch (error) {
-      throw new BadRequestException('Failed to retrieve profile');
+      this.logger.error(`Failed to retrieve profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve profile';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -274,7 +289,12 @@ export class CustomerModuleService {
         customer,
       };
     } catch (error) {
-      throw new BadRequestException('Failed to update profile');
+      this.logger.error(`Failed to update profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -304,18 +324,18 @@ export class CustomerModuleService {
         postalCode: addressDto.postalCode,
       });
 
-      let latitude: number | null = null;
-      let longitude: number | null = null;
+      // Geocode address to get coordinates (required field)
+      let latitude: number;
+      let longitude: number;
 
-      // Geocode address to get coordinates
       try {
         const coords = await this.geocodingService.geocodeAddress(fullAddress);
         latitude = coords.latitude;
         longitude = coords.longitude;
         this.logger.log(`Geocoded customer address: ${fullAddress} -> ${latitude}, ${longitude}`);
       } catch (geocodeError) {
-        this.logger.warn(`Geocoding failed for customer address: ${fullAddress}. Address will be saved without coordinates.`);
-        // Continue with null coordinates
+        this.logger.error(`Geocoding failed for customer address: ${fullAddress}. Error: ${geocodeError}`);
+        throw new BadRequestException('Unable to geocode address. Please provide a valid address.');
       }
 
       const address = await this.prisma.customerAddress.create({
@@ -342,7 +362,12 @@ export class CustomerModuleService {
         address,
       };
     } catch (error) {
-      throw new BadRequestException('Failed to add address');
+      // Re-throw HTTP exceptions directly without wrapping
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(`Failed to add address. Error: ${error}`, error?.['stack']);
+      throw new BadRequestException(`Failed to add address: ${error?.['message'] || error}`);
     }
   }
 
@@ -386,8 +411,8 @@ export class CustomerModuleService {
         (updateDto.country && updateDto.country !== address.country) ||
         (updateDto.postalCode && updateDto.postalCode !== address.postalCode);
 
-      let latitude: number | null = address.latitude ? parseFloat(address.latitude.toString()) : null;
-      let longitude: number | null = address.longitude ? parseFloat(address.longitude.toString()) : null;
+      let latitude = parseFloat(address.latitude.toString());
+      let longitude = parseFloat(address.longitude.toString());
 
       // Re-geocode if address fields changed
       if (addressFieldsChanged) {
@@ -406,8 +431,8 @@ export class CustomerModuleService {
           longitude = coords.longitude;
           this.logger.log(`Re-geocoded customer address: ${fullAddress} -> ${latitude}, ${longitude}`);
         } catch (geocodeError) {
-          this.logger.warn(`Geocoding failed for customer address update: ${fullAddress}. Keeping existing coordinates.`);
-          // Keep existing coordinates if geocoding fails
+          this.logger.error(`Geocoding failed for customer address update: ${fullAddress}. Error: ${geocodeError}`);
+          throw new BadRequestException('Unable to geocode address. Please provide a valid address.');
         }
       }
 
@@ -424,7 +449,7 @@ export class CustomerModuleService {
           ...(updateDto.country && { country: updateDto.country }),
           ...(updateDto.postalCode && { postalCode: updateDto.postalCode }),
           ...(updateDto.isDefault !== undefined && { isDefault: updateDto.isDefault }),
-          // Always update coordinates if address changed, otherwise keep existing
+          // Always update coordinates if address changed
           ...(addressFieldsChanged && {
             latitude,
             longitude,
@@ -438,10 +463,15 @@ export class CustomerModuleService {
         address: updatedAddress,
       };
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
+      if (error instanceof UnauthorizedException || error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Failed to update address');
+      this.logger.error(`Failed to update address: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update address';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -476,7 +506,12 @@ export class CustomerModuleService {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new BadRequestException('Failed to delete address');
+      this.logger.error(`Failed to delete address: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to delete address';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -518,7 +553,12 @@ export class CustomerModuleService {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new BadRequestException('Failed to set default address');
+      this.logger.error(`Failed to set default address: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to set default address';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -563,7 +603,12 @@ export class CustomerModuleService {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new UnauthorizedException('Token refresh failed');
+      this.logger.error(`Token refresh failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Token refresh failed';
+      throw new UnauthorizedException(`${errorMessage}`);
     }
   }
 
@@ -585,7 +630,12 @@ export class CustomerModuleService {
         message: 'Logout successful',
       };
     } catch (error) {
-      throw new UnauthorizedException('Logout failed');
+      this.logger.error(`Logout failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Logout failed';
+      throw new UnauthorizedException(`${errorMessage}`);
     }
   }
 
@@ -626,7 +676,12 @@ export class CustomerModuleService {
         },
       };
     } catch (error) {
-      throw new UnauthorizedException('Token generation failed');
+      this.logger.error(`Token generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Token generation failed';
+      throw new UnauthorizedException(`${errorMessage}`);
     }
   }
 
@@ -652,7 +707,12 @@ export class CustomerModuleService {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new UnauthorizedException('Account lock check failed');
+      this.logger.error(`Account lock check failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Account lock check failed';
+      throw new UnauthorizedException(`${errorMessage}`);
     }
   }
 
@@ -680,7 +740,12 @@ export class CustomerModuleService {
         data: updateData,
       });
     } catch (error) {
-      throw new UnauthorizedException('Failed login tracking failed');
+      this.logger.error(`Failed login tracking failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed login tracking failed';
+      throw new UnauthorizedException(`${errorMessage}`);
     }
   }
 
@@ -698,7 +763,12 @@ export class CustomerModuleService {
         },
       });
     } catch (error) {
-      throw new UnauthorizedException('Login tracking failed');
+      this.logger.error(`Login tracking failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Login tracking failed';
+      throw new UnauthorizedException(`${errorMessage}`);
     }
   }
 }

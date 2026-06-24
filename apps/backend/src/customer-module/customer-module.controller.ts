@@ -35,7 +35,7 @@ export class CustomerModuleController {
   @UseGuards(CustomerJwtAuthGuard)
   @Get('profile')
   async getProfile(@Request() req: any) {
-    return this.customerService.getProfile(req.customerId);
+    return this.customerService.getProfile(req.user.customerId);
   }
 
   /**
@@ -44,7 +44,7 @@ export class CustomerModuleController {
   @UseGuards(CustomerJwtAuthGuard)
   @Put('profile')
   async updateProfile(@Request() req: any, @Body() updateDto: UpdateCustomerDto) {
-    return this.customerService.updateProfile(req.customerId, updateDto);
+    return this.customerService.updateProfile(req.user.customerId, updateDto);
   }
 
   /**
@@ -54,7 +54,7 @@ export class CustomerModuleController {
   @Post('addresses')
   @HttpCode(HttpStatus.CREATED)
   async addAddress(@Request() req: any, @Body() addressDto: AddAddressDto) {
-    return this.customerService.addAddress(req.customerId, addressDto);
+    return this.customerService.addAddress(req.user.customerId, addressDto);
   }
 
   /**
@@ -67,7 +67,7 @@ export class CustomerModuleController {
     @Param('addressId') addressId: number,
     @Body() updateDto: UpdateAddressDto,
   ) {
-    return this.customerService.updateAddress(req.customerId, +addressId, updateDto);
+    return this.customerService.updateAddress(req.user.customerId, +addressId, updateDto);
   }
 
   /**
@@ -76,7 +76,7 @@ export class CustomerModuleController {
   @UseGuards(CustomerJwtAuthGuard)
   @Delete('addresses/:addressId')
   async deleteAddress(@Request() req: any, @Param('addressId') addressId: number) {
-    return this.customerService.deleteAddress(req.customerId, +addressId);
+    return this.customerService.deleteAddress(req.user.customerId, +addressId);
   }
 
   /**
@@ -86,7 +86,7 @@ export class CustomerModuleController {
   @Post('addresses/:addressId/default')
   @HttpCode(HttpStatus.OK)
   async setDefaultAddress(@Request() req: any, @Param('addressId') addressId: number) {
-    return this.customerService.setDefaultAddress(req.customerId, +addressId);
+    return this.customerService.setDefaultAddress(req.user.customerId, +addressId);
   }
 
   /**
@@ -96,7 +96,7 @@ export class CustomerModuleController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Request() req: any) {
-    return this.customerService.logout(req.customerId);
+    return this.customerService.logout(req.user.customerId);
   }
 
   /**
@@ -105,6 +105,6 @@ export class CustomerModuleController {
   @UseGuards(CustomerJwtAuthGuard)
   @Get('validate')
   async validateCustomer(@Request() req: any) {
-    return this.customerService.validateCustomer(req.customerId);
+    return this.customerService.validateCustomer(req.user.customerId);
   }
 }

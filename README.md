@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-23 (Customer Menu Browsing, Location Features & Shopping Cart)
+> **Last Updated:** 2026-06-24 (Customer Address Management, Order Module, Auth Implementation)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -154,7 +154,7 @@ d:\restaurant/
 - `ModifierGroup` - Modifier groups (e.g., Size, Add-ons) with SINGLE/MULTIPLE selection types
 - `ModifierOption` - Individual modifier options with price adjustments
 
-**Important:** Outlet and CustomerAddress latitude/longitude fields are **required** and automatically calculated from addresses using the GeocodingService (Nominatim API). No manual entry needed.
+**Important:** Outlet and CustomerAddress latitude/longitude fields are **optional** and automatically calculated from addresses using the GeocodingService (Nominatim API). If geocoding fails, coordinates remain null without blocking address creation.
 
 **Key Enums:**
 - `UserRole`: SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER, CHEF, DELIVERY_AGENT
@@ -174,17 +174,18 @@ d:\restaurant/
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule imported |
+| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule, OrderModule imported |
 | Auth Module | ✅ Complete | JWT auth, role-based guards, decorators (for admin users) |
 | Customer Module | ✅ Complete | Customer auth, profile, address management with auto-geocoding |
 | User Module | ✅ Complete | Full CRUD operations for users |
 | Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction, auto-adds Admin/Manager to outlets |
 | Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment, public endpoint for customer browsing, auto-geocoding |
 | Menu Module | ✅ Complete | Restaurant-level menus with categories, items, modifiers, and outlet-specific pricing |
+| Order Module | ✅ Complete | Order creation, customer order history, order cancellation, delivery address snapshot |
 | Storage Module | ✅ Complete | Supabase storage service for image uploads |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
-| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, required lat/lng |
+| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, required lat/lng |
 | Database Seeder | ✅ Complete | Creates Super Admin via npm run seed |
 
 **Port:** 3001 (configurable via `PORT` env var)
@@ -198,11 +199,12 @@ d:\restaurant/
 | Feature | Status | Notes |
 |---------|--------|-------|
 | App Structure | ✅ Complete | Layout with AuthProvider, CustomerAuthProvider, CartProvider, LocationProvider |
-| Routing Structure | ✅ Complete | Separate routes for admin and customer portals with /customer/menu/[outletId] |
+| Routing Structure | ✅ Complete | Separate routes for admin and customer portals with /customer/menu/[outletId], /customer/checkout |
 | Root Page | ✅ Complete | Redirects to /customer by default |
 | Admin Login | ✅ Complete | Dedicated /admin/login page for admin authentication |
 | Customer Portal | ✅ Complete | /customer page with geolocation permission prompt, distance-based outlet sorting, manual location entry |
 | Customer Menu Browsing | ✅ Complete | /customer/menu/[outletId] with categories, items, modifiers, add to cart, cart drawer |
+| Checkout Page | ✅ Complete | /customer/checkout with address selection, order summary, place order |
 | Shopping Cart | ✅ Complete | CartContext with localStorage persistence, quantity controls, modifier support |
 | Location Features | ✅ Complete | Browser geolocation API, distance calculation (Haversine), manual address geocoding, distance badges |
 | Admin Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
@@ -220,8 +222,12 @@ d:\restaurant/
 | Cart Context | ✅ Complete | Shopping cart state management with useCart hook |
 | Location Context | ✅ Complete | Customer location state management with useLocation hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check and multiple role support |
-| UI Components | ✅ Complete | shadcn/ui components installed (Button, Card, Input, Sheet, etc.) |
+| UI Components | ✅ Complete | shadcn/ui components installed (Button, Card, Input, Sheet, Dialog, Badge, etc.) |
 | Theme System | ✅ Complete | Orange/Amber theme (light mode only) |
+| Address Selector | ✅ Complete | Component for selecting/managing delivery addresses |
+| Address Form | ✅ Complete | Modal for adding/editing customer addresses |
+| Order Summary | ✅ Complete | Component displaying cart items, subtotal, delivery fee, total |
+| Order API | ✅ Complete | API functions for createOrder, getMyOrders, getOrderById, cancelOrder |
 
 ### Routing Structure
 
@@ -376,10 +382,47 @@ Each restaurant card features:
 
 | Endpoint | Method | Auth Required | Description |
 |----------|--------|---------------|-------------|
-| `/customers/addresses` | POST | Customer JWT | Add new address |
-| `/customers/addresses/:addressId` | PUT | Customer JWT | Update address |
+| `/customers/addresses` | POST | Customer JWT | Add new address (auto-geocodes to required lat/lng) |
+| `/customers/addresses/:addressId` | PUT | Customer JWT | Update address (re-geocodes if address changes) |
 | `/customers/addresses/:addressId` | DELETE | Customer JWT | Delete address |
 | `/customers/addresses/:addressId/default` | POST | Customer JWT | Set default address |
+
+**Note:** Customer addresses require valid latitude/longitude coordinates. Geocoding is performed automatically via Nominatim API. If geocoding fails, the request returns 400 with error message "Unable to geocode address. Please provide a valid address."
+
+### Order Management (Customer)
+
+| Endpoint | Method | Auth Required | Description | Query Params |
+|----------|--------|---------------|-------------|--------------|
+| `/orders/create` | POST | Customer JWT | Create order from cart | - |
+| `/orders/my-orders` | GET | Customer JWT | Get customer's orders (paginated) | `page`, `limit` |
+| `/orders/:id` | GET | Customer JWT | Get order by ID | - |
+| `/orders/:id/cancel` | POST | Customer JWT | Cancel pending order | - |
+
+**Order Creation Request Body:**
+```json
+{
+  "outletId": 1,
+  "addressId": 1,
+  "items": [
+    {
+      "menuItemId": 1,
+      "name": "Burger",
+      "price": 150,
+      "quantity": 2,
+      "modifiers": [
+        {
+          "modifierGroupId": 1,
+          "modifierGroupName": "Size",
+          "type": "SINGLE",
+          "selectedOptions": [{"id": 1, "name": "Large", "priceAdjustment": 20}]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Order Status Flow:** PENDING → CONFIRMED → PREPARING → READY → OUT_FOR_DELIVERY → DELIVERED (or CANCELLED)
 
 ### Public Outlet Endpoints (No Authentication)
 
@@ -503,9 +546,14 @@ All API responses follow a consistent format with `success`, `message`, and `dat
 
 ### Guards & Decorators
 
-- **@UseGuards(JwtAuthGuard)** - Validates JWT token
+- **@UseGuards(JwtAuthGuard)** - Validates JWT token (admin users)
+- **@UseGuards(CustomerJwtAuthGuard)** - Validates customer JWT token
 - **@UseGuards(RolesGuard)** - Checks user roles
 - **@Roles(UserRole.SUPER_ADMIN)** - Specifies required role(s)
+
+**Important:** When using JWT-protected endpoints in controllers, authenticated user data is available via `req.user`:
+- Admin endpoints: `req.user.userId` (contains userId, email, role)
+- Customer endpoints: `req.user.customerId` (contains customerId, phone, email, type)
 
 ---
 
@@ -594,16 +642,38 @@ pnpm install
 # Run development (both apps)
 pnpm dev
 
-# Database operations
+# Database operations (IMPORTANT: Use migrate for schema changes)
 cd apps/backend
-npx prisma generate      # Generate Prisma client
-npx prisma db push      # Push schema to database
-npx prisma studio        # Open Prisma Studio
-pnpm run seed            # Seed Super Admin user
+npx prisma generate                    # Generate Prisma client (run after schema changes)
+npx prisma migrate dev --name <name>  # Create and apply migration (USE THIS for schema changes)
+npx prisma db push                     # Direct schema sync (ONLY for development, no migration file)
+npx prisma studio                      # Open Prisma Studio (database GUI)
+npx prisma migrate status              # Check migration status
+pnpm run seed                          # Seed Super Admin user
 
 # TypeScript compilation check
 npx tsc --noEmit
 ```
+
+### Database Migration Workflow
+
+**⚠️ IMPORTANT: Always use `npx prisma migrate dev --name <name>` for schema changes**
+
+This creates a migration file and applies it to the database, keeping a proper audit trail:
+
+```bash
+# Example: Adding a new feature
+npx prisma migrate dev --name add_order_tracking
+```
+
+**When to use each command:**
+
+| Command | When to Use | Creates Migration File? |
+|---------|------------|-------------------------|
+| `npx prisma migrate dev --name <name>` | ✅ **Use for ALL schema changes** | Yes |
+| `npx prisma db push` | Only for quick prototyping (no migration history) | No |
+| `npx prisma migrate reset` | Reset entire database (loses all data) | N/A |
+| `npx prisma generate` | After schema changes to regenerate Prisma client | N/A |
 
 ---
 
@@ -818,20 +888,26 @@ npx shadcn@latest add dialog -y
 - ✅ **Restaurant Edit Feature** - Added edit restaurant modal with logo upload support via Supabase, allowing SUPER_ADMIN and RESTAURANT_ADMIN to update restaurant details including name, slug, description, and logo - 2026-06-23
 - ✅ **Restaurant Logo Upload** - Implemented POST /restaurants/upload-logo endpoint for uploading restaurant logos to Supabase storage with file validation (5MB max, JPEG/PNG/WebP) - 2026-06-23
 - ✅ **Restaurant Logos on Customer Page** - Updated customer page to display restaurant logos on outlet cards when available, both in desktop grid and mobile horizontal layouts - 2026-06-23
+- ✅ **Order Module Backend** - Implemented complete order management system with Order, OrderItem, Payment models, order creation, customer order history, and cancellation - 2026-06-24
+- ✅ **Order Schema** - Added Order, OrderItem, Payment models to Prisma schema with OrderStatus, PaymentMethod, PaymentStatus enums - 2026-06-24
+- ✅ **Order API Endpoints** - Created POST /orders/create, GET /orders/my-orders, GET /orders/:id, POST /orders/:id/cancel endpoints - 2026-06-24
+- ✅ **Order Types** - Created order-types.ts with Order, OrderItem, OrderStatus, PaymentMethod, PaymentStatus interfaces and enums - 2026-06-24
+- ✅ **Order API Functions** - Created order-api.ts with createOrder, getMyOrders, getOrderById, cancelOrder functions - 2026-06-24
+- ✅ **Address Selector Component** - Created address-selector.tsx component with saved address cards, selection highlighting, add/edit/delete actions - 2026-06-24
+- ✅ **Address Form Component** - Created address-form.tsx modal for adding/editing customer addresses with validation and geocoding - 2026-06-24
+- ✅ **Order Summary Component** - Created order-summary.tsx component displaying cart items, outlet info, selected address, price breakdown - 2026-06-24
+- ✅ **Checkout Page** - Created /customer/checkout page with address selection, order summary, auth check, cart validation, order placement - 2026-06-24
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
-- [ ] **Checkout Page** - Create /customer/checkout page with address selection/entry, order review, confirmation
-- [ ] **Customer Address Management UI** - Create address selector, address form, address card components for checkout flow
 - [ ] **Customer Profile Page** - Create /customer/profile page for customer information and address management
-- [ ] **Order Placement** - Implement order creation API and frontend integration
+- [ ] **Order Details Page** - Create /customer/orders/[orderId] page for order tracking and details
 - [ ] **Menu Edit Features** - Add edit menu, edit category, edit item, and modifier management UI
 - [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
 - [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and features
 - [ ] **API Documentation** - Add Swagger/OpenAPI docs
-- [ ] **Prisma Database Migration** - Run `npx prisma db push` when database is available to make lat/lng required fields
 
 ---
 
