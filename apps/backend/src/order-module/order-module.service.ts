@@ -319,6 +319,180 @@ export class OrderModuleService {
   }
 
   /**
+   * Get orders for a specific outlet (for restaurant admin/manager)
+   */
+  async getOutletOrders(
+    outletId: number,
+    dto: PaginationDto,
+    status?: OrderStatus,
+  ): Promise<PaginatedResponse<any>> {
+    try {
+      const { page, limit, skip } = dto;
+
+      const where: any = { outletId };
+      if (status) {
+        where.status = status;
+      }
+
+      const [orders, total] = await Promise.all([
+        this.prisma.order.findMany({
+          where,
+          include: {
+            outlet: {
+              select: {
+                id: true,
+                name: true,
+                addressLine1: true,
+                city: true,
+              },
+            },
+            items: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        this.prisma.order.count({ where }),
+      ]);
+
+      const pagination = new PaginationMeta(total, page, limit);
+
+      return {
+        success: true,
+        message: 'Orders retrieved successfully',
+        data: orders.map(order => ({
+          id: order.id,
+          status: order.status,
+          subtotal: Number(order.subtotal),
+          deliveryFee: Number(order.deliveryFee),
+          total: Number(order.total),
+          specialInstructions: order.specialInstructions,
+          estimatedDeliveryTime: order.estimatedDeliveryTime,
+          createdAt: order.createdAt,
+          deliveredAt: order.deliveredAt,
+          deliveryName: order.deliveryName,
+          deliveryPhone: order.deliveryPhone,
+          deliveryAddressLine1: order.deliveryAddressLine1,
+          deliveryCity: order.deliveryCity,
+          outlet: order.outlet,
+          items: order.items.map(item => ({
+            ...item,
+            price: Number(item.price),
+          })),
+        })),
+        pagination,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get outlet orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve orders';
+      throw new BadRequestException(`${errorMessage}`);
+    }
+  }
+
+  /**
+   * Update order status (for restaurant admin/manager)
+   * Notifies the customer when status changes
+   */
+  async updateOrderStatus(orderId: number, status: OrderStatus, userId: number): Promise<ApiResponse<any>> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: { id: true, status: true, customerId: true, outletId: true, pickedUpAt: true },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      // Validate status transition
+      const validTransitions: Record<OrderStatus, OrderStatus[]> = {
+        PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
+        CONFIRMED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+        PREPARING: [OrderStatus.READY, OrderStatus.OUT_FOR_DELIVERY],
+        READY: [OrderStatus.OUT_FOR_DELIVERY],
+        OUT_FOR_DELIVERY: [OrderStatus.DELIVERED],
+        DELIVERED: [],
+        CANCELLED: [],
+      };
+
+      const allowedStatuses = validTransitions[order.status];
+      if (!allowedStatuses.includes(status)) {
+        throw new BadRequestException(
+          `Cannot transition from ${order.status} to ${status}. Valid transitions: ${allowedStatuses.join(', ')}`,
+        );
+      }
+
+      // Update order status
+      const updateData: any = { status };
+
+      // Set timestamps based on status
+      if (status === OrderStatus.DELIVERED) {
+        updateData.deliveredAt = new Date();
+      } else if (status === OrderStatus.OUT_FOR_DELIVERY && !order.pickedUpAt) {
+        updateData.pickedUpAt = new Date();
+      }
+
+      const updatedOrder = await this.prisma.order.update({
+        where: { id: orderId },
+        data: updateData,
+        select: {
+          id: true,
+          status: true,
+          customerId: true,
+          outletId: true,
+          total: true,
+          createdAt: true,
+          deliveredAt: true,
+        },
+      });
+
+      this.logger.log(`Order ${orderId} status updated from ${order.status} to ${status} by user ${userId}`);
+
+      // Emit WebSocket notification to restaurant
+      this.notificationsGateway.notifyOrderUpdated(order.outletId, {
+        orderId: updatedOrder.id,
+        outletId: order.outletId,
+        status: updatedOrder.status,
+        total: Number(updatedOrder.total),
+        updatedAt: new Date(),
+      });
+
+      // Emit WebSocket notification to customer
+      this.notificationsGateway.notifyCustomerOrderUpdated(order.customerId, {
+        orderId: updatedOrder.id,
+        status: updatedOrder.status,
+        previousStatus: order.status,
+        total: Number(updatedOrder.total),
+        deliveredAt: updatedOrder.deliveredAt,
+      });
+
+      return {
+        success: true,
+        message: 'Order status updated successfully',
+        data: {
+          orderId: updatedOrder.id,
+          status: updatedOrder.status,
+          previousStatus: order.status,
+          deliveredAt: updatedOrder.deliveredAt,
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(`Failed to update order status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update order status';
+      throw new BadRequestException(`${errorMessage}`);
+    }
+  }
+
+  /**
    * Cancel order
    */
   async cancelOrder(orderId: number, customerId: number): Promise<ApiResponse<any>> {

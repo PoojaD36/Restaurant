@@ -9,7 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger, UseGuards } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
 
 /**
@@ -17,15 +17,17 @@ import { PrismaService } from '../database/prisma.service';
  *
  * Features:
  * - Restaurant-specific rooms (restaurant:1, restaurant:2, etc.)
+ * - Customer-specific rooms (customer:1, customer:2, etc.)
  * - User authentication via JWT
  * - Real-time order notifications (created, updated, cancelled)
  *
  * Events:
  * - subscribe:restaurant - Subscribe to restaurant notifications
  * - unsubscribe:restaurant - Unsubscribe from restaurant notifications
- * - order.created - New order notification
- * - order.updated - Order status update notification
- * - order.cancelled - Order cancellation notification
+ * - order.created - New order notification (to restaurant)
+ * - order.updated - Order status update notification (to restaurant)
+ * - order.cancelled - Order cancellation notification (to restaurant)
+ * - order.status.updated - Order status update notification (to customer)
  */
 @WebSocketGateway({
   cors: {
@@ -39,6 +41,8 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   server!: Server;
 
   private readonly logger = new Logger(NotificationsGateway.name);
+  private readonly adminJwtSecret: string;
+  private readonly customerJwtSecret: string;
 
   // Store user ID to socket ID mapping
   private userSocketMap = new Map<number, string[]>();
@@ -46,13 +50,17 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   private userRestaurants = new Map<number, Set<number>>();
 
   constructor(
-    private jwtService: JwtService,
     private prisma: PrismaService,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    this.adminJwtSecret = this.configService.get<string>('JWT_SECRET') || 'restaurant-secret-key-change-in-production';
+    this.customerJwtSecret = this.configService.get<string>('CUSTOMER_JWT_SECRET') || 'restaurant-customer-secret-key-change-in-production';
+  }
 
   /**
    * Handle new WebSocket connection
    * Validates JWT token and extracts user information
+   * Supports both admin and customer JWT tokens
    */
   async handleConnection(client: Socket) {
     try {
@@ -63,15 +71,52 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         return;
       }
 
-      // Verify JWT token
-      const payload = this.jwtService.verify(token);
-      const userId = payload.userId || payload.customerId;
+      // Verify JWT token - try admin secret first, then customer secret
+      let payload: any;
+      let tokenType: 'admin' | 'customer' | null = null;
+
+      try {
+        // Try admin JWT secret first
+        payload = this.verifyToken(token, this.adminJwtSecret);
+        tokenType = 'admin';
+      } catch (adminError) {
+        try {
+          // Try customer JWT secret
+          payload = this.verifyToken(token, this.customerJwtSecret);
+          tokenType = 'customer';
+        } catch (customerError) {
+          this.logger.error(
+            `JWT verification failed for socket ${client.id}: ` +
+            `Admin: ${adminError instanceof Error ? adminError.message : 'Unknown error'}, ` +
+            `Customer: ${customerError instanceof Error ? customerError.message : 'Unknown error'}`,
+          );
+          client.emit('error', { message: 'Authentication failed: Invalid token' });
+          client.disconnect();
+          return;
+        }
+      }
+
+      // Extract user ID based on token type
+      let userId: number;
+      let role: string | undefined;
+
+      if (tokenType === 'admin') {
+        userId = payload.sub || payload.userId;
+        role = payload.role;
+      } else {
+        // Customer token
+        userId = payload.customerId;
+        role = undefined;
+      }
 
       if (!userId) {
         this.logger.warn(`Connection rejected: Invalid token payload for socket ${client.id}`);
+        client.emit('error', { message: 'Authentication failed: Invalid token payload' });
         client.disconnect();
         return;
       }
+
+      this.logger.log(`${tokenType === 'customer' ? 'Customer' : 'User'} ${userId} ${role ? `(${role})` : ''} authenticated for socket ${client.id}`);
 
       // Store socket mapping
       if (!this.userSocketMap.has(userId)) {
@@ -80,8 +125,8 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
       this.userSocketMap.get(userId)!.push(client.id);
 
       // Get user's restaurant subscriptions (for admin/manager roles)
-      if (payload.role) {
-        const userRestaurants = await this.getUserRestaurants(userId, payload.role);
+      if (role) {
+        const userRestaurants = await this.getUserRestaurants(userId, role);
         this.userRestaurants.set(userId, userRestaurants);
 
         // Auto-subscribe to user's restaurants
@@ -96,7 +141,10 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
           `Subscribed to ${userRestaurants.size} restaurants.`,
         );
       } else {
-        this.logger.log(`Customer ${userId} connected with socket ${client.id}`);
+        // Customer - subscribe to their personal room for order updates
+        const roomName = `customer:${userId}`;
+        client.join(roomName);
+        this.logger.log(`Customer ${userId} connected with socket ${client.id} and joined ${roomName}`);
       }
 
       // Send connection acknowledgment
@@ -276,6 +324,18 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   /**
+   * Notify customer of order status update
+   * Called by OrderService when restaurant admin/manager updates order status
+   */
+  notifyCustomerOrderUpdated(customerId: number, orderData: any) {
+    const roomName = `customer:${customerId}`;
+    this.server.to(roomName).emit('order.status.updated', orderData);
+    this.logger.log(
+      `Order #${orderData.orderId} status update sent to customer ${customerId}`,
+    );
+  }
+
+  /**
    * Extract JWT token from socket handshake
    */
   private extractToken(client: Socket): string | null {
@@ -287,6 +347,14 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     // Also check query parameter for fallback
     const tokenQuery = client.handshake.query.token as string;
     return tokenQuery || null;
+  }
+
+  /**
+   * Verify JWT token with a specific secret
+   */
+  private verifyToken(token: string, secret: string): any {
+    const { verify } = require('jsonwebtoken');
+    return verify(token, secret);
   }
 
   /**

@@ -12,7 +12,7 @@ import { PrismaModule } from 'src/database/database.module';
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'restaurant-jwt-secret-key',
+        secret: configService.get<string>('JWT_SECRET') || 'restaurant-secret-key-change-in-production',
         signOptions: { expiresIn: '7d' },
       }),
     }),

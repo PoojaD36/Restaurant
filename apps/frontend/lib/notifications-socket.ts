@@ -60,11 +60,15 @@ class NotificationSocketService {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     const wsUrl = apiUrl.replace(/^http/, 'ws');
 
+    console.log('[Notifications] Connecting to:', wsUrl);
+    console.log('[Notifications] Token present:', !!token, 'Token length:', token?.length);
+
     this.socket = io(`${wsUrl}/notifications`, {
       auth: { token },
       reconnection: true,
       reconnectionDelay: this.reconnectDelay,
       reconnectionAttempts: this.maxReconnectAttempts,
+      timeout: 10000,
     });
 
     this.socket.on('connect', () => {
