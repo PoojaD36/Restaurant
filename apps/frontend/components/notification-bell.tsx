@@ -18,6 +18,8 @@ export function NotificationBell() {
   const { unreadCount, isConnected } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
 
+  console.log('[NotificationBell] Render - unreadCount:', unreadCount, 'isConnected:', isConnected);
+
   return (
     <>
       <div className="relative">

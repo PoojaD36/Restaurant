@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
 import { NotificationBell } from '../../components/notification-bell';
-import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen } from 'lucide-react';
+import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen, Package } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '../../components/change-password-modal';
 
@@ -36,6 +36,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const navItems: NavItem[] = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { href: '/dashboard/orders', icon: Package, label: 'Orders', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'MANAGER'] },
     { href: '/dashboard/users', icon: Users, label: 'Manage Users', requiresRole: 'SUPER_ADMIN' },
     { href: '/dashboard/restaurants', icon: Building2, label: 'My Restaurants', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
     { href: '/dashboard/outlets', icon: MapPin, label: 'My Outlets', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
@@ -217,6 +218,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* User Info & Actions */}
         <div className="border-t border-orange-200 p-2 space-y-1">
+          {/* Notification Bell - Desktop */}
+          {!sidebarCollapsed && (
+            <div className="px-4 py-2">
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-orange-50 cursor-pointer transition-colors">
+                <NotificationBell />
+                <span className="text-sm font-medium text-slate-700">Notifications</span>
+              </div>
+            </div>
+          )}
+          {sidebarCollapsed && (
+            <div className="px-3 py-2 flex justify-center">
+              <NotificationBell />
+            </div>
+          )}
+
           <Button
             onClick={() => setShowChangePasswordModal(true)}
             variant="ghost"

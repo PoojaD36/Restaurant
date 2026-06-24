@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-24 (Customer Address Management, Order Module, Auth Implementation)
+> **Last Updated:** 2026-06-24 (Order Status Management, Customer Notifications, WebSocket Enhancement)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -181,9 +181,9 @@ d:\restaurant/
 | Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction, auto-adds Admin/Manager to outlets |
 | Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment, public endpoint for customer browsing, auto-geocoding |
 | Menu Module | ✅ Complete | Restaurant-level menus with categories, items, modifiers, and outlet-specific pricing |
-| Order Module | ✅ Complete | Order creation, customer order history, order cancellation, delivery address snapshot, WebSocket notifications |
+| Order Module | ✅ Complete | Order creation, customer order history, order cancellation, order status updates, delivery address snapshot, WebSocket notifications (bidirectional) |
 | Storage Module | ✅ Complete | Supabase storage service for image uploads |
-| Notifications Module | ✅ Complete | WebSocket gateway for real-time order notifications to restaurant admins/managers |
+| Notifications Module | ✅ Complete | WebSocket gateway for real-time order notifications (restaurant + customer) with dual JWT token support |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
 | Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, required lat/lng |
@@ -229,7 +229,10 @@ d:\restaurant/
 | Address Selector | ✅ Complete | Component for selecting/managing delivery addresses |
 | Address Form | ✅ Complete | Modal for adding/editing customer addresses |
 | Order Summary | ✅ Complete | Component displaying cart items, subtotal, delivery fee, total |
-| Order API | ✅ Complete | API functions for createOrder, getMyOrders, getOrderById, cancelOrder |
+| Order API | ✅ Complete | API functions for createOrder, getMyOrders, getOrderById, cancelOrder, getOutletOrders, updateOrderStatus |
+| Order Management | ✅ Complete | Admin orders page with status update interface, outlet selection, status filtering |
+| Customer Notifications | ✅ Complete | Real-time order status notifications for customers via WebSocket |
+| Customer Notification Context | ✅ Complete | CustomerNotificationProvider with useCustomerNotifications hook |
 
 ### Routing Structure
 
@@ -391,14 +394,16 @@ Each restaurant card features:
 
 **Note:** Customer addresses require valid latitude/longitude coordinates. Geocoding is performed automatically via Nominatim API. If geocoding fails, the request returns 400 with error message "Unable to geocode address. Please provide a valid address."
 
-### Order Management (Customer)
+### Order Management
 
-| Endpoint | Method | Auth Required | Description | Query Params |
-|----------|--------|---------------|-------------|--------------|
-| `/orders/create` | POST | Customer JWT | Create order from cart | - |
-| `/orders/my-orders` | GET | Customer JWT | Get customer's orders (paginated) | `page`, `limit` |
-| `/orders/:id` | GET | Customer JWT | Get order by ID | - |
-| `/orders/:id/cancel` | POST | Customer JWT | Cancel pending order | - |
+| Endpoint | Method | Auth Required | Role Required | Description | Query Params |
+|----------|--------|---------------|---------------|-------------|--------------|
+| `/orders/create` | POST | Customer JWT | - | Create order from cart | - |
+| `/orders/my-orders` | GET | Customer JWT | - | Get customer's orders (paginated) | `page`, `limit` |
+| `/orders/:id` | GET | Customer JWT | - | Get order by ID | - |
+| `/orders/:id/cancel` | POST | Customer JWT | - | Cancel pending order | - |
+| `/orders/by-outlet/:outletId` | GET | Admin JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get orders for outlet (paginated, optional status filter) | `page`, `limit`, `status` |
+| `/orders/:id/status` | PUT | Admin JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Update order status (notifies customer) | - |
 
 **Order Creation Request Body:**
 ```json
@@ -476,32 +481,47 @@ Each restaurant card features:
 
 ### WebSocket Notifications
 
-The system includes real-time order notifications for restaurant admins and managers using WebSocket (Socket.io).
+The system includes real-time bidirectional order notifications using WebSocket (Socket.io).
 
 **Architecture:**
 - **Backend:** NestJS WebSocket Gateway (`notifications.gateway.ts`) with room-based subscriptions
-- **Frontend:** React Context Provider with Socket.io client for real-time updates
+- **Frontend:** React Context Providers with Socket.io clients (admin + customer)
+
+**Dual JWT Token Support:**
+The gateway supports both admin and customer JWT tokens:
+- Admin tokens use `JWT_SECRET` for verification
+- Customer tokens use `CUSTOMER_JWT_SECRET` for verification
+- Gateway tries admin secret first, falls back to customer secret
 
 **Notification Flow:**
 
+**Restaurant Side (Admins/Managers):**
 1. **Connection:** Restaurant admins/managers connect via WebSocket when logged into dashboard
-2. **Auto-Subscription:** Users are automatically subscribed to their assigned restaurant rooms based on JWT token and database relationships
-3. **Order Events:** When orders are created/updated/cancelled, the backend emits notifications to relevant restaurant rooms
-4. **UI Updates:** Dashboard notification bell shows unread count and displays notifications in a panel
+2. **Auto-Subscription:** Users automatically subscribed to restaurant rooms (`restaurant:{restaurantId}`)
+3. **Order Events:** When orders are created/cancelled, notifications sent to restaurant rooms
+4. **UI Updates:** Dashboard notification bell shows unread count and displays notifications
+
+**Customer Side:**
+1. **Connection:** Customers connect when logged in, auto-subscribed to personal room (`customer:{customerId}`)
+2. **Status Updates:** When restaurant updates order status, notification sent to customer
+3. **UI Updates:** Real-time notification with friendly message (e.g., "Your order #123 is being prepared. It won't be long!")
 
 **Notification Types:**
-- `order.created` - New order received with customer details, items, and delivery address
-- `order.updated` - Order status changed (e.g., confirmed, preparing, ready)
-- `order.cancelled` - Order cancelled by customer
+- `order.created` - New order received (to restaurant)
+- `order.updated` - Order status changed (to restaurant)
+- `order.cancelled` - Order cancelled (to restaurant)
+- `order.status.updated` - Order status updated by restaurant (to customer)
 
 **WebSocket Namespace:** `/notifications`
 
-**Room Naming Convention:** `restaurant:{restaurantId}`
+**Room Naming Convention:**
+- `restaurant:{restaurantId}` - For restaurant admins/managers
+- `customer:{customerId}` - For customers
 
 **Example Events:**
 
 ```typescript
-// Backend emits to restaurant room
+// Backend emits to restaurant room (new order)
 this.server.to(`restaurant:${restaurantId}`).emit('order.created', {
   orderId: 123,
   outletId: 5,
@@ -512,11 +532,41 @@ this.server.to(`restaurant:${restaurantId}`).emit('order.created', {
   deliveryAddress: {...}
 });
 
+// Backend emits to customer room (status update)
+this.server.to(`customer:${customerId}`).emit('order.status.updated', {
+  orderId: 123,
+  status: "CONFIRMED",
+  previousStatus: "PENDING",
+  total: 450
+});
+
 // Frontend receives and displays notification
-notificationSocket.on('order.created', (data) => {
-  // Update notification bell and panel
+notificationSocket.on('order.status.updated', (data) => {
+  // Update customer notification
 });
 ```
+
+**Order Status Valid Transitions:**
+- PENDING → CONFIRMED, CANCELLED
+- CONFIRMED → PREPARING, CANCELLED
+- PREPARING → READY, OUT_FOR_DELIVERY
+- READY → OUT_FOR_DELIVERY
+- OUT_FOR_DELIVERY → DELIVERED
+- DELIVERED → (no further transitions)
+- CANCELLED → (no further transitions)
+
+**Notification UI Components:**
+- **Notification Bell** - Icon with unread count badge and connection status indicator
+  - 🟢 Green dot = Connected to WebSocket
+  - 🔴 Red dot = Disconnected from WebSocket
+  - 🔔 Animated bell icon when unread notifications exist
+- **Notification Panel** - Slide-out panel showing all notifications with mark as read/clear options
+
+**Troubleshooting Notifications:**
+- **No notification bell visible:** Check if logged in with proper role
+- **Red dot (disconnected):** Check browser console for WebSocket errors, verify backend is running
+- **No notifications received:** Verify user is assigned to restaurant/outlet in database
+- **JWT errors:** Ensure JWT_SECRET and CUSTOMER_JWT_SECRET are set correctly
 
 ### Role Permissions
 
@@ -756,15 +806,25 @@ npx prisma migrate dev --name add_order_tracking
 | `components/ui/table.tsx` | shadcn Table component |
 | `components/ui/badge.tsx` | shadcn Badge component |
 | `components/ui/dialog.tsx` | shadcn Dialog component |
+| `components/notification-bell.tsx` | Notification bell icon with unread count badge and connection status indicator |
+| `components/notification-panel.tsx` | Slide-out panel displaying all notifications with mark as read/clear options |
+| `lib/notifications-socket.ts` | WebSocket client service for admin/manager order notifications |
+| `lib/notification-types.ts` | TypeScript types for admin notifications and notification data |
+| `contexts/notification-context.tsx` | Admin notification state management with useNotifications hook |
+| `lib/customer-notifications-socket.ts` | WebSocket client service for customer order status notifications |
+| `contexts/customer-notification-context.tsx` | Customer notification state management with useCustomerNotifications hook |
 | `app/page.tsx` | Root page - redirects to /customer |
 | `app/customer/page.tsx` | Customer-facing page with outlet browsing |
+| `app/customer/menu/[outletId]/page.tsx` | Menu browsing page with categories, items, modifiers, add to cart |
+| `app/customer/checkout/page.tsx` | Checkout page with address selection, order summary, place order |
+| `app/customer/orders/[orderId]/page.tsx` | Order details page with status, timeline, items, delivery address, cancel |
 | `app/admin/login/page.tsx` | Admin login form (email/phone + password) |
-| `app/dashboard/layout.tsx` | Dashboard layout with sidebar navigation (collapsible on desktop, hamburger menu on mobile), logout, change password button |
+| `app/dashboard/layout.tsx` | Dashboard layout with sidebar navigation, notification bell, logout, change password |
 | `app/dashboard/page.tsx` | Dashboard home page |
-| `app/dashboard/create-user/page.tsx` | User creation form (Super Admin only) - legacy, replaced by modal |
 | `app/dashboard/users/page.tsx` | Users list page with Create User button and password reset modal (Super Admin only) |
 | `app/dashboard/restaurants/page.tsx` | Restaurants list page with pagination, Create Restaurant button (SUPER_ADMIN), and Add User modal (SUPER_ADMIN, RESTAURANT_ADMIN) |
 | `app/dashboard/outlets/page.tsx` | Outlets list page with pagination, restaurant filter, and Create Outlet button (SUPER_ADMIN, RESTAURANT_ADMIN) |
+| `app/dashboard/orders/page.tsx` | Orders management page with outlet selector, status filter, expandable order details, and status update dropdown (SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER) |
 | `app/dashboard/menus/page.tsx` | Menus list page with expandable menu details, inline category/item creation (SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER) |
 | `app/globals.css` | Custom CSS animations (float-up, float-down, pulse-warm, drift) |
 
@@ -948,6 +1008,19 @@ npx shadcn@latest add dialog -y
 - ✅ **Order Notification Integration** - Integrated WebSocket event emission in OrderService for order created, updated, and cancelled events - 2026-06-24
 - ✅ **Order Details Page** - Created /customer/orders/[orderId] page with order status, timeline, items, delivery address, price breakdown, and cancel functionality - 2026-06-24
 - ✅ **404 Error Fix** - Fixed order placement redirect to show order details instead of 404 error - 2026-06-24
+- ✅ **Notification Bell Desktop Integration** - Added notification bell to desktop sidebar with connection status indicator (green/red dot) - 2026-06-24
+- ✅ **JWT Signature Fix** - Fixed JWT secret mismatch between Auth and Notifications modules causing "invalid signature" errors - 2026-06-24
+- ✅ **WebSocket Token Payload Fix** - Fixed WebSocket authentication to use correct JWT payload structure (sub vs userId) - 2026-06-24
+- ✅ **Notification Debugging** - Added comprehensive debugging tools for notification system including debug panel and console logging - 2026-06-24
+- ✅ **Hydration Error Fix** - Fixed Next.js hydration errors in NotificationDebug component by implementing client-side only rendering - 2026-06-24
+- ✅ **Order Status Management Backend** - Added getOutletOrders and updateOrderStatus methods with status transition validation - 2026-06-24
+- ✅ **Order Status Update API** - Added GET /orders/by-outlet/:outletId and PUT /orders/:id/status endpoints - 2026-06-24
+- ✅ **Customer Notification Gateway** - Added customer-specific rooms (customer:{customerId}) and notifyCustomerOrderUpdated method - 2026-06-24
+- ✅ **Dual JWT Token Support** - Fixed NotificationsGateway to handle both admin and customer JWT tokens with different secrets - 2026-06-24
+- ✅ **Customer Notification Context** - Created CustomerNotificationProvider and customer-notifications-socket.ts for customer notifications - 2026-06-24
+- ✅ **Admin Orders Management Page** - Created /dashboard/orders page with outlet selector, status filter, and order status update dropdown - 2026-06-24
+- ✅ **Order Status Transition Validation** - Frontend dropdown only shows valid next statuses matching backend validation - 2026-06-24
+- ✅ **Debug Code Removal** - Removed NotificationDebug component from dashboard layout - 2026-06-24
 
 ### In Progress
 - No tasks currently in progress
@@ -957,7 +1030,7 @@ npx shadcn@latest add dialog -y
 - [ ] **Customer Orders List Page** - Create /customer/orders page for viewing all customer orders
 - [ ] **Menu Edit Features** - Add edit menu, edit category, edit item, and modifier management UI
 - [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
-- [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and features
+- [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and analytics
 - [ ] **API Documentation** - Add Swagger/OpenAPI docs
 
 ---

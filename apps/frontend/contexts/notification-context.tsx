@@ -122,8 +122,11 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
+      console.log('[Notifications] No access token found in localStorage');
       return;
     }
+
+    console.log('[Notifications] Token found, attempting to connect...');
 
     // Connect to WebSocket
     notificationSocket.connect(token);

@@ -100,6 +100,10 @@ export interface OrderListItem {
   estimatedDeliveryTime?: number;
   createdAt: string;
   deliveredAt?: string;
+  deliveryName?: string;
+  deliveryPhone?: string;
+  deliveryAddressLine1?: string;
+  deliveryCity?: string;
   outlet: OrderOutlet;
   items: OrderItem[];
 }
