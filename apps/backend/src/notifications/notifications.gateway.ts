@@ -104,8 +104,8 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
         userId = payload.sub || payload.userId;
         role = payload.role;
       } else {
-        // Customer token
-        userId = payload.customerId;
+        // Customer token - check both 'sub' and 'customerId' for compatibility
+        userId = payload.sub || payload.customerId;
         role = undefined;
       }
 

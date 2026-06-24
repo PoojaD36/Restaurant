@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-24 (Order Status Management, Customer Notifications, WebSocket Enhancement)
+> **Last Updated:** 2026-06-24 (Customer Order Tracking & Notifications, Complete Order Status Flow)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -230,9 +230,12 @@ d:\restaurant/
 | Address Form | ✅ Complete | Modal for adding/editing customer addresses |
 | Order Summary | ✅ Complete | Component displaying cart items, subtotal, delivery fee, total |
 | Order API | ✅ Complete | API functions for createOrder, getMyOrders, getOrderById, cancelOrder, getOutletOrders, updateOrderStatus |
-| Order Management | ✅ Complete | Admin orders page with status update interface, outlet selection, status filtering |
-| Customer Notifications | ✅ Complete | Real-time order status notifications for customers via WebSocket |
+| Order Management | ✅ Complete | Admin orders page with status update interface, outlet selection, status filtering, all 7 order statuses |
+| Customer Notifications | ✅ Complete | Real-time order status notifications for customers via WebSocket with notification bell and panel |
 | Customer Notification Context | ✅ Complete | CustomerNotificationProvider with useCustomerNotifications hook |
+| Customer Orders List | ✅ Complete | /customer/orders page for viewing all customer orders with pagination |
+| Customer Notification Bell | ✅ Complete | Notification bell icon in customer header with unread count and connection status |
+| Customer Notification Panel | ✅ Complete | Slide-out panel for customer order notifications with mark as read/clear options |
 
 ### Routing Structure
 
@@ -241,8 +244,11 @@ The application uses separate routing for admin and customer portals:
 | Path | Purpose | Authentication |
 |------|---------|----------------|
 | `/` | Root redirect → `/customer` | Public |
-| `/customer` | Customer portal - browse outlets with geolocation, distance sorting | Customer JWT (optional for browsing, required for ordering) |
+| `/customer` | Customer portal - browse outlets with geolocation, distance sorting, notification bell, My Orders link | Customer JWT (optional for browsing, required for ordering) |
 | `/customer/menu/[outletId]` | Menu browsing page with categories, items, modifiers, add to cart | Public (cart requires customer auth for checkout) |
+| `/customer/checkout` | Checkout page with address selection, order summary, place order | Customer JWT required |
+| `/customer/orders` | Customer orders list page with status tracking | Customer JWT required |
+| `/customer/orders/[orderId]` | Order details page with status, timeline, items, delivery address | Customer JWT required |
 | `/admin/login` | Admin login page | Public (redirects to `/dashboard` after login) |
 | `/dashboard` | Admin dashboard with all management features | Admin JWT required |
 
@@ -806,16 +812,21 @@ npx prisma migrate dev --name add_order_tracking
 | `components/ui/table.tsx` | shadcn Table component |
 | `components/ui/badge.tsx` | shadcn Badge component |
 | `components/ui/dialog.tsx` | shadcn Dialog component |
-| `components/notification-bell.tsx` | Notification bell icon with unread count badge and connection status indicator |
-| `components/notification-panel.tsx` | Slide-out panel displaying all notifications with mark as read/clear options |
+| `components/notification-bell.tsx` | Notification bell icon with unread count badge and connection status indicator (admin) |
+| `components/notification-panel.tsx` | Slide-out panel displaying all notifications with mark as read/clear options (admin) |
+| `components/customer-notification-bell.tsx` | Customer notification bell icon with unread count badge and connection status |
+| `components/customer-notification-panel.tsx` | Customer notification panel with order status updates and order navigation |
 | `lib/notifications-socket.ts` | WebSocket client service for admin/manager order notifications |
 | `lib/notification-types.ts` | TypeScript types for admin notifications and notification data |
 | `contexts/notification-context.tsx` | Admin notification state management with useNotifications hook |
 | `lib/customer-notifications-socket.ts` | WebSocket client service for customer order status notifications |
 | `contexts/customer-notification-context.tsx` | Customer notification state management with useCustomerNotifications hook |
 | `app/page.tsx` | Root page - redirects to /customer |
-| `app/customer/page.tsx` | Customer-facing page with outlet browsing |
+| `app/customer/page.tsx` | Customer-facing page with outlet browsing, notification bell, My Orders link |
 | `app/customer/menu/[outletId]/page.tsx` | Menu browsing page with categories, items, modifiers, add to cart |
+| `app/customer/checkout/page.tsx` | Checkout page with address selection, order summary, place order |
+| `app/customer/orders/[orderId]/page.tsx` | Order details page with status, timeline, items, delivery address, cancel |
+| `app/customer/orders/page.tsx` | Customer orders list page with pagination, order tracking, status badges |
 | `app/customer/checkout/page.tsx` | Checkout page with address selection, order summary, place order |
 | `app/customer/orders/[orderId]/page.tsx` | Order details page with status, timeline, items, delivery address, cancel |
 | `app/admin/login/page.tsx` | Admin login form (email/phone + password) |
@@ -1021,13 +1032,19 @@ npx shadcn@latest add dialog -y
 - ✅ **Admin Orders Management Page** - Created /dashboard/orders page with outlet selector, status filter, and order status update dropdown - 2026-06-24
 - ✅ **Order Status Transition Validation** - Frontend dropdown only shows valid next statuses matching backend validation - 2026-06-24
 - ✅ **Debug Code Removal** - Removed NotificationDebug component from dashboard layout - 2026-06-24
+- ✅ **Customer Notification Bell** - Created CustomerNotificationBell component for customer header with unread count badge and connection status - 2026-06-24
+- ✅ **Customer Notification Panel** - Created CustomerNotificationPanel with order status notifications and navigation to order details - 2026-06-24
+- ✅ **Customer Orders List Page** - Created /customer/orders page with pagination, order cards, status tracking, and empty state - 2026-06-24
+- ✅ **Customer Header Enhancement** - Added notification bell and "My Orders" link to customer page header - 2026-06-24
+- ✅ **Customer Notification Routing Fix** - Fixed notification routing to send order status updates only to customers (not restaurants) - 2026-06-24
+- ✅ **Customer WebSocket Auth Fix** - Fixed notifications gateway to correctly extract customer ID from JWT payload.sub - 2026-06-24
+- ✅ **Order Status Restoration** - Restored all 7 order statuses (PENDING, CONFIRMED, PREPARING, READY, OUT_FOR_DELIVERY, DELIVERED, CANCELLED) - 2026-06-24
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
 - [ ] **Customer Profile Page** - Create /customer/profile page for customer information and address management
-- [ ] **Customer Orders List Page** - Create /customer/orders page for viewing all customer orders
 - [ ] **Menu Edit Features** - Add edit menu, edit category, edit item, and modifier management UI
 - [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
 - [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and analytics

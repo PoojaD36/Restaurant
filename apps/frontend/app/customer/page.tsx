@@ -10,11 +10,12 @@ import { calculateDistance, formatDistance } from '../../lib/location-utils';
 import { useRouter } from 'next/navigation';
 import {
   Utensils, MapPin, LogOut, Loader2,
-  Navigation, Filter, ChevronDown, ArrowRight, ShoppingBag
+  Navigation, Filter, ChevronDown, ArrowRight, ShoppingBag, Package
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
+import { CustomerNotificationBell } from '../../components/customer-notification-bell';
 
 interface OutletWithDistance extends PublicOutlet {
   distance?: number;
@@ -179,6 +180,20 @@ export default function CustomerPage() {
               {/* Auth */}
               {isAuthenticated && customer ? (
                 <div className="flex items-center gap-2">
+                  {/* My Orders Button - Desktop */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push('/customer/orders')}
+                    className="text-gray-700 hover:text-orange-600 gap-2 hidden sm:flex"
+                  >
+                    <Package className="h-4 w-4" />
+                    <span className="text-sm">My Orders</span>
+                  </Button>
+
+                  {/* Notification Bell */}
+                  <CustomerNotificationBell />
+
                   <span className="hidden sm:inline text-sm font-medium text-gray-700">
                     {customer.firstName}
                   </span>
