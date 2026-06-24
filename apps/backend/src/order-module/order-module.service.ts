@@ -451,16 +451,7 @@ export class OrderModuleService {
 
       this.logger.log(`Order ${orderId} status updated from ${order.status} to ${status} by user ${userId}`);
 
-      // Emit WebSocket notification to restaurant
-      this.notificationsGateway.notifyOrderUpdated(order.outletId, {
-        orderId: updatedOrder.id,
-        outletId: order.outletId,
-        status: updatedOrder.status,
-        total: Number(updatedOrder.total),
-        updatedAt: new Date(),
-      });
-
-      // Emit WebSocket notification to customer
+      // Emit WebSocket notification ONLY to customer (not to restaurant)
       this.notificationsGateway.notifyCustomerOrderUpdated(order.customerId, {
         orderId: updatedOrder.id,
         status: updatedOrder.status,
