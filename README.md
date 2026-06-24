@@ -946,13 +946,15 @@ npx shadcn@latest add dialog -y
 - ✅ **WebSocket Notifications Backend** - Created NotificationsGateway with room-based subscriptions for restaurant-specific order notifications - 2026-06-24
 - ✅ **WebSocket Notifications Frontend** - Created NotificationProvider, NotificationBell, and notification panel for real-time order alerts - 2026-06-24
 - ✅ **Order Notification Integration** - Integrated WebSocket event emission in OrderService for order created, updated, and cancelled events - 2026-06-24
+- ✅ **Order Details Page** - Created /customer/orders/[orderId] page with order status, timeline, items, delivery address, price breakdown, and cancel functionality - 2026-06-24
+- ✅ **404 Error Fix** - Fixed order placement redirect to show order details instead of 404 error - 2026-06-24
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
 - [ ] **Customer Profile Page** - Create /customer/profile page for customer information and address management
-- [ ] **Order Details Page** - Create /customer/orders/[orderId] page for order tracking and details
+- [ ] **Customer Orders List Page** - Create /customer/orders page for viewing all customer orders
 - [ ] **Menu Edit Features** - Add edit menu, edit category, edit item, and modifier management UI
 - [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
 - [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and features
