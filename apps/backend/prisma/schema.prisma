@@ -50,6 +50,7 @@ model User {
   password    UserPassword?
   restaurants RestaurantUser[]
   outlets     OutletUser[]
+  deliveredOrders Order[] @relation("DeliveryAgentOrders")
 
   @@map("users")
 }
@@ -144,8 +145,8 @@ model Outlet {
   country    String
   postalCode String
 
-  latitude  Decimal
-  longitude Decimal
+  latitude  Decimal @db.Decimal(65, 30)
+  longitude Decimal @db.Decimal(65, 30)
 
   openingTime String?
   closingTime String?
@@ -154,7 +155,8 @@ model Outlet {
 
   restaurant Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
-  users OutletUser[]
+  users   OutletUser[]
+  orders  Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -205,6 +207,7 @@ model Customer {
   // Relations
   password  CustomerPassword?
   addresses CustomerAddress[]
+  orders    Order[]
 
   @@map("customers")
 }
@@ -248,8 +251,8 @@ model CustomerAddress {
   country    String
   postalCode String
 
-  latitude  Decimal
-  longitude Decimal
+  latitude  Decimal @db.Decimal(65, 30)
+  longitude Decimal @db.Decimal(65, 30)
 
   isDefault Boolean @default(false)
 
@@ -400,4 +403,121 @@ enum MenuItemStatus {
 enum ModifierType {
   SINGLE    // User can select only one option (e.g., Size)
   MULTIPLE  // User can select multiple options (e.g., Add-ons)
+}
+
+// Order models
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  UPI
+  WALLET
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id Int @id @default(autoincrement())
+
+  customerId Int
+  outletId   Int
+
+  status OrderStatus @default(PENDING)
+
+  // Price breakdown
+  subtotal    Decimal @db.Decimal(10, 2)
+  deliveryFee Decimal @default(0) @db.Decimal(10, 2)
+  total       Decimal @db.Decimal(10, 2)
+
+  // Delivery address snapshot (copied from CustomerAddress at time of order)
+  deliveryAddressLabel String
+  deliveryName        String
+  deliveryPhone       String
+  deliveryAddressLine1 String
+  deliveryAddressLine2 String?
+  deliveryCity        String
+  deliveryState       String
+  deliveryCountry      String
+  deliveryPostalCode   String
+  deliveryLatitude     Decimal
+  deliveryLongitude    Decimal
+
+  // Special instructions from customer
+  specialInstructions String?
+
+  // Estimated delivery time (in minutes)
+  estimatedDeliveryTime Int?
+
+  // Actual delivery tracking
+  deliveryAgentId Int?
+  deliveryAgent   User?   @relation("DeliveryAgentOrders", fields: [deliveryAgentId], references: [id])
+  pickedUpAt      DateTime?
+  deliveredAt     DateTime?
+
+  payment Payment?
+
+  items OrderItem[]
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  outlet   Outlet   @relation(fields: [outletId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([outletId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id       Int @id @default(autoincrement())
+  orderId  Int
+
+  // Snapshot of menu item at time of order
+  menuItemId Int
+  name       String
+  price      Decimal @db.Decimal(10, 2)
+  quantity   Int
+
+  // Modifiers snapshot (stored as JSON)
+  modifiers Json?
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model Payment {
+  id      Int @id @default(autoincrement())
+  orderId Int @unique
+
+  amount          Decimal @db.Decimal(10, 2)
+  method          PaymentMethod
+  status          PaymentStatus @default(PENDING)
+  transactionId   String? // External payment ID (for card/UPI)
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("payments")
 }

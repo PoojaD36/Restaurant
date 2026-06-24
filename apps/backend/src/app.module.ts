@@ -12,6 +12,7 @@ import { OutletModule } from './outlet-module/outlet-module.module';
 import { CustomerModule } from './customer-module/customer-module.module';
 import { StorageModule } from './storage/storage.module';
 import { MenuModule } from './menu-module/menu-module.module';
+import { OrderModule } from './order-module/order-module.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { MenuModule } from './menu-module/menu-module.module';
     CustomerModule,
     StorageModule,
     MenuModule,
+    OrderModule,
   ],
   controllers: [AppController, UserModuleController],
   providers: [AppService, UserModuleService],

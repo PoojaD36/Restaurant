@@ -269,8 +269,8 @@ export type CustomerAddressGroupByOutputType = {
   state: string
   country: string
   postalCode: string
-  latitude: runtime.Decimal | null
-  longitude: runtime.Decimal | null
+  latitude: runtime.Decimal
+  longitude: runtime.Decimal
   isDefault: boolean
   createdAt: Date
   updatedAt: Date
@@ -311,8 +311,8 @@ export type CustomerAddressWhereInput = {
   state?: Prisma.StringFilter<"CustomerAddress"> | string
   country?: Prisma.StringFilter<"CustomerAddress"> | string
   postalCode?: Prisma.StringFilter<"CustomerAddress"> | string
-  latitude?: Prisma.DecimalNullableFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.DecimalNullableFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFilter<"CustomerAddress"> | boolean
   createdAt?: Prisma.DateTimeFilter<"CustomerAddress"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CustomerAddress"> | Date | string
@@ -331,8 +331,8 @@ export type CustomerAddressOrderByWithRelationInput = {
   state?: Prisma.SortOrder
   country?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
-  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
-  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
   isDefault?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -354,8 +354,8 @@ export type CustomerAddressWhereUniqueInput = Prisma.AtLeast<{
   state?: Prisma.StringFilter<"CustomerAddress"> | string
   country?: Prisma.StringFilter<"CustomerAddress"> | string
   postalCode?: Prisma.StringFilter<"CustomerAddress"> | string
-  latitude?: Prisma.DecimalNullableFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.DecimalNullableFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFilter<"CustomerAddress"> | boolean
   createdAt?: Prisma.DateTimeFilter<"CustomerAddress"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CustomerAddress"> | Date | string
@@ -374,8 +374,8 @@ export type CustomerAddressOrderByWithAggregationInput = {
   state?: Prisma.SortOrder
   country?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
-  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
-  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
   isDefault?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -401,8 +401,8 @@ export type CustomerAddressScalarWhereWithAggregatesInput = {
   state?: Prisma.StringWithAggregatesFilter<"CustomerAddress"> | string
   country?: Prisma.StringWithAggregatesFilter<"CustomerAddress"> | string
   postalCode?: Prisma.StringWithAggregatesFilter<"CustomerAddress"> | string
-  latitude?: Prisma.DecimalNullableWithAggregatesFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.DecimalNullableWithAggregatesFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalWithAggregatesFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalWithAggregatesFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolWithAggregatesFilter<"CustomerAddress"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"CustomerAddress"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"CustomerAddress"> | Date | string
@@ -418,8 +418,8 @@ export type CustomerAddressCreateInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -438,8 +438,8 @@ export type CustomerAddressUncheckedCreateInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -455,8 +455,8 @@ export type CustomerAddressUpdateInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -475,8 +475,8 @@ export type CustomerAddressUncheckedUpdateInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -494,8 +494,8 @@ export type CustomerAddressCreateManyInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -511,8 +511,8 @@ export type CustomerAddressUpdateManyMutationInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -530,8 +530,8 @@ export type CustomerAddressUncheckedUpdateManyInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -674,8 +674,8 @@ export type CustomerAddressCreateWithoutCustomerInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -692,8 +692,8 @@ export type CustomerAddressUncheckedCreateWithoutCustomerInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -740,8 +740,8 @@ export type CustomerAddressScalarWhereInput = {
   state?: Prisma.StringFilter<"CustomerAddress"> | string
   country?: Prisma.StringFilter<"CustomerAddress"> | string
   postalCode?: Prisma.StringFilter<"CustomerAddress"> | string
-  latitude?: Prisma.DecimalNullableFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.DecimalNullableFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFilter<"CustomerAddress"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFilter<"CustomerAddress"> | boolean
   createdAt?: Prisma.DateTimeFilter<"CustomerAddress"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"CustomerAddress"> | Date | string
@@ -758,8 +758,8 @@ export type CustomerAddressCreateManyCustomerInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -775,8 +775,8 @@ export type CustomerAddressUpdateWithoutCustomerInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -793,8 +793,8 @@ export type CustomerAddressUncheckedUpdateWithoutCustomerInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -811,8 +811,8 @@ export type CustomerAddressUncheckedUpdateManyWithoutCustomerInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   isDefault?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -927,8 +927,8 @@ export type $CustomerAddressPayload<ExtArgs extends runtime.Types.Extensions.Int
     state: string
     country: string
     postalCode: string
-    latitude: runtime.Decimal | null
-    longitude: runtime.Decimal | null
+    latitude: runtime.Decimal
+    longitude: runtime.Decimal
     isDefault: boolean
     createdAt: Date
     updatedAt: Date

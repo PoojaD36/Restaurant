@@ -281,8 +281,8 @@ export type OutletGroupByOutputType = {
   state: string
   country: string
   postalCode: string
-  latitude: runtime.Decimal | null
-  longitude: runtime.Decimal | null
+  latitude: runtime.Decimal
+  longitude: runtime.Decimal
   openingTime: string | null
   closingTime: string | null
   status: $Enums.OutletStatus
@@ -325,8 +325,8 @@ export type OutletWhereInput = {
   state?: Prisma.StringFilter<"Outlet"> | string
   country?: Prisma.StringFilter<"Outlet"> | string
   postalCode?: Prisma.StringFilter<"Outlet"> | string
-  latitude?: Prisma.DecimalNullableFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.DecimalNullableFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.StringNullableFilter<"Outlet"> | string | null
   closingTime?: Prisma.StringNullableFilter<"Outlet"> | string | null
   status?: Prisma.EnumOutletStatusFilter<"Outlet"> | $Enums.OutletStatus
@@ -334,6 +334,7 @@ export type OutletWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"Outlet"> | Date | string
   restaurant?: Prisma.XOR<Prisma.RestaurantScalarRelationFilter, Prisma.RestaurantWhereInput>
   users?: Prisma.OutletUserListRelationFilter
+  orders?: Prisma.OrderListRelationFilter
 }
 
 export type OutletOrderByWithRelationInput = {
@@ -348,8 +349,8 @@ export type OutletOrderByWithRelationInput = {
   state?: Prisma.SortOrder
   country?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
-  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
-  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
   openingTime?: Prisma.SortOrderInput | Prisma.SortOrder
   closingTime?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -357,6 +358,7 @@ export type OutletOrderByWithRelationInput = {
   updatedAt?: Prisma.SortOrder
   restaurant?: Prisma.RestaurantOrderByWithRelationInput
   users?: Prisma.OutletUserOrderByRelationAggregateInput
+  orders?: Prisma.OrderOrderByRelationAggregateInput
 }
 
 export type OutletWhereUniqueInput = Prisma.AtLeast<{
@@ -374,8 +376,8 @@ export type OutletWhereUniqueInput = Prisma.AtLeast<{
   state?: Prisma.StringFilter<"Outlet"> | string
   country?: Prisma.StringFilter<"Outlet"> | string
   postalCode?: Prisma.StringFilter<"Outlet"> | string
-  latitude?: Prisma.DecimalNullableFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.DecimalNullableFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.StringNullableFilter<"Outlet"> | string | null
   closingTime?: Prisma.StringNullableFilter<"Outlet"> | string | null
   status?: Prisma.EnumOutletStatusFilter<"Outlet"> | $Enums.OutletStatus
@@ -383,6 +385,7 @@ export type OutletWhereUniqueInput = Prisma.AtLeast<{
   updatedAt?: Prisma.DateTimeFilter<"Outlet"> | Date | string
   restaurant?: Prisma.XOR<Prisma.RestaurantScalarRelationFilter, Prisma.RestaurantWhereInput>
   users?: Prisma.OutletUserListRelationFilter
+  orders?: Prisma.OrderListRelationFilter
 }, "id">
 
 export type OutletOrderByWithAggregationInput = {
@@ -397,8 +400,8 @@ export type OutletOrderByWithAggregationInput = {
   state?: Prisma.SortOrder
   country?: Prisma.SortOrder
   postalCode?: Prisma.SortOrder
-  latitude?: Prisma.SortOrderInput | Prisma.SortOrder
-  longitude?: Prisma.SortOrderInput | Prisma.SortOrder
+  latitude?: Prisma.SortOrder
+  longitude?: Prisma.SortOrder
   openingTime?: Prisma.SortOrderInput | Prisma.SortOrder
   closingTime?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -426,8 +429,8 @@ export type OutletScalarWhereWithAggregatesInput = {
   state?: Prisma.StringWithAggregatesFilter<"Outlet"> | string
   country?: Prisma.StringWithAggregatesFilter<"Outlet"> | string
   postalCode?: Prisma.StringWithAggregatesFilter<"Outlet"> | string
-  latitude?: Prisma.DecimalNullableWithAggregatesFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.DecimalNullableWithAggregatesFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalWithAggregatesFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalWithAggregatesFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.StringNullableWithAggregatesFilter<"Outlet"> | string | null
   closingTime?: Prisma.StringNullableWithAggregatesFilter<"Outlet"> | string | null
   status?: Prisma.EnumOutletStatusWithAggregatesFilter<"Outlet"> | $Enums.OutletStatus
@@ -445,8 +448,8 @@ export type OutletCreateInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: string | null
   closingTime?: string | null
   status?: $Enums.OutletStatus
@@ -454,6 +457,7 @@ export type OutletCreateInput = {
   updatedAt?: Date | string
   restaurant: Prisma.RestaurantCreateNestedOneWithoutOutletsInput
   users?: Prisma.OutletUserCreateNestedManyWithoutOutletInput
+  orders?: Prisma.OrderCreateNestedManyWithoutOutletInput
 }
 
 export type OutletUncheckedCreateInput = {
@@ -468,14 +472,15 @@ export type OutletUncheckedCreateInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: string | null
   closingTime?: string | null
   status?: $Enums.OutletStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.OutletUserUncheckedCreateNestedManyWithoutOutletInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOutletInput
 }
 
 export type OutletUpdateInput = {
@@ -488,8 +493,8 @@ export type OutletUpdateInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
@@ -497,6 +502,7 @@ export type OutletUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   restaurant?: Prisma.RestaurantUpdateOneRequiredWithoutOutletsNestedInput
   users?: Prisma.OutletUserUpdateManyWithoutOutletNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletUncheckedUpdateInput = {
@@ -511,14 +517,15 @@ export type OutletUncheckedUpdateInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.OutletUserUncheckedUpdateManyWithoutOutletNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletCreateManyInput = {
@@ -533,8 +540,8 @@ export type OutletCreateManyInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: string | null
   closingTime?: string | null
   status?: $Enums.OutletStatus
@@ -552,8 +559,8 @@ export type OutletUpdateManyMutationInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
@@ -573,8 +580,8 @@ export type OutletUncheckedUpdateManyInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
@@ -716,8 +723,8 @@ export type OutletUncheckedUpdateManyWithoutRestaurantNestedInput = {
   deleteMany?: Prisma.OutletScalarWhereInput | Prisma.OutletScalarWhereInput[]
 }
 
-export type NullableDecimalFieldUpdateOperationsInput = {
-  set?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+export type DecimalFieldUpdateOperationsInput = {
+  set?: runtime.Decimal | runtime.DecimalJsLike | number | string
   increment?: runtime.Decimal | runtime.DecimalJsLike | number | string
   decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
   multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
@@ -742,6 +749,20 @@ export type OutletUpdateOneRequiredWithoutUsersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OutletUpdateToOneWithWhereWithoutUsersInput, Prisma.OutletUpdateWithoutUsersInput>, Prisma.OutletUncheckedUpdateWithoutUsersInput>
 }
 
+export type OutletCreateNestedOneWithoutOrdersInput = {
+  create?: Prisma.XOR<Prisma.OutletCreateWithoutOrdersInput, Prisma.OutletUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.OutletCreateOrConnectWithoutOrdersInput
+  connect?: Prisma.OutletWhereUniqueInput
+}
+
+export type OutletUpdateOneRequiredWithoutOrdersNestedInput = {
+  create?: Prisma.XOR<Prisma.OutletCreateWithoutOrdersInput, Prisma.OutletUncheckedCreateWithoutOrdersInput>
+  connectOrCreate?: Prisma.OutletCreateOrConnectWithoutOrdersInput
+  upsert?: Prisma.OutletUpsertWithoutOrdersInput
+  connect?: Prisma.OutletWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OutletUpdateToOneWithWhereWithoutOrdersInput, Prisma.OutletUpdateWithoutOrdersInput>, Prisma.OutletUncheckedUpdateWithoutOrdersInput>
+}
+
 export type OutletCreateWithoutRestaurantInput = {
   name: string
   phone?: string | null
@@ -752,14 +773,15 @@ export type OutletCreateWithoutRestaurantInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: string | null
   closingTime?: string | null
   status?: $Enums.OutletStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.OutletUserCreateNestedManyWithoutOutletInput
+  orders?: Prisma.OrderCreateNestedManyWithoutOutletInput
 }
 
 export type OutletUncheckedCreateWithoutRestaurantInput = {
@@ -773,14 +795,15 @@ export type OutletUncheckedCreateWithoutRestaurantInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: string | null
   closingTime?: string | null
   status?: $Enums.OutletStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.OutletUserUncheckedCreateNestedManyWithoutOutletInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOutletInput
 }
 
 export type OutletCreateOrConnectWithoutRestaurantInput = {
@@ -824,8 +847,8 @@ export type OutletScalarWhereInput = {
   state?: Prisma.StringFilter<"Outlet"> | string
   country?: Prisma.StringFilter<"Outlet"> | string
   postalCode?: Prisma.StringFilter<"Outlet"> | string
-  latitude?: Prisma.DecimalNullableFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.DecimalNullableFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFilter<"Outlet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.StringNullableFilter<"Outlet"> | string | null
   closingTime?: Prisma.StringNullableFilter<"Outlet"> | string | null
   status?: Prisma.EnumOutletStatusFilter<"Outlet"> | $Enums.OutletStatus
@@ -843,14 +866,15 @@ export type OutletCreateWithoutUsersInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: string | null
   closingTime?: string | null
   status?: $Enums.OutletStatus
   createdAt?: Date | string
   updatedAt?: Date | string
   restaurant: Prisma.RestaurantCreateNestedOneWithoutOutletsInput
+  orders?: Prisma.OrderCreateNestedManyWithoutOutletInput
 }
 
 export type OutletUncheckedCreateWithoutUsersInput = {
@@ -865,13 +889,14 @@ export type OutletUncheckedCreateWithoutUsersInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: string | null
   closingTime?: string | null
   status?: $Enums.OutletStatus
   createdAt?: Date | string
   updatedAt?: Date | string
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOutletInput
 }
 
 export type OutletCreateOrConnectWithoutUsersInput = {
@@ -900,14 +925,15 @@ export type OutletUpdateWithoutUsersInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   restaurant?: Prisma.RestaurantUpdateOneRequiredWithoutOutletsNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletUncheckedUpdateWithoutUsersInput = {
@@ -922,13 +948,116 @@ export type OutletUncheckedUpdateWithoutUsersInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOutletNestedInput
+}
+
+export type OutletCreateWithoutOrdersInput = {
+  name: string
+  phone?: string | null
+  email?: string | null
+  addressLine1: string
+  addressLine2?: string | null
+  city: string
+  state: string
+  country: string
+  postalCode: string
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  openingTime?: string | null
+  closingTime?: string | null
+  status?: $Enums.OutletStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  restaurant: Prisma.RestaurantCreateNestedOneWithoutOutletsInput
+  users?: Prisma.OutletUserCreateNestedManyWithoutOutletInput
+}
+
+export type OutletUncheckedCreateWithoutOrdersInput = {
+  id?: number
+  restaurantId: number
+  name: string
+  phone?: string | null
+  email?: string | null
+  addressLine1: string
+  addressLine2?: string | null
+  city: string
+  state: string
+  country: string
+  postalCode: string
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  openingTime?: string | null
+  closingTime?: string | null
+  status?: $Enums.OutletStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.OutletUserUncheckedCreateNestedManyWithoutOutletInput
+}
+
+export type OutletCreateOrConnectWithoutOrdersInput = {
+  where: Prisma.OutletWhereUniqueInput
+  create: Prisma.XOR<Prisma.OutletCreateWithoutOrdersInput, Prisma.OutletUncheckedCreateWithoutOrdersInput>
+}
+
+export type OutletUpsertWithoutOrdersInput = {
+  update: Prisma.XOR<Prisma.OutletUpdateWithoutOrdersInput, Prisma.OutletUncheckedUpdateWithoutOrdersInput>
+  create: Prisma.XOR<Prisma.OutletCreateWithoutOrdersInput, Prisma.OutletUncheckedCreateWithoutOrdersInput>
+  where?: Prisma.OutletWhereInput
+}
+
+export type OutletUpdateToOneWithWhereWithoutOrdersInput = {
+  where?: Prisma.OutletWhereInput
+  data: Prisma.XOR<Prisma.OutletUpdateWithoutOrdersInput, Prisma.OutletUncheckedUpdateWithoutOrdersInput>
+}
+
+export type OutletUpdateWithoutOrdersInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine1?: Prisma.StringFieldUpdateOperationsInput | string
+  addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  country?: Prisma.StringFieldUpdateOperationsInput | string
+  postalCode?: Prisma.StringFieldUpdateOperationsInput | string
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  restaurant?: Prisma.RestaurantUpdateOneRequiredWithoutOutletsNestedInput
+  users?: Prisma.OutletUserUpdateManyWithoutOutletNestedInput
+}
+
+export type OutletUncheckedUpdateWithoutOrdersInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantId?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine1?: Prisma.StringFieldUpdateOperationsInput | string
+  addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  country?: Prisma.StringFieldUpdateOperationsInput | string
+  postalCode?: Prisma.StringFieldUpdateOperationsInput | string
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.OutletUserUncheckedUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletCreateManyRestaurantInput = {
@@ -942,8 +1071,8 @@ export type OutletCreateManyRestaurantInput = {
   state: string
   country: string
   postalCode: string
-  latitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: string | null
   closingTime?: string | null
   status?: $Enums.OutletStatus
@@ -961,14 +1090,15 @@ export type OutletUpdateWithoutRestaurantInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.OutletUserUpdateManyWithoutOutletNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletUncheckedUpdateWithoutRestaurantInput = {
@@ -982,14 +1112,15 @@ export type OutletUncheckedUpdateWithoutRestaurantInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.OutletUserUncheckedUpdateManyWithoutOutletNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletUncheckedUpdateManyWithoutRestaurantInput = {
@@ -1003,8 +1134,8 @@ export type OutletUncheckedUpdateManyWithoutRestaurantInput = {
   state?: Prisma.StringFieldUpdateOperationsInput | string
   country?: Prisma.StringFieldUpdateOperationsInput | string
   postalCode?: Prisma.StringFieldUpdateOperationsInput | string
-  latitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
-  longitude?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
   openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
@@ -1019,10 +1150,12 @@ export type OutletUncheckedUpdateManyWithoutRestaurantInput = {
 
 export type OutletCountOutputType = {
   users: number
+  orders: number
 }
 
 export type OutletCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | OutletCountOutputTypeCountUsersArgs
+  orders?: boolean | OutletCountOutputTypeCountOrdersArgs
 }
 
 /**
@@ -1040,6 +1173,13 @@ export type OutletCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Exten
  */
 export type OutletCountOutputTypeCountUsersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.OutletUserWhereInput
+}
+
+/**
+ * OutletCountOutputType without action
+ */
+export type OutletCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OrderWhereInput
 }
 
 
@@ -1064,6 +1204,7 @@ export type OutletSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   updatedAt?: boolean
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
   users?: boolean | Prisma.Outlet$usersArgs<ExtArgs>
+  orders?: boolean | Prisma.Outlet$ordersArgs<ExtArgs>
   _count?: boolean | Prisma.OutletCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["outlet"]>
 
@@ -1136,6 +1277,7 @@ export type OutletOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 export type OutletInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
   users?: boolean | Prisma.Outlet$usersArgs<ExtArgs>
+  orders?: boolean | Prisma.Outlet$ordersArgs<ExtArgs>
   _count?: boolean | Prisma.OutletCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OutletIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1150,6 +1292,7 @@ export type $OutletPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   objects: {
     restaurant: Prisma.$RestaurantPayload<ExtArgs>
     users: Prisma.$OutletUserPayload<ExtArgs>[]
+    orders: Prisma.$OrderPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1163,8 +1306,8 @@ export type $OutletPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     state: string
     country: string
     postalCode: string
-    latitude: runtime.Decimal | null
-    longitude: runtime.Decimal | null
+    latitude: runtime.Decimal
+    longitude: runtime.Decimal
     openingTime: string | null
     closingTime: string | null
     status: $Enums.OutletStatus
@@ -1566,6 +1709,7 @@ export interface Prisma__OutletClient<T, Null = never, ExtArgs extends runtime.T
   readonly [Symbol.toStringTag]: "PrismaPromise"
   restaurant<T extends Prisma.RestaurantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantDefaultArgs<ExtArgs>>): Prisma.Prisma__RestaurantClient<runtime.Types.Result.GetResult<Prisma.$RestaurantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   users<T extends Prisma.Outlet$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Outlet$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OutletUserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  orders<T extends Prisma.Outlet$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Outlet$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2035,6 +2179,30 @@ export type Outlet$usersArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
   take?: number
   skip?: number
   distinct?: Prisma.OutletUserScalarFieldEnum | Prisma.OutletUserScalarFieldEnum[]
+}
+
+/**
+ * Outlet.orders
+ */
+export type Outlet$ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Order
+   */
+  select?: Prisma.OrderSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Order
+   */
+  omit?: Prisma.OrderOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OrderInclude<ExtArgs> | null
+  where?: Prisma.OrderWhereInput
+  orderBy?: Prisma.OrderOrderByWithRelationInput | Prisma.OrderOrderByWithRelationInput[]
+  cursor?: Prisma.OrderWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
 }
 
 /**

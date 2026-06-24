@@ -116,8 +116,8 @@ export class OutletModuleService {
         postalCode: createOutletDto.postalCode,
       });
 
-      let latitude: number | null = null;
-      let longitude: number | null = null;
+      let latitude: number;
+      let longitude: number;
 
       // Check if user provided manual coordinates
       const manualCoordsProvided =
@@ -126,12 +126,14 @@ export class OutletModuleService {
 
       if (manualCoordsProvided) {
         // Use manually provided coordinates
-        if (createOutletDto.latitude && createOutletDto.latitude !== '') {
-          latitude = parseFloat(createOutletDto.latitude);
+        if (!createOutletDto.latitude || createOutletDto.latitude === '') {
+          throw new BadRequestException('Latitude is required when providing manual coordinates');
         }
-        if (createOutletDto.longitude && createOutletDto.longitude !== '') {
-          longitude = parseFloat(createOutletDto.longitude);
+        if (!createOutletDto.longitude || createOutletDto.longitude === '') {
+          throw new BadRequestException('Longitude is required when providing manual coordinates');
         }
+        latitude = parseFloat(createOutletDto.latitude);
+        longitude = parseFloat(createOutletDto.longitude);
         this.logger.log(`Using manually provided coordinates for outlet: ${latitude}, ${longitude}`);
       } else {
         // Geocode address to get coordinates
@@ -141,8 +143,8 @@ export class OutletModuleService {
           longitude = coords.longitude;
           this.logger.log(`Geocoded outlet address: ${fullAddress} -> ${latitude}, ${longitude}`);
         } catch (geocodeError) {
-          this.logger.warn(`Geocoding failed for outlet: ${fullAddress}. Outlet will be created without coordinates.`);
-          // Continue with null coordinates - outlet can still be created
+          this.logger.error(`Geocoding failed for outlet: ${fullAddress}. Error: ${geocodeError}`);
+          throw new BadRequestException('Unable to geocode address. Please provide a valid address or manual coordinates.');
         }
       }
 
@@ -179,7 +181,12 @@ export class OutletModuleService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Outlet creation failed');
+      this.logger.error(`Outlet creation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Outlet creation failed';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -279,8 +286,12 @@ export class OutletModuleService {
         pagination,
       };
     } catch (error) {
-      console.error('Error in getAllOutlets:', error);
-      throw new BadRequestException('Failed to fetch outlets');
+      this.logger.error(`Failed to fetch outlets: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch outlets';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -357,8 +368,8 @@ export class OutletModuleService {
           state: o.state,
           country: o.country,
           postalCode: o.postalCode,
-          latitude: o.latitude ? parseFloat(o.latitude.toString()) : null,
-          longitude: o.longitude ? parseFloat(o.longitude.toString()) : null,
+          latitude: parseFloat(o.latitude.toString()),
+          longitude: parseFloat(o.longitude.toString()),
           openingTime: o.openingTime,
           closingTime: o.closingTime,
           status: o.status,
@@ -372,8 +383,12 @@ export class OutletModuleService {
         pagination,
       };
     } catch (error) {
-      console.error('Error in getPublicOutlets:', error);
-      throw new BadRequestException('Failed to fetch outlets');
+      this.logger.error(`Failed to fetch public outlets: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch public outlets';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -431,7 +446,12 @@ export class OutletModuleService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Failed to fetch outlet');
+      this.logger.error(`Failed to fetch outlet: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch outlet';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -478,8 +498,8 @@ export class OutletModuleService {
         (updateOutletDto.postalCode && updateOutletDto.postalCode !== existingOutlet.postalCode);
 
       // Convert Decimal to number for existing coordinates
-      let latitude: number | null = existingOutlet.latitude ? parseFloat(existingOutlet.latitude.toString()) : null;
-      let longitude: number | null = existingOutlet.longitude ? parseFloat(existingOutlet.longitude.toString()) : null;
+      let latitude = parseFloat(existingOutlet.latitude.toString());
+      let longitude = parseFloat(existingOutlet.longitude.toString());
 
       // Check if user provided manual coordinates
       const manualCoordsProvided =
@@ -512,8 +532,8 @@ export class OutletModuleService {
           longitude = coords.longitude;
           this.logger.log(`Re-geocoded outlet address: ${fullAddress} -> ${latitude}, ${longitude}`);
         } catch (geocodeError) {
-          this.logger.warn(`Geocoding failed for outlet update: ${fullAddress}. Keeping existing coordinates.`);
-          // Keep existing coordinates if geocoding fails
+          this.logger.error(`Geocoding failed for outlet update: ${fullAddress}. Error: ${geocodeError}`);
+          throw new BadRequestException('Unable to geocode address. Please provide a valid address or manual coordinates.');
         }
       }
 
@@ -542,7 +562,7 @@ export class OutletModuleService {
           // Update coordinates if:
           // 1. Manual coordinates were provided, OR
           // 2. Address fields changed (auto-geocoded)
-          ...((manualCoordsProvided || addressFieldsChanged) && latitude !== null && longitude !== null && {
+          ...((manualCoordsProvided || addressFieldsChanged) && {
             latitude,
             longitude,
           }),
@@ -563,7 +583,12 @@ export class OutletModuleService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Outlet update failed');
+      this.logger.error(`Outlet update failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Outlet update failed';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -611,7 +636,12 @@ export class OutletModuleService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Outlet deletion failed');
+      this.logger.error(`Outlet deletion failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Outlet deletion failed';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -683,7 +713,12 @@ export class OutletModuleService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Failed to fetch outlets');
+      this.logger.error(`Failed to fetch outlets by restaurant: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch outlets by restaurant';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -761,7 +796,12 @@ export class OutletModuleService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Failed to fetch outlet users');
+      this.logger.error(`Failed to fetch outlet users: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch outlet users';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -843,7 +883,12 @@ export class OutletModuleService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Failed to fetch available users');
+      this.logger.error(`Failed to fetch available users: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch available users';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -934,7 +979,12 @@ export class OutletModuleService {
       ) {
         throw error;
       }
-      throw new BadRequestException('Failed to add user to outlet');
+      this.logger.error(`Failed to add user to outlet: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add user to outlet';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 
@@ -1000,7 +1050,12 @@ export class OutletModuleService {
       if (error instanceof BadRequestException) {
         throw error;
       }
-      throw new BadRequestException('Failed to remove user from outlet');
+      this.logger.error(`Failed to remove user from outlet: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      if (error instanceof Error && error.stack) {
+        this.logger.debug(`Error stack: ${error.stack}`);
+      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to remove user from outlet';
+      throw new BadRequestException(`${errorMessage}`);
     }
   }
 }
