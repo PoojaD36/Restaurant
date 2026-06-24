@@ -1,0 +1,375 @@
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  SubscribeMessage,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  MessageBody,
+  ConnectedSocket,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import { Logger, UseGuards } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { PrismaService } from '../database/prisma.service';
+
+/**
+ * WebSocket Gateway for real-time order notifications
+ *
+ * Features:
+ * - Restaurant-specific rooms (restaurant:1, restaurant:2, etc.)
+ * - User authentication via JWT
+ * - Real-time order notifications (created, updated, cancelled)
+ *
+ * Events:
+ * - subscribe:restaurant - Subscribe to restaurant notifications
+ * - unsubscribe:restaurant - Unsubscribe from restaurant notifications
+ * - order.created - New order notification
+ * - order.updated - Order status update notification
+ * - order.cancelled - Order cancellation notification
+ */
+@WebSocketGateway({
+  cors: {
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    credentials: true,
+  },
+  namespace: '/notifications',
+})
+export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  @WebSocketServer()
+  server!: Server;
+
+  private readonly logger = new Logger(NotificationsGateway.name);
+
+  // Store user ID to socket ID mapping
+  private userSocketMap = new Map<number, string[]>();
+  // Store user's restaurant subscriptions
+  private userRestaurants = new Map<number, Set<number>>();
+
+  constructor(
+    private jwtService: JwtService,
+    private prisma: PrismaService,
+  ) {}
+
+  /**
+   * Handle new WebSocket connection
+   * Validates JWT token and extracts user information
+   */
+  async handleConnection(client: Socket) {
+    try {
+      const token = this.extractToken(client);
+      if (!token) {
+        this.logger.warn(`Connection rejected: No token provided for socket ${client.id}`);
+        client.disconnect();
+        return;
+      }
+
+      // Verify JWT token
+      const payload = this.jwtService.verify(token);
+      const userId = payload.userId || payload.customerId;
+
+      if (!userId) {
+        this.logger.warn(`Connection rejected: Invalid token payload for socket ${client.id}`);
+        client.disconnect();
+        return;
+      }
+
+      // Store socket mapping
+      if (!this.userSocketMap.has(userId)) {
+        this.userSocketMap.set(userId, []);
+      }
+      this.userSocketMap.get(userId)!.push(client.id);
+
+      // Get user's restaurant subscriptions (for admin/manager roles)
+      if (payload.role) {
+        const userRestaurants = await this.getUserRestaurants(userId, payload.role);
+        this.userRestaurants.set(userId, userRestaurants);
+
+        // Auto-subscribe to user's restaurants
+        for (const restaurantId of userRestaurants) {
+          const roomName = `restaurant:${restaurantId}`;
+          client.join(roomName);
+          this.logger.debug(`User ${userId} auto-subscribed to ${roomName}`);
+        }
+
+        this.logger.log(
+          `User ${userId} (${payload.role}) connected with socket ${client.id}. ` +
+          `Subscribed to ${userRestaurants.size} restaurants.`,
+        );
+      } else {
+        this.logger.log(`Customer ${userId} connected with socket ${client.id}`);
+      }
+
+      // Send connection acknowledgment
+      client.emit('connected', {
+        success: true,
+        message: 'Connected to notifications',
+        userId,
+      });
+    } catch (error) {
+      this.logger.error(`Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      client.disconnect();
+    }
+  }
+
+  /**
+   * Handle WebSocket disconnection
+   */
+  handleDisconnect(client: Socket) {
+    // Clean up socket mappings
+    for (const [userId, sockets] of this.userSocketMap.entries()) {
+      const index = sockets.indexOf(client.id);
+      if (index > -1) {
+        sockets.splice(index, 1);
+        if (sockets.length === 0) {
+          this.userSocketMap.delete(userId);
+          this.userRestaurants.delete(userId);
+        }
+        break;
+      }
+    }
+    this.logger.debug(`Socket ${client.id} disconnected`);
+  }
+
+  /**
+   * Subscribe to restaurant notifications
+   * Event: 'subscribe:restaurant'
+   * Payload: { restaurantId: number }
+   */
+  @SubscribeMessage('subscribe:restaurant')
+  async handleSubscribeRestaurant(
+    @MessageBody() data: { restaurantId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const { restaurantId } = data;
+      const userId = this.getUserIdFromSocket(client);
+
+      if (!userId) {
+        client.emit('error', { message: 'User not authenticated' });
+        return;
+      }
+
+      // Verify user has access to this restaurant
+      const hasAccess = await this.verifyRestaurantAccess(userId, restaurantId);
+      if (!hasAccess) {
+        client.emit('error', { message: 'No access to this restaurant' });
+        return;
+      }
+
+      const roomName = `restaurant:${restaurantId}`;
+      client.join(roomName);
+
+      // Update user's restaurant subscriptions
+      const restaurants = this.userRestaurants.get(userId) || new Set();
+      restaurants.add(restaurantId);
+      this.userRestaurants.set(userId, restaurants);
+
+      this.logger.log(`User ${userId} subscribed to ${roomName}`);
+      client.emit('subscribed', { restaurantId });
+    } catch (error) {
+      this.logger.error(`Subscribe error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      client.emit('error', { message: 'Failed to subscribe' });
+    }
+  }
+
+  /**
+   * Unsubscribe from restaurant notifications
+   * Event: 'unsubscribe:restaurant'
+   * Payload: { restaurantId: number }
+   */
+  @SubscribeMessage('unsubscribe:restaurant')
+  handleUnsubscribeRestaurant(
+    @MessageBody() data: { restaurantId: number },
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const { restaurantId } = data;
+      const roomName = `restaurant:${restaurantId}`;
+      client.leave(roomName);
+
+      const userId = this.getUserIdFromSocket(client);
+      if (userId) {
+        const restaurants = this.userRestaurants.get(userId);
+        if (restaurants) {
+          restaurants.delete(restaurantId);
+        }
+      }
+
+      this.logger.log(`Socket ${client.id} unsubscribed from ${roomName}`);
+      client.emit('unsubscribed', { restaurantId });
+    } catch (error) {
+      this.logger.error(`Unsubscribe error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Notify restaurant of new order
+   * Called by OrderService when an order is created
+   */
+  notifyOrderCreated(outletId: number, orderData: any) {
+    // Get outlet's restaurant ID
+    this.prisma.outlet
+      .findUnique({
+        where: { id: outletId },
+        select: { restaurantId: true },
+      })
+      .then(outlet => {
+        if (outlet) {
+          const roomName = `restaurant:${outlet.restaurantId}`;
+          this.server.to(roomName).emit('order.created', orderData);
+          this.logger.log(
+            `Order #${orderData.orderId} notification sent to ${roomName}`,
+          );
+        }
+      })
+      .catch(error => {
+        this.logger.error(`Failed to notify order created: ${error.message}`);
+      });
+  }
+
+  /**
+   * Notify restaurant of order status update
+   * Called by OrderService when an order status changes
+   */
+  notifyOrderUpdated(outletId: number, orderData: any) {
+    this.prisma.outlet
+      .findUnique({
+        where: { id: outletId },
+        select: { restaurantId: true },
+      })
+      .then(outlet => {
+        if (outlet) {
+          const roomName = `restaurant:${outlet.restaurantId}`;
+          this.server.to(roomName).emit('order.updated', orderData);
+          this.logger.log(
+            `Order #${orderData.orderId} update notification sent to ${roomName}`,
+          );
+        }
+      })
+      .catch(error => {
+        this.logger.error(`Failed to notify order updated: ${error.message}`);
+      });
+  }
+
+  /**
+   * Notify restaurant of order cancellation
+   * Called by OrderService when an order is cancelled
+   */
+  notifyOrderCancelled(outletId: number, orderData: any) {
+    this.prisma.outlet
+      .findUnique({
+        where: { id: outletId },
+        select: { restaurantId: true },
+      })
+      .then(outlet => {
+        if (outlet) {
+          const roomName = `restaurant:${outlet.restaurantId}`;
+          this.server.to(roomName).emit('order.cancelled', orderData);
+          this.logger.log(
+            `Order #${orderData.orderId} cancellation sent to ${roomName}`,
+          );
+        }
+      })
+      .catch(error => {
+        this.logger.error(`Failed to notify order cancelled: ${error.message}`);
+      });
+  }
+
+  /**
+   * Extract JWT token from socket handshake
+   */
+  private extractToken(client: Socket): string | null {
+    const authHeader = client.handshake.auth.token;
+    if (authHeader) {
+      return authHeader.startsWith('Bearer ') ? authHeader.slice(7) : authHeader;
+    }
+
+    // Also check query parameter for fallback
+    const tokenQuery = client.handshake.query.token as string;
+    return tokenQuery || null;
+  }
+
+  /**
+   * Get user ID from socket
+   */
+  private getUserIdFromSocket(client: Socket): number | null {
+    for (const [userId, sockets] of this.userSocketMap.entries()) {
+      if (sockets.includes(client.id)) {
+        return userId;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Get user's accessible restaurants
+   */
+  private async getUserRestaurants(
+    userId: number,
+    role: string,
+  ): Promise<Set<number>> {
+    const restaurants = new Set<number>();
+
+    try {
+      // Get restaurants where user has access
+      const userRestaurantData = await this.prisma.restaurantUser.findMany({
+        where: { userId },
+        select: { restaurantId: true },
+      });
+
+      userRestaurantData.forEach(ur => restaurants.add(ur.restaurantId));
+
+      // Also get restaurants through outlet access
+      const userOutletData = await this.prisma.outletUser.findMany({
+        where: { userId },
+        include: {
+          outlet: {
+            select: { restaurantId: true },
+          },
+        },
+      });
+
+      userOutletData.forEach(uo => {
+        if (uo.outlet) {
+          restaurants.add(uo.outlet.restaurantId);
+        }
+      });
+    } catch (error) {
+      this.logger.error(`Failed to get user restaurants: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+
+    return restaurants;
+  }
+
+  /**
+   * Verify user has access to restaurant
+   */
+  private async verifyRestaurantAccess(
+    userId: number,
+    restaurantId: number,
+  ): Promise<boolean> {
+    try {
+      // Check direct restaurant access
+      const directAccess = await this.prisma.restaurantUser.findFirst({
+        where: { userId, restaurantId },
+      });
+
+      if (directAccess) {
+        return true;
+      }
+
+      // Check access through outlets
+      const outletAccess = await this.prisma.outletUser.findFirst({
+        where: {
+          userId,
+          outlet: { restaurantId },
+        },
+      });
+
+      return !!outletAccess;
+    } catch (error) {
+      this.logger.error(`Failed to verify restaurant access: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return false;
+    }
+  }
+}

@@ -174,15 +174,16 @@ d:\restaurant/
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule, OrderModule imported |
+| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule, OrderModule, NotificationsModule imported |
 | Auth Module | ✅ Complete | JWT auth, role-based guards, decorators (for admin users) |
 | Customer Module | ✅ Complete | Customer auth, profile, address management with auto-geocoding |
 | User Module | ✅ Complete | Full CRUD operations for users |
 | Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction, auto-adds Admin/Manager to outlets |
 | Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment, public endpoint for customer browsing, auto-geocoding |
 | Menu Module | ✅ Complete | Restaurant-level menus with categories, items, modifiers, and outlet-specific pricing |
-| Order Module | ✅ Complete | Order creation, customer order history, order cancellation, delivery address snapshot |
+| Order Module | ✅ Complete | Order creation, customer order history, order cancellation, delivery address snapshot, WebSocket notifications |
 | Storage Module | ✅ Complete | Supabase storage service for image uploads |
+| Notifications Module | ✅ Complete | WebSocket gateway for real-time order notifications to restaurant admins/managers |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
 | Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, required lat/lng |
@@ -198,7 +199,7 @@ d:\restaurant/
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| App Structure | ✅ Complete | Layout with AuthProvider, CustomerAuthProvider, CartProvider, LocationProvider |
+| App Structure | ✅ Complete | Layout with AuthProvider, CustomerAuthProvider, CartProvider, LocationProvider, NotificationProvider |
 | Routing Structure | ✅ Complete | Separate routes for admin and customer portals with /customer/menu/[outletId], /customer/checkout |
 | Root Page | ✅ Complete | Redirects to /customer by default |
 | Admin Login | ✅ Complete | Dedicated /admin/login page for admin authentication |
@@ -207,10 +208,11 @@ d:\restaurant/
 | Checkout Page | ✅ Complete | /customer/checkout with address selection, order summary, place order |
 | Shopping Cart | ✅ Complete | CartContext with localStorage persistence, quantity controls, modifier support |
 | Location Features | ✅ Complete | Browser geolocation API, distance calculation (Haversine), manual address geocoding, distance badges |
-| Admin Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible) |
+| Admin Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible), notification bell |
 | Authentication | ✅ Complete | Login, logout, JWT handling (admin users) |
 | Customer Authentication | ✅ Complete | Customer registration, login, profile management |
 | Customer Auth Sheet | ✅ Complete | Responsive dialog modal for sign-in/sign-up (centered on desktop, bottom sheet on mobile) |
+| Real-time Notifications | ✅ Complete | WebSocket-based order notifications for restaurant admins/managers with bell icon and notification panel |
 | User Management | ✅ Complete | Users list, create, edit, delete, change password |
 | Restaurant Management | ✅ Complete | Restaurants list, create (SUPER_ADMIN), add/remove users (SUPER_ADMIN, RESTAURANT_ADMIN) |
 | Outlet Management | ✅ Complete | Outlets list, create with restaurant filter, user management (SUPER_ADMIN, RESTAURANT_ADMIN) |
@@ -471,6 +473,50 @@ Each restaurant card features:
 2. **Login:** Super Admin logs in via `/auth/login` → receives JWT tokens
 3. **Create Users:** Super Admin creates other users via `/users/create`
 4. **Role Selection:** Frontend sends role in request body (no defaults)
+
+### WebSocket Notifications
+
+The system includes real-time order notifications for restaurant admins and managers using WebSocket (Socket.io).
+
+**Architecture:**
+- **Backend:** NestJS WebSocket Gateway (`notifications.gateway.ts`) with room-based subscriptions
+- **Frontend:** React Context Provider with Socket.io client for real-time updates
+
+**Notification Flow:**
+
+1. **Connection:** Restaurant admins/managers connect via WebSocket when logged into dashboard
+2. **Auto-Subscription:** Users are automatically subscribed to their assigned restaurant rooms based on JWT token and database relationships
+3. **Order Events:** When orders are created/updated/cancelled, the backend emits notifications to relevant restaurant rooms
+4. **UI Updates:** Dashboard notification bell shows unread count and displays notifications in a panel
+
+**Notification Types:**
+- `order.created` - New order received with customer details, items, and delivery address
+- `order.updated` - Order status changed (e.g., confirmed, preparing, ready)
+- `order.cancelled` - Order cancelled by customer
+
+**WebSocket Namespace:** `/notifications`
+
+**Room Naming Convention:** `restaurant:{restaurantId}`
+
+**Example Events:**
+
+```typescript
+// Backend emits to restaurant room
+this.server.to(`restaurant:${restaurantId}`).emit('order.created', {
+  orderId: 123,
+  outletId: 5,
+  outletName: "Downtown Branch",
+  status: "PENDING",
+  total: 450,
+  items: [...],
+  deliveryAddress: {...}
+});
+
+// Frontend receives and displays notification
+notificationSocket.on('order.created', (data) => {
+  // Update notification bell and panel
+});
+```
 
 ### Role Permissions
 
@@ -897,6 +943,9 @@ npx shadcn@latest add dialog -y
 - ✅ **Address Form Component** - Created address-form.tsx modal for adding/editing customer addresses with validation and geocoding - 2026-06-24
 - ✅ **Order Summary Component** - Created order-summary.tsx component displaying cart items, outlet info, selected address, price breakdown - 2026-06-24
 - ✅ **Checkout Page** - Created /customer/checkout page with address selection, order summary, auth check, cart validation, order placement - 2026-06-24
+- ✅ **WebSocket Notifications Backend** - Created NotificationsGateway with room-based subscriptions for restaurant-specific order notifications - 2026-06-24
+- ✅ **WebSocket Notifications Frontend** - Created NotificationProvider, NotificationBell, and notification panel for real-time order alerts - 2026-06-24
+- ✅ **Order Notification Integration** - Integrated WebSocket event emission in OrderService for order created, updated, and cancelled events - 2026-06-24
 
 ### In Progress
 - No tasks currently in progress

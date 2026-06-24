@@ -13,6 +13,7 @@ import { CustomerModule } from './customer-module/customer-module.module';
 import { StorageModule } from './storage/storage.module';
 import { MenuModule } from './menu-module/menu-module.module';
 import { OrderModule } from './order-module/order-module.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { OrderModule } from './order-module/order-module.module';
     StorageModule,
     MenuModule,
     OrderModule,
+    NotificationsModule,
   ],
   controllers: [AppController, UserModuleController],
   providers: [AppService, UserModuleService],

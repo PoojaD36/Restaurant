@@ -4,12 +4,16 @@ import { PrismaService } from '../database/prisma.service';
 import { CreateOrderDto, OrderItemDto } from './dto/create-order.dto';
 import { OrderStatus, OutletStatus, MenuItemStatus } from 'src/database/generated/prisma/enums';
 import { PaginationDto, PaginationMeta, ApiResponse, PaginatedResponse } from '../common';
+import { NotificationsGateway } from '../notifications/notifications.gateway';
 
 @Injectable()
 export class OrderModuleService {
   private readonly logger = new Logger(OrderModuleService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsGateway: NotificationsGateway,
+  ) {}
 
   /**
    * Create order from cart items
@@ -124,6 +128,28 @@ export class OrderModuleService {
       });
 
       this.logger.log(`Order created: ${order.id} for customer: ${customerId}`);
+
+      // Emit WebSocket notification to restaurant
+      this.notificationsGateway.notifyOrderCreated(outletId, {
+        orderId: order.id,
+        outletId: order.outletId,
+        outletName: outlet.name,
+        status: order.status,
+        total: Number(order.total),
+        createdAt: order.createdAt,
+        items: orderItems.map(item => ({
+          ...item,
+          price: Number(item.price),
+        })),
+        deliveryAddress: {
+          name: address.name,
+          phone: address.phone,
+          addressLine1: address.addressLine1,
+          addressLine2: address.addressLine2,
+          city: address.city,
+        },
+        specialInstructions: order.specialInstructions,
+      });
 
       return {
         success: true,
@@ -316,6 +342,14 @@ export class OrderModuleService {
 
       this.logger.log(`Order cancelled: ${orderId} by customer: ${customerId}`);
 
+      // Emit WebSocket notification to restaurant
+      this.notificationsGateway.notifyOrderCancelled(order.outletId, {
+        orderId: updatedOrder.id,
+        outletId: order.outletId,
+        status: updatedOrder.status,
+        cancelledAt: new Date(),
+      });
+
       return {
         success: true,
         message: 'Order cancelled successfully',
@@ -332,28 +366,5 @@ export class OrderModuleService {
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel order';
       throw new BadRequestException(`${errorMessage}`);
     }
-  }
-
-  /**
-   * Calculate order totals helper
-   */
-  private calculateOrderTotals(items: OrderItemDto[], deliveryFee: number): { subtotal: number; total: number } {
-    let subtotal = 0;
-
-    for (const item of items) {
-      let itemTotal = Number(item.price) * item.quantity;
-      if (item.modifiers && item.modifiers.length > 0) {
-        for (const modifier of item.modifiers) {
-          for (const option of modifier.selectedOptions) {
-            itemTotal += Number(option.priceAdjustment) * item.quantity;
-          }
-        }
-      }
-      subtotal += itemTotal;
-    }
-
-    const total = subtotal + deliveryFee;
-
-    return { subtotal, total };
   }
 }
