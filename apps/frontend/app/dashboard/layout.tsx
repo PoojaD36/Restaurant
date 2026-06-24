@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import { useAuth } from '../../contexts/auth-context';
+import { NotificationProvider } from '../../contexts/notification-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
+import { NotificationBell } from '../../components/notification-bell';
 import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '../../components/change-password-modal';
@@ -51,12 +53,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
-      {/* Change Password Modal */}
-      <ChangePasswordModal
-        open={showChangePasswordModal}
-        onClose={() => setShowChangePasswordModal(false)}
-      />
+    <NotificationProvider>
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+        {/* Change Password Modal */}
+        <ChangePasswordModal
+          open={showChangePasswordModal}
+          onClose={() => setShowChangePasswordModal(false)}
+        />
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
@@ -87,14 +90,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </span>
             </Link>
           </div>
-          <Button
-            onClick={handleLogout}
-            variant="ghost"
-            size="icon"
-            className="text-slate-600 hover:text-red-600"
-          >
-            <LogOut className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <Button
+              onClick={handleLogout}
+              variant="ghost"
+              size="icon"
+              className="text-slate-600 hover:text-red-600"
+            >
+              <LogOut className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -255,5 +261,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
       </main>
     </div>
+    </NotificationProvider>
   );
 }
