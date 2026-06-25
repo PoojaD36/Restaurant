@@ -14,6 +14,7 @@ import { StorageModule } from './storage/storage.module';
 import { MenuModule } from './menu-module/menu-module.module';
 import { OrderModule } from './order-module/order-module.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { PaymentModule } from './payment-module/payment-module.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { NotificationsModule } from './notifications/notifications.module';
     MenuModule,
     OrderModule,
     NotificationsModule,
+    PaymentModule,
   ],
   controllers: [AppController, UserModuleController],
   providers: [AppService, UserModuleService],

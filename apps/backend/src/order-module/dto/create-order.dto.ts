@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsNumber, IsString, IsArray, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsNumber, IsString, IsArray, ValidateNested, IsEnum } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class OrderModifierDto {
@@ -47,4 +47,12 @@ export class CreateOrderDto {
   @IsOptional()
   @IsString()
   specialInstructions?: string;
+
+  @IsOptional()
+  @IsEnum(['CASH', 'CARD', 'UPI', 'WALLET'])
+  paymentMethod?: 'CASH' | 'CARD' | 'UPI' | 'WALLET';
+
+  @IsOptional()
+  @IsString()
+  razorpayPaymentId?: string;
 }

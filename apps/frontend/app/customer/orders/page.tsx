@@ -20,6 +20,8 @@ import {
   FileText,
   Calendar,
   IndianRupee,
+  CreditCard,
+  Banknote,
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -189,9 +191,25 @@ export default function CustomerOrdersPage() {
                                 {statusLabels[order.status]}
                               </Badge>
                             </div>
-                            <div className="flex items-center gap-1 text-xs text-gray-500">
-                              <Calendar className="h-3 w-3" />
-                              <span>{formatDate(order.createdAt)}</span>
+                            <div className="flex items-center gap-2 mt-2">
+                              {/* Payment Badge (if available in OrderListItem) */}
+                              <div className="flex items-center gap-1 text-xs text-gray-600">
+                                {order.total > 0 ? (
+                                  <>
+                                    <CreditCard className="h-3 w-3" />
+                                    <span>Paid</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Banknote className="h-3 w-3" />
+                                    <span>COD</span>
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1 text-xs text-gray-500">
+                                <Calendar className="h-3 w-3" />
+                                <span>{formatDate(order.createdAt)}</span>
+                              </div>
                             </div>
                           </div>
                           <div className="text-right">
