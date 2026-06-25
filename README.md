@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-24 (Customer Order Tracking & Notifications, Complete Order Status Flow)
+> **Last Updated:** 2026-06-25 (Payment Gateway Fixed & Working)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -21,6 +21,7 @@ A **full-stack food delivery and restaurant management system** built with:
 | Database ORM | Prisma | ^7.8.0 |
 | Database | PostgreSQL (Neon) | - |
 | Auth | JWT + Passport | - |
+| Payment Gateway | Razorpay | ^2.9.6 |
 | Password Hashing | bcrypt | ^6.0.0 |
 | Build Tool | Turborepo | ^2.9.18 |
 | Package Manager | pnpm | 9.0.0 |
@@ -65,6 +66,7 @@ d:\restaurant/
 │   │   │   ├── user-module/    # User management module
 │   │   │   ├── restaurant-module/  # Restaurant management module
 │   │   │   ├── outlet-module/      # Outlet management module
+│   │   │   ├── payment-module/     # Payment processing (Razorpay)
 │   │   │   ├── app.module.ts
 │   │   │   └── main.ts
 │   │   ├── .env                # Backend environment variables
@@ -97,6 +99,7 @@ d:\restaurant/
 │       │   ├── add-restaurant-user-modal.tsx
 │       │   ├── create-outlet-modal.tsx
 │       │   └── add-outlet-user-modal.tsx
+│       │   ├── payment-method-selector.tsx  # Payment method selection (Razorpay/COD)
 │       ├── contexts/
 │       │   ├── auth-context.tsx       # Admin auth state management
 │       │   ├── customer-auth-context.tsx  # Customer auth state management
@@ -111,6 +114,8 @@ d:\restaurant/
 │       │   ├── auth-api.ts         # API functions for auth
 │       │   ├── customer-api.ts     # API functions for customers
 │       │   ├── public-api.ts       # Public API (outlets, menus)
+│       │   ├── payment-api.ts      # Payment API (Razorpay integration)
+│       │   └── razorpay-payment.ts # Razorpay checkout wrapper
 │       │   ├── users-api.ts        # API functions for users
 │       │   ├── restaurants-api.ts  # API functions for restaurants
 │       │   └── outlets-api.ts      # API functions for outlets
@@ -323,6 +328,14 @@ Each restaurant card features:
 - **Location Display**: Current city shown in breadcrumb navigation
 - **Distance Badges**: Color-coded distance badges on restaurant cards
 
+### Payment Features
+- **Payment Method Selection**: Choose between "Pay Online" or "Cash on Delivery" in checkout
+- **Razorpay Integration**: Secure online payments via UPI, cards, wallets, netbanking
+- **Payment Status Tracking**: View payment method and status in order details
+- **COD Support**: Cash on Delivery option with "Pay at Delivery" status
+- **Payment Badges**: Visual indicators for payment method in orders list
+- **Transaction IDs**: View transaction IDs for online payments
+
 ---
 
 ## API Endpoints
@@ -399,6 +412,35 @@ Each restaurant card features:
 | `/customers/addresses/:addressId/default` | POST | Customer JWT | Set default address |
 
 **Note:** Customer addresses require valid latitude/longitude coordinates. Geocoding is performed automatically via Nominatim API. If geocoding fails, the request returns 400 with error message "Unable to geocode address. Please provide a valid address."
+
+### Payment Management (Razorpay Integration)
+
+| Endpoint | Method | Auth Required | Description |
+|----------|--------|---------------|-------------|
+| `/payments/create-order` | POST | Customer JWT | Create Razorpay order for payment |
+| `/payments/verify` | POST | Customer JWT | Verify Razorpay payment signature |
+| `/payments/:orderId` | GET | Customer JWT | Get payment status by order ID |
+
+**Payment Methods Supported:**
+- **Online Payment**: UPI, Credit/Debit Cards, Wallets, Netbanking (via Razorpay)
+- **Cash on Delivery (COD)**: Pay cash at delivery
+
+**Payment Flow:**
+1. Customer selects payment method in checkout (Online or COD)
+2. For **Online Payment**:
+   - Frontend creates Razorpay order via `/payments/create-order`
+   - Razorpay checkout modal opens for payment
+   - After successful payment, signature verified via `/payments/verify`
+   - Order created with `COMPLETED` payment status
+3. For **COD**:
+   - Order created directly with `CASH` payment method
+   - Payment status set to `PENDING` (paid at delivery)
+
+**Payment Status:**
+- `COMPLETED`: Payment successful (online payments)
+- `PENDING`: Payment pending (COD - paid at delivery)
+- `FAILED`: Payment failed (online payment attempt failed)
+- `REFUNDED`: Payment refunded (cancellations)
 
 ### Order Management
 
@@ -672,6 +714,10 @@ FRONTEND_URL=https://restaurant-frontend-kappa-ten.vercel.app
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_KEY=your_supabase_service_key
 SUPABASE_BUCKET=restaurant-menu-images
+
+# Razorpay Payment Gateway
+RAZORPAY_KEY_ID=rzp_test_xxxxx
+RAZORPAY_KEY_SECRET=rzp_test_xxxxx
 ```
 
 **For Local Development:**
@@ -712,6 +758,9 @@ NEXT_PUBLIC_API_URL=https://restaurant-t24q.onrender.com
    - `SUPABASE_URL=https://your-project-id.supabase.co`
    - `SUPABASE_SERVICE_KEY=your-service-role-key`
    - `SUPABASE_BUCKET=restaurant-menu-images`
+4. Add Razorpay environment variables:
+   - `RAZORPAY_KEY_ID` - Get from Razorpay Dashboard
+   - `RAZORPAY_KEY_SECRET` - Get from Razorpay Dashboard
 
 **Vercel (Frontend):**
 1. Add `NEXT_PUBLIC_API_URL=https://restaurant-t24q.onrender.com` in Vercel Dashboard → Settings → Environment Variables
@@ -816,6 +865,7 @@ npx prisma migrate dev --name add_order_tracking
 | `components/notification-panel.tsx` | Slide-out panel displaying all notifications with mark as read/clear options (admin) |
 | `components/customer-notification-bell.tsx` | Customer notification bell icon with unread count badge and connection status |
 | `components/customer-notification-panel.tsx` | Customer notification panel with order status updates and order navigation |
+| `components/payment-method-selector.tsx` | Payment method selection component (Razorpay/COD) with icons and selection state |
 | `lib/notifications-socket.ts` | WebSocket client service for admin/manager order notifications |
 | `lib/notification-types.ts` | TypeScript types for admin notifications and notification data |
 | `contexts/notification-context.tsx` | Admin notification state management with useNotifications hook |
@@ -1039,6 +1089,15 @@ npx shadcn@latest add dialog -y
 - ✅ **Customer Notification Routing Fix** - Fixed notification routing to send order status updates only to customers (not restaurants) - 2026-06-24
 - ✅ **Customer WebSocket Auth Fix** - Fixed notifications gateway to correctly extract customer ID from JWT payload.sub - 2026-06-24
 - ✅ **Order Status Restoration** - Restored all 7 order statuses (PENDING, CONFIRMED, PREPARING, READY, OUT_FOR_DELIVERY, DELIVERED, CANCELLED) - 2026-06-24
+- ✅ **Payment Module Backend** - Implemented complete payment processing module with Razorpay integration - 2026-06-25
+- ✅ **Razorpay Integration** - Created payment endpoints for creating orders, verifying signatures, and checking payment status - 2026-06-25
+- ✅ **Payment Method Selector** - Created payment method selection component with COD and online payment options - 2026-06-25
+- ✅ **Checkout Payment Flow** - Implemented complete payment flow in checkout with Razorpay checkout modal and COD support - 2026-06-25
+- ✅ **Payment Records** - Orders now create payment records with method (CASH/CARD/UPI/WALLET) and status (PENDING/COMPLETED) - 2026-06-25
+- ✅ **Payment API Functions** - Created frontend payment API functions for Razorpay order creation and verification - 2026-06-25
+- ✅ **Payment Display** - Added payment information display in order details and orders list pages - 2026-06-25
+- ✅ **Razorpay SDK Integration** - Implemented dynamic Razorpay SDK loading and secure checkout modal - 2026-06-25
+- ✅ **Payment Gateway Fix** - Fixed payment order creation API response format to use standard wrapped format (success/message/data) - 2026-06-25
 
 ### In Progress
 - No tasks currently in progress
@@ -1047,6 +1106,7 @@ npx shadcn@latest add dialog -y
 - [ ] **Customer Profile Page** - Create /customer/profile page for customer information and address management
 - [ ] **Menu Edit Features** - Add edit menu, edit category, edit item, and modifier management UI
 - [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
+- [ ] **Production Payment Keys** - Set up live Razorpay keys for production deployment
 - [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and analytics
 - [ ] **API Documentation** - Add Swagger/OpenAPI docs
 
@@ -1199,3 +1259,4 @@ src/{module-name}/
 - Backend uses NestJS 11 with latest conventions
 - Database seeder uses `tsx` for ES module compatibility
 - Role checks handled by decorators - service methods don't re-verify roles
+- **Payment Integration**: Razorpay test keys are configured for development. Get production keys from https://dashboard.razorpay.com

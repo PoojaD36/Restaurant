@@ -3,15 +3,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, MapPin, ShoppingBag, CheckCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, ShoppingBag, CheckCircle, Loader2 } from 'lucide-react';
 import { useCart } from '../../../contexts/cart-context';
 import { useCustomerAuth } from '../../../contexts/customer-auth-context';
 import { createOrder } from '../../../lib/order-api';
 import { getCustomerProfile, deleteCustomerAddress } from '../../../lib/customer-api';
+import { createRazorpayOrder, verifyRazorpayPayment } from '../../../lib/payment-api';
+import { openRazorpayCheckout, loadRazorpayScript } from '../../../lib/razorpay-payment';
 import { CustomerAddress } from '../../../lib/customer-types';
 import { AddressSelector } from '../../../components/address-selector';
 import { AddressForm } from '../../../components/address-form';
 import { OrderSummary } from '../../../components/order-summary';
+import { PaymentMethodSelector } from '../../../components/payment-method-selector';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { CustomerAuthSheet } from '../../../components/customer-auth-sheet';
@@ -31,6 +34,7 @@ export default function CheckoutPage() {
   const [orderId, setOrderId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState<string>('cod'); // 'cod' or 'online'
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -146,23 +150,123 @@ export default function CheckoutPage() {
         })),
       }));
 
-      const orderData = {
-        outletId: cart.outletId,
-        addressId: selectedAddressId,
-        items: orderItems,
-      };
+      // Calculate total amount
+      const subtotal = cart.items.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      const deliveryFee = 30; // Flat delivery fee
+      const total = subtotal + deliveryFee;
 
-      const response = await createOrder(token, orderData);
+      // Handle COD (Cash on Delivery)
+      if (paymentMethod === 'cod') {
+        const orderData = {
+          outletId: cart.outletId,
+          addressId: selectedAddressId,
+          items: orderItems,
+          paymentMethod: 'CASH' as const,
+        };
 
-      if (response.success) {
-        setOrderId(response.data.orderId);
-        setOrderSuccess(true);
-        clearCart();
+        const response = await createOrder(token, orderData);
 
-        // Redirect to order confirmation after 2 seconds
-        setTimeout(() => {
-          router.push(`/customer/orders/${response.data.orderId}`);
-        }, 2000);
+        if (response.success) {
+          setOrderId(response.data.orderId);
+          setOrderSuccess(true);
+          clearCart();
+
+          // Redirect to order confirmation after 2 seconds
+          setTimeout(() => {
+            router.push(`/customer/orders/${response.data.orderId}`);
+          }, 2000);
+        }
+      } else {
+        // Handle Online Payment (Razorpay)
+        try {
+          // Step 1: Load Razorpay SDK
+          await loadRazorpayScript();
+
+          // Step 2: Create Razorpay order
+          const razorpayOrderResponse = await createRazorpayOrder(token, total);
+
+          if (!razorpayOrderResponse.success) {
+            throw new Error('Failed to create payment order');
+          }
+
+          const { razorpayOrderId, keyId } = razorpayOrderResponse.data;
+
+          // Step 3: Open Razorpay checkout
+          await new Promise<void>((resolve, reject) => {
+            openRazorpayCheckout({
+              key: keyId,
+              amount: total * 100, // Convert to paise
+              currency: 'INR',
+              name: 'FoodHub',
+              description: `Order for ${cart.items.length} item${cart.items.length > 1 ? 's' : ''}`,
+              order_id: razorpayOrderId,
+              customer: {
+                name: customer?.firstName ? `${customer.firstName} ${customer.lastName || ''}`.trim() : 'Customer',
+                email: customer?.email || 'customer@example.com',
+                contact: customer?.phone || '9999999999',
+              },
+              handler: async (response) => {
+                // Step 4: Verify payment on backend
+                try {
+                  const verifyResponse = await verifyRazorpayPayment(token, {
+                    orderId: response.razorpay_order_id,
+                    razorpayPaymentId: response.razorpay_payment_id,
+                    razorpaySignature: response.razorpay_signature,
+                  });
+
+                  if (verifyResponse.success) {
+                    // Step 5: Create actual order with verified payment
+                    const orderData = {
+                      outletId: cart.outletId,
+                      addressId: selectedAddressId,
+                      items: orderItems,
+                      paymentMethod: 'UPI' as const, // Will be updated based on actual method
+                      razorpayPaymentId: response.razorpay_payment_id,
+                    };
+
+                    const orderResponse = await createOrder(token, orderData);
+
+                    if (orderResponse.success) {
+                      setOrderId(orderResponse.data.orderId);
+                      setOrderSuccess(true);
+                      clearCart();
+
+                      // Redirect to order confirmation after 2 seconds
+                      setTimeout(() => {
+                        router.push(`/customer/orders/${orderResponse.data.orderId}`);
+                      }, 2000);
+                    }
+
+                    resolve();
+                  } else {
+                    reject(new Error('Payment verification failed'));
+                  }
+                } catch (error) {
+                  reject(error);
+                }
+              },
+              modal: {
+                ondismiss: () => {
+                  reject(new Error('Payment cancelled by user'));
+                },
+              },
+              theme: {
+                color: '#F97316', // Orange color
+              },
+            });
+          });
+        } catch (paymentError: any) {
+          // Handle payment errors
+          if (paymentError.message === 'Payment cancelled by user') {
+            setError('Payment was cancelled. Please try again.');
+          } else {
+            setError(paymentError.message || 'Payment failed. Please try again.');
+          }
+          throw paymentError;
+        }
       }
     } catch (err: any) {
       setError(err.message || 'Failed to place order');
@@ -303,6 +407,14 @@ export default function CheckoutPage() {
                 onDeleteAddress={handleDeleteAddress}
               />
             )}
+
+            {/* Payment Method Selection */}
+            <Card className="p-6">
+              <PaymentMethodSelector
+                selectedMethod={paymentMethod}
+                onMethodChange={setPaymentMethod}
+              />
+            </Card>
           </div>
 
           {/* Right Column - Order Summary */}

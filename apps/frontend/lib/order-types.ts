@@ -119,6 +119,8 @@ export interface CreateOrderRequest {
     modifiers: OrderModifier[];
   }>;
   specialInstructions?: string;
+  paymentMethod?: 'CASH' | 'CARD' | 'UPI' | 'WALLET';
+  razorpayPaymentId?: string;
 }
 
 export interface CreateOrderResponse {
@@ -131,6 +133,13 @@ export interface CreateOrderResponse {
     deliveryFee: number;
     total: number;
     estimatedDeliveryTime?: number;
+    payment?: {
+      id: number;
+      amount: number;
+      method: PaymentMethod;
+      status: PaymentStatus;
+      transactionId?: string;
+    };
     items: OrderItem[];
   };
 }

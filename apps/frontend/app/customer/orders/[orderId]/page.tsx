@@ -14,6 +14,8 @@ import {
   Utensils,
   Receipt,
   Calendar,
+  CreditCard,
+  Banknote,
 } from 'lucide-react';
 import { useCustomerAuth } from '../../../../contexts/customer-auth-context';
 import { getOrderById, cancelOrder } from '../../../../lib/order-api';
@@ -332,11 +334,79 @@ export default function OrderDetailsPage() {
               </Card>
             </motion.div>
 
+            {/* Payment Information */}
+            {order.payment && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55 }}
+              >
+                <Card className="p-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    {order.payment.method === 'CASH' ? (
+                      <Banknote className="h-5 w-5 text-orange-600" />
+                    ) : (
+                      <CreditCard className="h-5 w-5 text-orange-600" />
+                    )}
+                    Payment Information
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-gray-600">
+                      <span>Method</span>
+                      <span className="font-medium text-gray-900">
+                        {order.payment.method === 'CASH'
+                          ? 'Cash on Delivery'
+                          : order.payment.method === 'UPI'
+                          ? 'UPI'
+                          : order.payment.method === 'CARD'
+                          ? 'Card'
+                          : 'Wallet'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-gray-600">
+                      <span>Status</span>
+                      <span
+                        className={`font-medium ${
+                          order.payment.status === 'COMPLETED'
+                            ? 'text-green-600'
+                            : order.payment.status === 'PENDING'
+                            ? 'text-yellow-600'
+                            : 'text-red-600'
+                        }`}
+                      >
+                        {order.payment.status === 'COMPLETED'
+                          ? 'Paid'
+                          : order.payment.status === 'PENDING'
+                          ? 'Pay at Delivery'
+                          : order.payment.status === 'FAILED'
+                          ? 'Failed'
+                          : 'Refunded'}
+                      </span>
+                    </div>
+                    {order.payment.method === 'CASH' && order.payment.status === 'PENDING' && (
+                      <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800">
+                          <span className="font-semibold">Note:</span> Please keep exact change ready
+                          for a smooth delivery experience.
+                        </p>
+                      </div>
+                    )}
+                    {order.payment.transactionId && order.payment.method !== 'CASH' && (
+                      <div className="flex justify-between text-gray-600">
+                        <span>Transaction ID</span>
+                        <span className="font-mono text-sm text-gray-900">{order.payment.transactionId}</span>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
+
             {/* Price Breakdown */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
+              transition={{ delay: 0.65 }}
             >
               <Card className="p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4">Price Breakdown</h3>
@@ -362,7 +432,7 @@ export default function OrderDetailsPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.7 }}
+                transition={{ delay: 0.75 }}
               >
                 <Button
                   onClick={handleCancelOrder}

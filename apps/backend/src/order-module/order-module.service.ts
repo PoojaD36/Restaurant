@@ -127,6 +127,42 @@ export class OrderModuleService {
         where: { orderId: order.id },
       });
 
+      // Create payment record if payment method is provided
+      let paymentData: {
+        id: number;
+        amount: number;
+        method: string;
+        status: string;
+        transactionId: string | null;
+      } | null = null;
+
+      if (dto.paymentMethod) {
+        const paymentMethod = dto.paymentMethod as any;
+        const paymentStatus = dto.paymentMethod === 'CASH'
+          ? 'PENDING'  // COD - payment pending until delivery
+          : 'COMPLETED'; // Online payment - already paid
+
+        const paymentRecord = await this.prisma.payment.create({
+          data: {
+            orderId: order.id,
+            amount: total,
+            method: paymentMethod,
+            status: paymentStatus,
+            transactionId: dto.razorpayPaymentId || null,
+          },
+        });
+
+        paymentData = {
+          id: paymentRecord.id,
+          amount: Number(paymentRecord.amount),
+          method: paymentRecord.method,
+          status: paymentRecord.status,
+          transactionId: paymentRecord.transactionId,
+        };
+
+        this.logger.log(`Payment record created: ${paymentRecord.id} for order: ${order.id}, method: ${paymentMethod}, status: ${paymentStatus}`);
+      }
+
       this.logger.log(`Order created: ${order.id} for customer: ${customerId}`);
 
       // Emit WebSocket notification to restaurant
@@ -161,6 +197,7 @@ export class OrderModuleService {
           deliveryFee: Number(order.deliveryFee),
           total: Number(order.total),
           estimatedDeliveryTime: order.estimatedDeliveryTime,
+          payment: paymentData,
           items: orderItems.map(item => ({
             ...item,
             price: Number(item.price),
