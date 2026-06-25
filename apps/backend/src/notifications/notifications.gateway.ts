@@ -126,20 +126,29 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
       // Get user's restaurant subscriptions (for admin/manager roles)
       if (role) {
-        const userRestaurants = await this.getUserRestaurants(userId, role);
-        this.userRestaurants.set(userId, userRestaurants);
-
-        // Auto-subscribe to user's restaurants
-        for (const restaurantId of userRestaurants) {
-          const roomName = `restaurant:${restaurantId}`;
+        // Check if user is a delivery agent
+        if (role === 'DELIVERY_AGENT') {
+          // Subscribe delivery agent to their personal room for order assignments
+          const roomName = `delivery-agent:${userId}`;
           client.join(roomName);
-          this.logger.debug(`User ${userId} auto-subscribed to ${roomName}`);
-        }
+          this.logger.log(`Delivery Agent ${userId} connected with socket ${client.id} and joined ${roomName}`);
+        } else {
+          // Admin/Manager - subscribe to restaurant rooms
+          const userRestaurants = await this.getUserRestaurants(userId, role);
+          this.userRestaurants.set(userId, userRestaurants);
 
-        this.logger.log(
-          `User ${userId} (${payload.role}) connected with socket ${client.id}. ` +
-          `Subscribed to ${userRestaurants.size} restaurants.`,
-        );
+          // Auto-subscribe to user's restaurants
+          for (const restaurantId of userRestaurants) {
+            const roomName = `restaurant:${restaurantId}`;
+            client.join(roomName);
+            this.logger.debug(`User ${userId} auto-subscribed to ${roomName}`);
+          }
+
+          this.logger.log(
+            `User ${userId} (${payload.role}) connected with socket ${client.id}. ` +
+            `Subscribed to ${userRestaurants.size} restaurants.`,
+          );
+        }
       } else {
         // Customer - subscribe to their personal room for order updates
         const roomName = `customer:${userId}`;
@@ -332,6 +341,18 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     this.server.to(roomName).emit('order.status.updated', orderData);
     this.logger.log(
       `Order #${orderData.orderId} status update sent to customer ${customerId}`,
+    );
+  }
+
+  /**
+   * Notify delivery agent of new order assignment
+   * Called by OrderService when a delivery agent is assigned to an order
+   */
+  notifyDeliveryAgentOrderAssigned(deliveryAgentId: number, orderData: any) {
+    const roomName = `delivery-agent:${deliveryAgentId}`;
+    this.server.to(roomName).emit('order.assigned', orderData);
+    this.logger.log(
+      `Order #${orderData.orderId} assignment notification sent to delivery agent ${deliveryAgentId}`,
     );
   }
 

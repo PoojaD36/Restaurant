@@ -1,8 +1,8 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
-import { CreateOrderDto, OrderItemDto } from './dto/create-order.dto';
-import { OrderStatus, OutletStatus, MenuItemStatus } from 'src/database/generated/prisma/enums';
+import { CreateOrderDto, OrderItemDto, AssignDeliveryAgentDto } from './dto';
+import { OrderStatus, OutletStatus, MenuItemStatus, UserRole } from 'src/database/generated/prisma/enums';
 import { PaginationDto, PaginationMeta, ApiResponse, PaginatedResponse } from '../common';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 
@@ -299,6 +299,14 @@ export class OrderModuleService {
           },
           items: true,
           payment: true,
+          deliveryAgent: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+            },
+          },
         },
       });
 
@@ -339,6 +347,11 @@ export class OrderModuleService {
           payment: order.payment ? {
             ...order.payment,
             amount: Number(order.payment.amount),
+          } : null,
+          deliveryAgent: order.deliveryAgent ? {
+            id: order.deliveryAgent.id,
+            name: `${order.deliveryAgent.firstName} ${order.deliveryAgent.lastName || ''}`.trim(),
+            phone: order.deliveryAgent.phone,
           } : null,
         },
       };
@@ -384,6 +397,15 @@ export class OrderModuleService {
               },
             },
             items: true,
+            payment: true,
+            deliveryAgent: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                phone: true,
+              },
+            },
           },
           orderBy: { createdAt: 'desc' },
           skip,
@@ -416,6 +438,16 @@ export class OrderModuleService {
             ...item,
             price: Number(item.price),
           })),
+          payment: order.payment ? {
+            method: order.payment.method,
+            status: order.payment.status,
+            amount: Number(order.payment.amount),
+          } : null,
+          deliveryAgent: order.deliveryAgent ? {
+            id: order.deliveryAgent.id,
+            name: `${order.deliveryAgent.firstName} ${order.deliveryAgent.lastName || ''}`.trim(),
+            phone: order.deliveryAgent.phone,
+          } : null,
         })),
         pagination,
       };
@@ -566,6 +598,237 @@ export class OrderModuleService {
         this.logger.debug(`Error stack: ${error.stack}`);
       }
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel order';
+      throw new BadRequestException(`${errorMessage}`);
+    }
+  }
+
+  /**
+   * Assign delivery agent to order
+   */
+  async assignDeliveryAgent(orderId: number, dto: AssignDeliveryAgentDto): Promise<ApiResponse<any>> {
+    try {
+      // Verify order exists and is in appropriate status
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          outlet: true,
+        },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      // Only allow assignment for orders that are ready or out for delivery
+      if (order.status !== OrderStatus.READY && order.status !== OrderStatus.OUT_FOR_DELIVERY) {
+        throw new BadRequestException('Can only assign delivery agent to orders that are ready or out for delivery');
+      }
+
+      // Verify delivery agent exists and has DELIVERY_AGENT role
+      const deliveryAgent = await this.prisma.user.findFirst({
+        where: {
+          id: dto.deliveryAgentId,
+          role: UserRole.DELIVERY_AGENT,
+          status: 'ACTIVE',
+        },
+      });
+
+      if (!deliveryAgent) {
+        throw new NotFoundException('Delivery agent not found or inactive');
+      }
+
+      // Update order with delivery agent
+      const updatedOrder = await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          deliveryAgentId: dto.deliveryAgentId,
+          // If order is READY, automatically move to OUT_FOR_DELIVERY when agent is assigned
+          status: order.status === OrderStatus.READY ? OrderStatus.OUT_FOR_DELIVERY : order.status,
+        },
+        select: {
+          id: true,
+          status: true,
+          deliveryAgentId: true,
+          customerId: true,
+        },
+      });
+
+      this.logger.log(`Delivery agent ${dto.deliveryAgentId} assigned to order ${orderId}`);
+
+      // Notify customer about delivery agent assignment
+      this.notificationsGateway.notifyCustomerOrderUpdated(order.customerId, {
+        orderId: updatedOrder.id,
+        status: updatedOrder.status,
+        previousStatus: order.status,
+        total: Number(order.total),
+        deliveryAgentAssigned: true,
+      });
+
+      // Notify delivery agent about new assignment
+      this.notificationsGateway.notifyDeliveryAgentOrderAssigned(dto.deliveryAgentId, {
+        orderId: updatedOrder.id,
+        outletId: order.outletId,
+        outletName: order.outlet.name,
+        status: updatedOrder.status,
+        total: Number(order.total),
+        customerName: order.deliveryName,
+        customerPhone: order.deliveryPhone,
+        deliveryAddress: {
+          addressLine1: order.deliveryAddressLine1,
+          addressLine2: order.deliveryAddressLine2,
+          city: order.deliveryCity,
+          state: order.deliveryState,
+          postalCode: order.deliveryPostalCode,
+          latitude: Number(order.deliveryLatitude),
+          longitude: Number(order.deliveryLongitude),
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Delivery agent assigned successfully',
+        data: {
+          orderId: updatedOrder.id,
+          status: updatedOrder.status,
+          deliveryAgentId: updatedOrder.deliveryAgentId,
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(`Failed to assign delivery agent: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to assign delivery agent';
+      throw new BadRequestException(`${errorMessage}`);
+    }
+  }
+
+  /**
+   * Get orders for a delivery agent
+   */
+  async getDeliveryAgentOrders(deliveryAgentId: number, dto: PaginationDto): Promise<PaginatedResponse<any>> {
+    try {
+      const { page, limit, skip } = dto;
+
+      const [orders, total] = await Promise.all([
+        this.prisma.order.findMany({
+          where: {
+            deliveryAgentId,
+            status: {
+              in: [OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERED],
+            },
+          },
+          include: {
+            outlet: {
+              select: {
+                id: true,
+                name: true,
+                addressLine1: true,
+                city: true,
+                phone: true,
+              },
+            },
+            items: true,
+            payment: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          skip,
+          take: limit,
+        }),
+        this.prisma.order.count({
+          where: {
+            deliveryAgentId,
+            status: {
+              in: [OrderStatus.OUT_FOR_DELIVERY, OrderStatus.DELIVERED],
+            },
+          },
+        }),
+      ]);
+
+      const pagination = new PaginationMeta(total, page, limit);
+
+      return {
+        success: true,
+        message: 'Delivery agent orders retrieved successfully',
+        data: orders.map(order => ({
+          id: order.id,
+          status: order.status,
+          subtotal: Number(order.subtotal),
+          deliveryFee: Number(order.deliveryFee),
+          total: Number(order.total),
+          specialInstructions: order.specialInstructions,
+          estimatedDeliveryTime: order.estimatedDeliveryTime,
+          createdAt: order.createdAt,
+          deliveredAt: order.deliveredAt,
+          deliveryName: order.deliveryName,
+          deliveryPhone: order.deliveryPhone,
+          deliveryAddressLine1: order.deliveryAddressLine1,
+          deliveryAddressLine2: order.deliveryAddressLine2,
+          deliveryCity: order.deliveryCity,
+          deliveryState: order.deliveryState,
+          deliveryCountry: order.deliveryCountry,
+          deliveryPostalCode: order.deliveryPostalCode,
+          deliveryLatitude: Number(order.deliveryLatitude),
+          deliveryLongitude: Number(order.deliveryLongitude),
+          outlet: order.outlet,
+          items: order.items.map(item => ({
+            ...item,
+            price: Number(item.price),
+          })),
+          payment: order.payment ? {
+            method: order.payment.method,
+            status: order.payment.status,
+            amount: Number(order.payment.amount),
+          } : null,
+        })),
+        pagination,
+      };
+    } catch (error) {
+      this.logger.error(`Failed to get delivery agent orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve delivery agent orders';
+      throw new BadRequestException(`${errorMessage}`);
+    }
+  }
+
+  /**
+   * Update delivery agent location (for tracking)
+   */
+  async updateDeliveryLocation(orderId: number, deliveryAgentId: number, location: { latitude: number; longitude: number }): Promise<ApiResponse<any>> {
+    try {
+      // Verify order is assigned to this delivery agent
+      const order = await this.prisma.order.findFirst({
+        where: {
+          id: orderId,
+          deliveryAgentId,
+        },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found or not assigned to this delivery agent');
+      }
+
+      // For now, just return success
+      // In production, you would store this in a separate location tracking table
+      // or use a real-time location tracking service
+
+      this.logger.log(`Location updated for order ${orderId} by delivery agent ${deliveryAgentId}`);
+
+      return {
+        success: true,
+        message: 'Location updated successfully',
+        data: {
+          orderId,
+          latitude: location.latitude,
+          longitude: location.longitude,
+          updatedAt: new Date(),
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Failed to update delivery location: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update delivery location';
       throw new BadRequestException(`${errorMessage}`);
     }
   }

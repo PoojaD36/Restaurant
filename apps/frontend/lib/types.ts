@@ -252,6 +252,7 @@ export interface AvailableOutletUser {
   firstName: string;
   lastName: string | null;
   email: string;
+  phone: string;
   role: UserRole;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 }

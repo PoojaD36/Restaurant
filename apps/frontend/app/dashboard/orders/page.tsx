@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getOutletOrders, updateOrderStatus } from '../../../lib/order-api';
-import { getAllOutlets } from '../../../lib/outlets-api';
+import { getOutletOrders, updateOrderStatus, assignDeliveryAgent } from '../../../lib/order-api';
+import { getAllOutlets, getAvailableOutletUsers } from '../../../lib/outlets-api';
 import { OrderStatus, OrderListItem } from '../../../lib/order-types';
-import { OutletListItem } from '../../../lib/types';
+import { OutletListItem, AvailableOutletUser } from '../../../lib/types';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
@@ -27,6 +27,10 @@ import {
   MapPin,
   ChevronDown,
   ChevronUp,
+  CreditCard,
+  Wallet,
+  DollarSign,
+  User,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -49,6 +53,39 @@ const statusOrder: OrderStatus[] = [
   OrderStatus.DELIVERED,
 ];
 
+// Payment method configuration
+const getPaymentConfig = (payment: { method: string; status: string } | undefined) => {
+  if (!payment) {
+    return {
+      label: 'Payment Info Not Available',
+      color: 'bg-gray-100 text-gray-800 border-gray-300',
+      icon: <Wallet className="h-3 w-3" />,
+    };
+  }
+
+  if (payment.method === 'CASH') {
+    return {
+      label: 'Cash on Delivery',
+      color: 'bg-orange-100 text-orange-800 border-orange-300',
+      icon: <DollarSign className="h-3 w-3" />,
+    };
+  }
+
+  if (payment.status === 'COMPLETED') {
+    return {
+      label: `Paid Online (${payment.method})`,
+      color: 'bg-green-100 text-green-800 border-green-300',
+      icon: <CreditCard className="h-3 w-3" />,
+    };
+  }
+
+  return {
+    label: `${payment.method} - ${payment.status}`,
+    color: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+    icon: <Wallet className="h-3 w-3" />,
+  };
+};
+
 export default function OrdersManagementPage() {
   const [outlets, setOutlets] = useState<OutletListItem[]>([]);
   const [selectedOutlet, setSelectedOutlet] = useState<string | null>(null);
@@ -57,6 +94,9 @@ export default function OrdersManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState<number | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
+  const [availableAgents, setAvailableAgents] = useState<AvailableOutletUser[]>([]);
+  const [isLoadingAgents, setIsLoadingAgents] = useState(false);
+  const [isAssigningAgent, setIsAssigningAgent] = useState<number | null>(null);
 
   // Fetch user's outlets on mount
   useEffect(() => {
@@ -104,6 +144,33 @@ export default function OrdersManagementPage() {
     fetchOrders();
   }, [selectedOutlet, filterStatus]);
 
+  // Fetch available delivery agents when outlet changes
+  useEffect(() => {
+    const fetchDeliveryAgents = async () => {
+      if (!selectedOutlet) return;
+
+      setIsLoadingAgents(true);
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) return;
+
+        const response = await getAvailableOutletUsers(selectedOutlet);
+
+        if (response.success && response.data) {
+          // Filter only delivery agents
+          const agents = response.data.filter((user: AvailableOutletUser) => user.role === 'DELIVERY_AGENT');
+          setAvailableAgents(agents);
+        }
+      } catch (error) {
+        console.error('Failed to fetch delivery agents:', error);
+      } finally {
+        setIsLoadingAgents(false);
+      }
+    };
+
+    fetchDeliveryAgents();
+  }, [selectedOutlet]);
+
   const handleStatusUpdate = async (orderId: number, newStatus: OrderStatus) => {
     setIsUpdating(orderId);
     try {
@@ -127,6 +194,41 @@ export default function OrdersManagementPage() {
       alert('Failed to update order status');
     } finally {
       setIsUpdating(null);
+    }
+  };
+
+  const handleAssignDeliveryAgent = async (orderId: number, agentId: string) => {
+    setIsAssigningAgent(orderId);
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const response = await assignDeliveryAgent(token, orderId, parseInt(agentId));
+
+      if (response.success) {
+        // Update the order in the list with delivery agent info
+        const agent = availableAgents.find(a => a.id === parseInt(agentId));
+        setOrders(prev =>
+          prev.map(order =>
+            order.id === orderId
+              ? {
+                  ...order,
+                  status: response.data.status,
+                  deliveryAgent: agent ? {
+                    id: agent.id,
+                    name: `${agent.firstName} ${agent.lastName || ''}`.trim(),
+                    phone: agent.phone || '',
+                  } : undefined,
+                }
+              : order,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error('Failed to assign delivery agent:', error);
+      alert('Failed to assign delivery agent');
+    } finally {
+      setIsAssigningAgent(null);
     }
   };
 
@@ -256,6 +358,12 @@ export default function OrdersManagementPage() {
                           {statusInfo.icon}
                           <span className="ml-1">{statusInfo.label}</span>
                         </Badge>
+                        {order.payment && (
+                          <Badge className={`${getPaymentConfig(order.payment).color} border`}>
+                            {getPaymentConfig(order.payment).icon}
+                            <span className="ml-1">{getPaymentConfig(order.payment).label}</span>
+                          </Badge>
+                        )}
                       </div>
 
                       <p className="text-sm text-gray-600 mb-2">
@@ -376,6 +484,65 @@ export default function OrdersManagementPage() {
                               </p>
                             </div>
                           )}
+
+                          {/* Delivery Agent Assignment */}
+                          <div>
+                            <h4 className="font-semibold text-gray-900 mb-3">Delivery Agent</h4>
+                            {order.deliveryAgent ? (
+                              <div className="flex items-center gap-3 bg-green-50 p-3 rounded-lg">
+                                <User className="h-5 w-5 text-green-600" />
+                                <div>
+                                  <p className="font-medium text-gray-900">{order.deliveryAgent.name}</p>
+                                  <p className="text-sm text-gray-600">{order.deliveryAgent.phone}</p>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                {(order.status === OrderStatus.READY || order.status === OrderStatus.OUT_FOR_DELIVERY) && (
+                                  <div className="flex items-center gap-2">
+                                    <Select
+                                      onValueChange={(value) => handleAssignDeliveryAgent(order.id, value)}
+                                      disabled={isAssigningAgent === order.id || isLoadingAgents}
+                                    >
+                                      <SelectTrigger className="flex-1">
+                                        <SelectValue placeholder={
+                                          isAssigningAgent === order.id
+                                            ? 'Assigning...'
+                                            : 'Select delivery agent'
+                                        } />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {availableAgents.length === 0 ? (
+                                          <SelectItem value="none" disabled>
+                                            No delivery agents available
+                                          </SelectItem>
+                                        ) : (
+                                          availableAgents.map((agent) => (
+                                            <SelectItem key={agent.id} value={String(agent.id)}>
+                                              {agent.firstName} {agent.lastName} - {agent.phone}
+                                            </SelectItem>
+                                          ))
+                                        )}
+                                      </SelectContent>
+                                    </Select>
+                                    {isAssigningAgent === order.id && (
+                                      <Loader2 className="h-5 w-5 animate-spin text-orange-600" />
+                                    )}
+                                  </div>
+                                )}
+                                {(order.status === OrderStatus.PENDING || order.status === OrderStatus.CONFIRMED || order.status === OrderStatus.PREPARING) && (
+                                  <p className="text-sm text-gray-500">
+                                    Delivery agent can be assigned when order is ready
+                                  </p>
+                                )}
+                                {(order.status === OrderStatus.DELIVERED || order.status === OrderStatus.CANCELLED) && (
+                                  <p className="text-sm text-gray-500">
+                                    Order is {order.status === OrderStatus.DELIVERED ? 'delivered' : 'cancelled'}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </motion.div>
                     )}

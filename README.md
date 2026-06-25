@@ -452,6 +452,9 @@ Each restaurant card features:
 | `/orders/:id/cancel` | POST | Customer JWT | - | Cancel pending order | - |
 | `/orders/by-outlet/:outletId` | GET | Admin JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get orders for outlet (paginated, optional status filter) | `page`, `limit`, `status` |
 | `/orders/:id/status` | PUT | Admin JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Update order status (notifies customer) | - |
+| `/orders/:id/delivery-agent` | PUT | Admin JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Assign delivery agent to order (notifies agent) | - |
+| `/orders/delivery-agent/my-orders` | GET | Admin JWT | DELIVERY_AGENT | Get delivery agent's assigned orders (paginated) | `page`, `limit` |
+| `/orders/:id/delivery-location` | PUT | Admin JWT | DELIVERY_AGENT | Update delivery agent location for order tracking | - |
 
 **Order Creation Request Body:**
 ```json
@@ -554,17 +557,24 @@ The gateway supports both admin and customer JWT tokens:
 2. **Status Updates:** When restaurant updates order status, notification sent to customer
 3. **UI Updates:** Real-time notification with friendly message (e.g., "Your order #123 is being prepared. It won't be long!")
 
+**Delivery Agent Side:**
+1. **Connection:** Delivery agents connect when logged in, auto-subscribed to personal room (`delivery-agent:{agentId}`)
+2. **Order Assignments:** When restaurant assigns delivery agent to order, notification sent to agent
+3. **UI Updates:** Real-time notification with order details and delivery address
+
 **Notification Types:**
 - `order.created` - New order received (to restaurant)
 - `order.updated` - Order status changed (to restaurant)
 - `order.cancelled` - Order cancelled (to restaurant)
 - `order.status.updated` - Order status updated by restaurant (to customer)
+- `order.assigned` - Delivery agent assigned to order (to delivery agent)
 
 **WebSocket Namespace:** `/notifications`
 
 **Room Naming Convention:**
 - `restaurant:{restaurantId}` - For restaurant admins/managers
 - `customer:{customerId}` - For customers
+- `delivery-agent:{agentId}` - For delivery agents
 
 **Example Events:**
 
@@ -1098,6 +1108,15 @@ npx shadcn@latest add dialog -y
 - ✅ **Payment Display** - Added payment information display in order details and orders list pages - 2026-06-25
 - ✅ **Razorpay SDK Integration** - Implemented dynamic Razorpay SDK loading and secure checkout modal - 2026-06-25
 - ✅ **Payment Gateway Fix** - Fixed payment order creation API response format to use standard wrapped format (success/message/data) - 2026-06-25
+- ✅ **Payment Status Display** - Added payment method badges (Paid Online/COD) in restaurant orders page - 2026-06-25
+- ✅ **Delivery Agent Assignment** - Created API endpoint and UI for assigning delivery agents to orders in restaurant dashboard - 2026-06-25
+- ✅ **Delivery Agent Orders API** - Created endpoint for delivery agents to view their assigned orders - 2026-06-25
+- ✅ **Delivery Staff Dashboard** - Created /dashboard/delivery page for delivery agents to manage deliveries - 2026-06-25
+- ✅ **Delivery Agent Notifications** - Implemented real-time notifications for delivery agents when orders are assigned - 2026-06-25
+- ✅ **Delivery Notification Context** - Created DeliveryNotificationProvider and delivery-notifications-socket.ts - 2026-06-25
+- ✅ **Delivery Notification Bell** - Added notification bell component for delivery agents with unread count - 2026-06-25
+- ✅ **Customer Delivery Agent Display** - Added delivery partner information in customer order details page - 2026-06-25
+- ✅ **Outlet Users Phone Field** - Added phone field to available outlet users response for delivery agent display - 2026-06-25
 
 ### In Progress
 - No tasks currently in progress
