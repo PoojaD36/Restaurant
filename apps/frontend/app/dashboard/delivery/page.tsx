@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { getDeliveryAgentOrders, updateDeliveryLocation } from '../../../lib/order-api';
-import { OrderStatus } from '../../../lib/order-types';
+import { OrderStatus, OrderListItem } from '../../../lib/order-types';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
@@ -32,7 +32,7 @@ const statusConfig: Record<OrderStatus, { label: string; color: string; icon: Re
 };
 
 export default function DeliveryDashboardPage() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [isUpdatingLocation, setIsUpdatingLocation] = useState<number | null>(null);
@@ -90,7 +90,11 @@ export default function DeliveryDashboardPage() {
     }
   };
 
-  const getDirections = (address: string, lat: number, lng: number) => {
+  const getDirections = (lat: number | undefined, lng: number | undefined) => {
+    if (lat === undefined || lng === undefined) {
+      alert('Delivery coordinates not available');
+      return;
+    }
     // Open Google Maps with the destination
     const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
     window.open(url, '_blank');
@@ -278,7 +282,6 @@ export default function DeliveryDashboardPage() {
                                 </div>
                                 <Button
                                   onClick={() => getDirections(
-                                    `${order.deliveryAddressLine1}, ${order.deliveryCity}`,
                                     order.deliveryLatitude,
                                     order.deliveryLongitude
                                   )}

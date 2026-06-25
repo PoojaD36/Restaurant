@@ -108,7 +108,12 @@ export interface OrderListItem {
   deliveryName?: string;
   deliveryPhone?: string;
   deliveryAddressLine1?: string;
+  deliveryAddressLine2?: string;
   deliveryCity?: string;
+  deliveryState?: string;
+  deliveryPostalCode?: string;
+  deliveryLatitude?: number;
+  deliveryLongitude?: number;
   outlet: OrderOutlet;
   items: OrderItem[];
   payment?: {
