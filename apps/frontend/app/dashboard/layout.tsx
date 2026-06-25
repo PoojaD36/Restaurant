@@ -3,11 +3,13 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/auth-context';
 import { NotificationProvider } from '../../contexts/notification-context';
+import { DeliveryNotificationProvider } from '../../contexts/delivery-notification-context';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
 import { NotificationBell } from '../../components/notification-bell';
-import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen, Package } from 'lucide-react';
+import { DeliveryNotificationBell } from '../../components/delivery-notification-bell';
+import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen, Package, Truck } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '../../components/change-password-modal';
 
@@ -37,6 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems: NavItem[] = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/dashboard/orders', icon: Package, label: 'Orders', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'MANAGER'] },
+    { href: '/dashboard/delivery', icon: Truck, label: 'Delivery', allowedRoles: ['DELIVERY_AGENT'] },
     { href: '/dashboard/users', icon: Users, label: 'Manage Users', requiresRole: 'SUPER_ADMIN' },
     { href: '/dashboard/restaurants', icon: Building2, label: 'My Restaurants', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
     { href: '/dashboard/outlets', icon: MapPin, label: 'My Outlets', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
@@ -55,72 +58,73 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <NotificationProvider>
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
-        {/* Change Password Modal */}
-        <ChangePasswordModal
-          open={showChangePasswordModal}
-          onClose={() => setShowChangePasswordModal(false)}
-        />
+      <DeliveryNotificationProvider>
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+          {/* Change Password Modal */}
+          <ChangePasswordModal
+            open={showChangePasswordModal}
+            onClose={() => setShowChangePasswordModal(false)}
+          />
 
-      {/* Mobile Menu Overlay */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
+          {/* Mobile Menu Overlay */}
+          {mobileMenuOpen && (
+            <div
+              className="fixed inset-0 bg-black/50 z-40 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
+            />
+          )}
 
-      {/* Mobile Header */}
-      <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm border-b border-orange-200 z-50">
-        <div className="flex items-center justify-between px-4 h-full">
-          <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-slate-600 hover:text-orange-600"
-            >
-              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-            </Button>
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-red-600 to-orange-500 p-1.5 rounded-lg shadow-md">
-                <Utensils className="h-4 w-4 text-white" />
-              </div>
-              <span className="font-semibold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
-                Restaurant Admin
-              </span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-2">
-            <NotificationBell />
-            <Button
-              onClick={handleLogout}
-              variant="ghost"
-              size="icon"
-              className="text-slate-600 hover:text-red-600"
-            >
-              <LogOut className="h-5 w-5" />
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      {/* Mobile Navigation Menu */}
-      {mobileMenuOpen && (
-        <nav className="md:hidden fixed top-16 left-0 right-0 bottom-0 bg-white/95 backdrop-blur-sm z-40 overflow-y-auto">
-          <div className="p-4 space-y-2">
-            {filteredNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block"
+          {/* Mobile Header */}
+          <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm border-b border-orange-200 z-50">
+            <div className="flex items-center justify-between px-4 h-full">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                  className="text-slate-600 hover:text-orange-600"
                 >
-                  <Button
-                    variant={isActive ? 'default' : 'ghost'}
+                  {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                </Button>
+                <Link href="/dashboard" className="flex items-center gap-2">
+                  <div className="bg-gradient-to-br from-red-600 to-orange-500 p-1.5 rounded-lg shadow-md">
+                    <Utensils className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="font-semibold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+                    Restaurant Admin
+                  </span>
+                </Link>
+              </div>
+              <div className="flex items-center gap-2">
+                {user?.role === 'DELIVERY_AGENT' ? <DeliveryNotificationBell /> : <NotificationBell />}
+                <Button
+                  onClick={handleLogout}
+                  variant="ghost"
+                  size="icon"
+                  className="text-slate-600 hover:text-red-600"
+                >
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+          </header>
+
+          {/* Mobile Navigation Menu */}
+          {mobileMenuOpen && (
+            <nav className="md:hidden fixed top-16 left-0 right-0 bottom-0 bg-white/95 backdrop-blur-sm z-40 overflow-y-auto">
+              <div className="p-4 space-y-2">
+                {filteredNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block"
+                    >
+                      <Button
+                        variant={isActive ? 'default' : 'ghost'}
                     className={`w-full justify-start ${
                       isActive
                         ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white'
@@ -222,14 +226,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {!sidebarCollapsed && (
             <div className="px-4 py-2">
               <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-orange-50 cursor-pointer transition-colors">
-                <NotificationBell />
+                {user?.role === 'DELIVERY_AGENT' ? <DeliveryNotificationBell /> : <NotificationBell />}
                 <span className="text-sm font-medium text-slate-700">Notifications</span>
               </div>
             </div>
           )}
           {sidebarCollapsed && (
             <div className="px-3 py-2 flex justify-center">
-              <NotificationBell />
+              {user?.role === 'DELIVERY_AGENT' ? <DeliveryNotificationBell /> : <NotificationBell />}
             </div>
           )}
 
@@ -275,8 +279,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {children}
         </div>
-      </main>
-    </div>
+          </main>
+        </div>
+      </DeliveryNotificationProvider>
     </NotificationProvider>
   );
 }

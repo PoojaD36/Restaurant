@@ -154,3 +154,79 @@ export async function updateOrderStatus(
 
   return response.json();
 }
+
+/**
+ * Assign delivery agent to order (admin/manager)
+ */
+export async function assignDeliveryAgent(
+  token: string,
+  orderId: number,
+  deliveryAgentId: number,
+): Promise<any> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/delivery-agent`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ deliveryAgentId }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to assign delivery agent');
+  }
+
+  return response.json();
+}
+
+/**
+ * Get delivery agent's assigned orders
+ */
+export async function getDeliveryAgentOrders(
+  token: string,
+  page = 1,
+  limit = 20,
+): Promise<any> {
+  const response = await fetch(`${API_URL}/orders/delivery-agent/my-orders?page=${page}&limit=${limit}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to get delivery agent orders');
+  }
+
+  return response.json();
+}
+
+/**
+ * Update delivery agent location
+ */
+export async function updateDeliveryLocation(
+  token: string,
+  orderId: number,
+  latitude: number,
+  longitude: number,
+): Promise<any> {
+  const response = await fetch(`${API_URL}/orders/${orderId}/delivery-location`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ latitude, longitude }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to update delivery location');
+  }
+
+  return response.json();
+}
+

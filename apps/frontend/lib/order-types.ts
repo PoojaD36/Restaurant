@@ -88,6 +88,11 @@ export interface Order {
   outlet: OrderOutlet;
   items: OrderItem[];
   payment?: OrderPayment;
+  deliveryAgent?: {
+    id: number;
+    name: string;
+    phone: string;
+  };
 }
 
 export interface OrderListItem {
@@ -106,6 +111,16 @@ export interface OrderListItem {
   deliveryCity?: string;
   outlet: OrderOutlet;
   items: OrderItem[];
+  payment?: {
+    method: PaymentMethod;
+    status: PaymentStatus;
+    amount: number;
+  };
+  deliveryAgent?: {
+    id: number;
+    name: string;
+    phone: string;
+  };
 }
 
 export interface CreateOrderRequest {

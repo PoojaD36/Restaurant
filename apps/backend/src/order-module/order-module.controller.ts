@@ -2,9 +2,11 @@ import { Controller, Post, Get, Body, UseGuards, Request, Param, HttpCode, HttpS
 import { OrderModuleService } from './order-module.service';
 import { CustomerJwtAuthGuard } from '../customer-module/guards/customer-jwt-auth.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { CreateOrderDto, UpdateOrderStatusDto, AssignDeliveryAgentDto } from './dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
-import { OrderStatus } from 'src/database/generated/prisma/enums';
+import { OrderStatus, UserRole } from 'src/database/generated/prisma/enums';
 
 @Controller('orders')
 export class OrderModuleController {
@@ -91,5 +93,52 @@ export class OrderModuleController {
     paginationDto.page = page || 1;
     paginationDto.limit = limit || 20;
     return this.orderService.getOutletOrders(outletId, paginationDto, status);
+  }
+
+  /**
+   * Assign delivery agent to order
+   */
+  @Put(':id/delivery-agent')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_ADMIN, UserRole.MANAGER)
+  @HttpCode(HttpStatus.OK)
+  async assignDeliveryAgent(
+    @Param('id', ParseIntPipe) orderId: number,
+    @Body() assignDeliveryAgentDto: AssignDeliveryAgentDto,
+  ) {
+    return this.orderService.assignDeliveryAgent(orderId, assignDeliveryAgentDto);
+  }
+
+  /**
+   * Get orders for delivery agent
+   */
+  @Get('delivery-agent/my-orders')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.DELIVERY_AGENT)
+  async getDeliveryAgentOrders(
+    @Request() req: any,
+    @Body() paginationDto?: PaginationDto,
+  ) {
+    const dto = new PaginationDto();
+    if (paginationDto) {
+      dto.page = paginationDto.page || 1;
+      dto.limit = paginationDto.limit || 20;
+    }
+    return this.orderService.getDeliveryAgentOrders(req.user.userId, dto);
+  }
+
+  /**
+   * Update delivery agent location
+   */
+  @Put(':id/delivery-location')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.DELIVERY_AGENT)
+  @HttpCode(HttpStatus.OK)
+  async updateDeliveryLocation(
+    @Param('id', ParseIntPipe) orderId: number,
+    @Request() req: any,
+    @Body() location: { latitude: number; longitude: number },
+  ) {
+    return this.orderService.updateDeliveryLocation(orderId, req.user.userId, location);
   }
 }

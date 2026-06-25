@@ -16,6 +16,8 @@ import {
   Calendar,
   CreditCard,
   Banknote,
+  User,
+  Truck,
 } from 'lucide-react';
 import { useCustomerAuth } from '../../../../contexts/customer-auth-context';
 import { getOrderById, cancelOrder } from '../../../../lib/order-api';
@@ -333,6 +335,43 @@ export default function OrderDetailsPage() {
                 </div>
               </Card>
             </motion.div>
+
+            {/* Delivery Agent Information */}
+            {order.deliveryAgent && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <Card className="p-6 bg-blue-50 border-blue-200">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Truck className="h-5 w-5 text-blue-600" />
+                    Delivery Partner
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-blue-100 p-2 rounded-full">
+                        <User className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-gray-900">{order.deliveryAgent.name}</p>
+                        <p className="text-sm text-gray-600 flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          <a href={`tel:${order.deliveryAgent.phone}`} className="text-blue-600 hover:underline">
+                            {order.deliveryAgent.phone}
+                          </a>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-3 p-3 bg-blue-100 rounded-lg">
+                      <p className="text-sm text-blue-800">
+                        Your order is being delivered by our trusted delivery partner. You can contact them directly if needed.
+                      </p>
+                    </div>
+                  </div>
+                </Card>
+              </motion.div>
+            )}
 
             {/* Payment Information */}
             {order.payment && (
