@@ -105,3 +105,80 @@ export async function getPaymentStatus(
 
   return response.json();
 }
+
+export interface CreatePaymentLinkRequest {
+  amount: number;
+  orderId: number;
+  description?: string;
+}
+
+export interface CreatePaymentLinkResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: string;
+    shortUrl: string;
+    amount: number;
+    currency: string;
+    description: string;
+    status: string;
+  };
+}
+
+/**
+ * Create a Razorpay Payment Link for COD to UPI conversion
+ */
+export async function createPaymentLink(
+  token: string,
+  data: CreatePaymentLinkRequest,
+): Promise<CreatePaymentLinkResponse> {
+  const response = await fetch(`${API_URL}/payments/create-payment-link`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to create payment link');
+  }
+
+  return response.json();
+}
+
+export interface PaymentLinkStatus {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  paidAt: string | null;
+  paymentId: string | null;
+}
+
+/**
+ * Get payment link status to check if payment is completed
+ */
+export async function getPaymentLinkStatus(
+  token: string,
+  paymentLinkId: string,
+): Promise<{
+  success: boolean;
+  message: string;
+  data: PaymentLinkStatus;
+}> {
+  const response = await fetch(`${API_URL}/payments/payment-link/${paymentLinkId}/status`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to get payment link status');
+  }
+
+  return response.json();
+}

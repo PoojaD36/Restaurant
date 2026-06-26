@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-25 (Payment Collection at Delivery Implemented)
+> **Last Updated:** 2026-06-26 (QR Code Payment for COD Implemented)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -420,10 +420,12 @@ Each restaurant card features:
 | `/payments/create-order` | POST | Customer JWT | Create Razorpay order for payment |
 | `/payments/verify` | POST | Customer JWT | Verify Razorpay payment signature |
 | `/payments/:orderId` | GET | Customer JWT | Get payment status by order ID |
+| `/payments/create-payment-link` | POST | Admin JWT | Create Razorpay payment link for COD to UPI conversion (delivery agent) |
+| `/payments/payment-link/:paymentLinkId/status` | GET | Admin JWT | Get payment link status to check if payment completed (delivery agent) |
 
 **Payment Methods Supported:**
 - **Online Payment**: UPI, Credit/Debit Cards, Wallets, Netbanking (via Razorpay)
-- **Cash on Delivery (COD)**: Pay cash at delivery
+- **Cash on Delivery (COD)**: Pay cash or UPI at delivery (delivery agent collects)
 
 **Payment Flow:**
 1. Customer selects payment method in checkout (Online or COD)
@@ -435,10 +437,18 @@ Each restaurant card features:
 3. For **COD**:
    - Order created directly with `CASH` payment method
    - Payment status set to `PENDING` (paid at delivery)
+   - **At Delivery**: Delivery agent opens payment collection modal
+     - If paying via **Cash**: Agent collects cash, confirms delivery
+     - If paying via **UPI**: Agent selects UPI, QR code appears
+       - QR code generated via `/payments/create-payment-link`
+       - Customer scans QR code with any UPI app (GPay, PhonePe, Paytm)
+       - System polls payment status every 3 seconds via `/payments/payment-link/:id/status`
+       - When payment detected, "Confirm & Mark Delivered" button auto-enables
+       - Agent confirms delivery with payment link ID as transaction ID
 
 **Payment Status:**
-- `COMPLETED`: Payment successful (online payments)
-- `PENDING`: Payment pending (COD - paid at delivery)
+- `COMPLETED`: Payment successful (online payments or collected at delivery)
+- `PENDING`: Payment pending (COD - to be collected at delivery)
 - `FAILED`: Payment failed (online payment attempt failed)
 - `REFUNDED`: Payment refunded (cancellations)
 
@@ -887,7 +897,7 @@ npx prisma migrate dev --name add_order_tracking
 | `components/customer-notification-bell.tsx` | Customer notification bell icon with unread count badge and connection status |
 | `components/customer-notification-panel.tsx` | Customer notification panel with order status updates and order navigation |
 | `components/payment-method-selector.tsx` | Payment method selection component (Razorpay/COD) with icons and selection state |
-| `components/collect-payment-modal.tsx` | Payment collection modal for delivery agents to collect COD payments (Cash, UPI, Card) |
+| `components/collect-payment-modal.tsx` | Payment collection modal for delivery agents to collect COD payments (Cash, UPI) with QR code for UPI payments |
 | `lib/notifications-socket.ts` | WebSocket client service for admin/manager order notifications |
 | `lib/notification-types.ts` | TypeScript types for admin notifications and notification data |
 | `contexts/notification-context.tsx` | Admin notification state management with useNotifications hook |
@@ -946,6 +956,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3001
 
 **Key Libraries:**
 - `framer-motion` ^11.18.0 - Animation library for smooth transitions
+- `qrcode.react` ^4.2.0 - QR code generation for payment links
 - `lucide-react` - Icon library (food, kitchen, delivery icons: Coffee, ShoppingBag, Clock, Star, Beef, Cake, Egg, ChefHat, Sandwich, GlassWater, Cookie, Key, Eye, EyeOff, UserPlus, Users, Loader2, Mail, Phone)
 - `shadcn/ui` - Pre-built UI components
 - `tailwindcss` v4 - Utility-first CSS framework
@@ -1135,11 +1146,20 @@ npx shadcn@latest add dialog -y
 - ✅ **Delivery Agent Mark Delivered UI** - Added "Mark Delivered" button to delivery agent dashboard with confirmation dialog - 2026-06-25
 - ✅ **Frontend TypeScript Fixes** - Fixed TypeScript errors in delivery page with proper type definitions - 2026-06-25
 - ✅ **Payment Collection at Delivery** - Implemented payment verification before marking orders as delivered - 2026-06-25
-  - Created CollectPaymentDto for recording COD/online payments (CASH, UPI, CARD)
+  - Created CollectPaymentDto for recording COD payments (CASH, UPI)
   - Updated mark-delivered endpoint to verify payment status and accept payment details
   - Created payment collection modal for delivery agents to collect COD payments
   - Delivery dashboard now shows payment modal for COD orders, direct delivery for prepaid orders
   - Payment records automatically updated to COMPLETED when payment is collected
+- ✅ **QR Code Payment for COD** - Implemented dynamic QR code generation for COD to UPI conversion at delivery - 2026-06-26
+  - Added Razorpay Payment Links API integration (`createPaymentLink`, `getPaymentLinkStatus`)
+  - Added backend endpoints: `POST /payments/create-payment-link`, `GET /payments/payment-link/:id/status`
+  - Updated payment collection modal to show QR code when UPI is selected
+  - Removed Card option from payment modal (only Cash and UPI available)
+  - Added automatic payment status polling every 3 seconds when QR code is displayed
+  - Added fallback payment link display if QR scan fails
+  - Added "Confirm & Mark Delivered" button auto-enables when payment is completed
+  - Customer scans QR code with any UPI app (GPay, PhonePe, Paytm) to pay at delivery
 
 ### In Progress
 - No tasks currently in progress
