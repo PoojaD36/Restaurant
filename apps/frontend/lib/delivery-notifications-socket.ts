@@ -79,12 +79,16 @@ class DeliveryNotificationsSocket {
 
   onNotification(listener: (notification: DeliveryNotification) => void) {
     this.listeners.add(listener);
-    return () => this.listeners.delete(listener);
+    return () => {
+      this.listeners.delete(listener);
+    };
   }
 
   onConnectionChange(listener: (isConnected: boolean) => void) {
     this.connectionListeners.add(listener);
-    return () => this.connectionListeners.delete(listener);
+    return () => {
+      this.connectionListeners.delete(listener);
+    };
   }
 
   isConnected(): boolean {
