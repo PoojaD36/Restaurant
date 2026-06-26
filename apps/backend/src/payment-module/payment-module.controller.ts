@@ -1,8 +1,9 @@
-import { Controller, Post, Get, Body, Param, Req, UseGuards, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
 import { PaymentModuleService } from './payment-module.service';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { VerifyPaymentDto } from './dto/verify-payment.dto';
 import { CustomerJwtAuthGuard } from '../customer-module/guards/customer-jwt-auth.guard';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
 
 @Controller('payments')
@@ -97,6 +98,55 @@ export class PaymentModuleController {
       };
     } catch (error) {
       throw new BadRequestException('Failed to get payment status');
+    }
+  }
+
+  /**
+   * Create a payment link for COD to UPI conversion at delivery
+   * POST /payments/create-payment-link
+   * Auth: Admin JWT required (delivery agent)
+   */
+  @Post('create-payment-link')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async createPaymentLink(
+    @Body() body: { amount: number; orderId: number; description?: string }
+  ) {
+    try {
+      const paymentLink = await this.paymentService.createPaymentLink(
+        body.amount,
+        body.orderId,
+        body.description
+      );
+
+      return {
+        success: true,
+        message: 'Payment link created successfully',
+        data: paymentLink,
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to create payment link');
+    }
+  }
+
+  /**
+   * Get payment link status to check if payment is completed
+   * GET /payments/payment-link/:paymentLinkId/status
+   * Auth: Admin JWT required (delivery agent)
+   */
+  @Get('payment-link/:paymentLinkId/status')
+  @UseGuards(JwtAuthGuard)
+  async getPaymentLinkStatus(@Param('paymentLinkId') paymentLinkId: string) {
+    try {
+      const status = await this.paymentService.getPaymentLinkStatus(paymentLinkId);
+
+      return {
+        success: true,
+        message: 'Payment link status retrieved successfully',
+        data: status,
+      };
+    } catch (error) {
+      throw new BadRequestException('Failed to get payment link status');
     }
   }
 }

@@ -126,7 +126,7 @@ export default function DeliveryDashboardPage() {
 
   const processMarkAsDelivered = async (
     orderId: number,
-    paymentMethod?: 'CASH' | 'UPI' | 'CARD',
+    paymentMethod?: 'CASH' | 'UPI',
     transactionId?: string,
   ) => {
     setIsMarkingDelivered(orderId);
@@ -157,7 +157,7 @@ export default function DeliveryDashboardPage() {
     }
   };
 
-  const handlePaymentConfirm = async (paymentMethod: 'CASH' | 'UPI' | 'CARD', transactionId?: string) => {
+  const handlePaymentConfirm = async (paymentMethod: 'CASH' | 'UPI', transactionId?: string) => {
     if (selectedOrder) {
       await processMarkAsDelivered(selectedOrder.id, paymentMethod, transactionId);
     }
@@ -450,6 +450,7 @@ export default function DeliveryDashboardPage() {
         }}
         onConfirm={handlePaymentConfirm}
         totalAmount={selectedOrder?.total || 0}
+        orderId={selectedOrder?.id || 0}
         isLoading={isMarkingDelivered !== null}
       />
     </div>

@@ -121,4 +121,83 @@ export class PaymentModuleService {
       createdAt: payment.createdAt,
     };
   }
+
+  /**
+   * Create a Razorpay Payment Link for COD to UPI conversion at delivery
+   * This generates a payment link that can be converted to QR code
+   * @param amount Amount in rupees
+   * @param orderId Order ID for reference
+   * @param description Payment description
+   * @returns Payment link details
+   */
+  async createPaymentLink(amount: number, orderId: number, description?: string) {
+    if (!this.razorpay) {
+      throw new BadRequestException('Payment service is not configured');
+    }
+
+    try {
+      const options = {
+        amount: amount * 100, // Convert to paise
+        currency: 'INR',
+        accept_partial: false,
+        description: description || `Payment for Order #${orderId}`,
+        customer: {
+          name: `Order ${orderId}`,
+          email: `order${orderId}@restaurant.com`,
+          contact: '9000000000',
+        },
+        notify: {
+          sms: false,
+          email: false,
+        },
+        reminder_enable: false,
+        notes: {
+          orderId: orderId.toString(),
+          type: 'cod_conversion',
+        },
+      };
+
+      const paymentLink = await this.razorpay.paymentLink.create(options);
+      this.logger.log(`Created payment link: ${paymentLink.id} for order: ${orderId}, amount: ₹${amount}`);
+
+      return {
+        id: paymentLink.id,
+        shortUrl: paymentLink.short_url,
+        amount: paymentLink.amount,
+        currency: paymentLink.currency,
+        description: paymentLink.description,
+        status: paymentLink.status,
+      };
+    } catch (error) {
+      this.logger.error('Failed to create payment link:', error);
+      throw new BadRequestException('Failed to create payment link');
+    }
+  }
+
+  /**
+   * Get payment link details by payment link ID
+   * Used to check if payment is completed
+   * @param paymentLinkId Payment link ID
+   * @returns Payment link details with payment status
+   */
+  async getPaymentLinkStatus(paymentLinkId: string) {
+    if (!this.razorpay) {
+      throw new BadRequestException('Payment service is not configured');
+    }
+
+    try {
+      const paymentLink = await this.razorpay.paymentLink.fetch(paymentLinkId);
+      return {
+        id: paymentLink.id,
+        amount: paymentLink.amount,
+        currency: paymentLink.currency,
+        status: paymentLink.status,
+        paidAt: paymentLink.payments?.created_at ?? null,
+        paymentId: paymentLink.payments?.payment_id ?? null,
+      };
+    } catch (error) {
+      this.logger.error('Failed to fetch payment link:', error);
+      throw new BadRequestException('Failed to fetch payment link status');
+    }
+  }
 }
