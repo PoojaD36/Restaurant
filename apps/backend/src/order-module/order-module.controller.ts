@@ -4,7 +4,7 @@ import { CustomerJwtAuthGuard } from '../customer-module/guards/customer-jwt-aut
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { CreateOrderDto, UpdateOrderStatusDto, AssignDeliveryAgentDto } from './dto';
+import { CreateOrderDto, UpdateOrderStatusDto, AssignDeliveryAgentDto, CollectPaymentDto } from './dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { OrderStatus, UserRole } from 'src/database/generated/prisma/enums';
 
@@ -140,5 +140,22 @@ export class OrderModuleController {
     @Body() location: { latitude: number; longitude: number },
   ) {
     return this.orderService.updateDeliveryLocation(orderId, req.user.userId, location);
+  }
+
+  /**
+   * Mark order as delivered (delivery agent only)
+   * Only the assigned delivery agent can mark the order as delivered
+   * For COD orders, payment details must be provided to complete the delivery
+   */
+  @Put(':id/mark-delivered')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.DELIVERY_AGENT)
+  @HttpCode(HttpStatus.OK)
+  async markOrderAsDelivered(
+    @Param('id', ParseIntPipe) orderId: number,
+    @Request() req: any,
+    @Body() collectPaymentDto?: CollectPaymentDto,
+  ) {
+    return this.orderService.markOrderAsDelivered(orderId, req.user.userId, collectPaymentDto);
   }
 }
