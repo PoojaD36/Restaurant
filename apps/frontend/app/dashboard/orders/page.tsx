@@ -37,9 +37,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode; nextStatuses?: OrderStatus[] }> = {
   PENDING: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: <Clock className="h-4 w-4" />, nextStatuses: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED] },
   CONFIRMED: { label: 'Confirmed', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: <CheckCircle className="h-4 w-4" />, nextStatuses: [OrderStatus.PREPARING, OrderStatus.CANCELLED] },
-  PREPARING: { label: 'Preparing', color: 'bg-purple-100 text-purple-800 border-purple-300', icon: <Utensils className="h-4 w-4" />, nextStatuses: [OrderStatus.READY, OrderStatus.OUT_FOR_DELIVERY] },
+  PREPARING: { label: 'Preparing', color: 'bg-purple-100 text-purple-800 border-purple-300', icon: <Utensils className="h-4 w-4" />, nextStatuses: [OrderStatus.READY] },
   READY: { label: 'Ready', color: 'bg-green-100 text-green-800 border-green-300', icon: <Package className="h-4 w-4" />, nextStatuses: [OrderStatus.OUT_FOR_DELIVERY] },
-  OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'bg-indigo-100 text-indigo-800 border-indigo-300', icon: <Truck className="h-4 w-4" />, nextStatuses: [OrderStatus.DELIVERED] },
+  OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'bg-indigo-100 text-indigo-800 border-indigo-300', icon: <Truck className="h-4 w-4" />, nextStatuses: [] }, // Removed DELIVERED - only delivery agent can mark as delivered
   DELIVERED: { label: 'Delivered', color: 'bg-green-100 text-green-800 border-green-300', icon: <CheckCircle className="h-4 w-4" /> },
   CANCELLED: { label: 'Cancelled', color: 'bg-red-100 text-red-800 border-red-300', icon: <XCircle className="h-4 w-4" /> },
 };
@@ -203,19 +203,20 @@ export default function OrdersManagementPage() {
       const token = localStorage.getItem('accessToken');
       if (!token) return;
 
-      const response = await assignDeliveryAgent(token, orderId, parseInt(agentId));
+      const numericAgentId = parseInt(agentId);
+      const response = await assignDeliveryAgent(token, orderId, numericAgentId);
 
       if (response.success) {
         // Update the order in the list with delivery agent info
-        const agent = availableAgents.find(a => a.id === parseInt(agentId));
+        const agent = availableAgents.find(a => a.id === agentId);
         setOrders(prev =>
           prev.map(order =>
             order.id === orderId
               ? {
                   ...order,
-                  status: response.data.status,
+                  status: response.data.status as OrderStatus,
                   deliveryAgent: agent ? {
-                    id: agent.id,
+                    id: numericAgentId,
                     name: `${agent.firstName} ${agent.lastName || ''}`.trim(),
                     phone: agent.phone || '',
                   } : undefined,
@@ -234,6 +235,19 @@ export default function OrdersManagementPage() {
 
   const getStatusCount = (status: OrderStatus) => {
     return orders.filter(o => o.status === status).length;
+  };
+
+  // Get next valid statuses for an order (considers delivery agent assignment)
+  const getNextStatuses = (order: OrderListItem): OrderStatus[] => {
+    const baseStatuses = statusConfig[order.status]?.nextStatuses || [];
+    if (!baseStatuses) return [];
+
+    // For READY status, OUT_FOR_DELIVERY is only allowed if delivery agent is assigned
+    if (order.status === OrderStatus.READY && baseStatuses.includes(OrderStatus.OUT_FOR_DELIVERY)) {
+      return order.deliveryAgent ? [OrderStatus.OUT_FOR_DELIVERY] : [];
+    }
+
+    return baseStatuses;
   };
 
   const filteredOrders = filterStatus === 'all'
@@ -383,40 +397,49 @@ export default function OrdersManagementPage() {
                     {/* Actions */}
                     <div className="flex items-center gap-2">
                       {/* Status Update Dropdown */}
-                      {statusInfo.nextStatuses && statusInfo.nextStatuses.length > 0 && (
-                        <Select
-                          value={order.status}
-                          onValueChange={(value) => handleStatusUpdate(order.id, value as OrderStatus)}
-                          disabled={isUpdatingThis}
-                        >
-                          <SelectTrigger className="w-40" disabled={isUpdatingThis}>
-                            {isUpdatingThis ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Updating...
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Update Status
-                              </>
-                            )}
-                          </SelectTrigger>
-                          <SelectContent>
-                            {statusInfo.nextStatuses.map((status) => {
-                              const nextStatus = statusConfig[status];
-                              return (
-                                <SelectItem key={status} value={status}>
-                                  <span className="flex items-center gap-2">
-                                    {nextStatus.icon}
-                                    {nextStatus.label}
-                                  </span>
-                                </SelectItem>
-                              );
-                            })}
-                          </SelectContent>
-                        </Select>
-                      )}
+                      {(() => {
+                        const nextStatuses = getNextStatuses(order);
+                        return nextStatuses.length > 0 ? (
+                          <Select
+                            value={order.status}
+                            onValueChange={(value) => handleStatusUpdate(order.id, value as OrderStatus)}
+                            disabled={isUpdatingThis}
+                          >
+                            <SelectTrigger className="w-40" disabled={isUpdatingThis}>
+                              {isUpdatingThis ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Updating...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Update Status
+                                </>
+                              )}
+                            </SelectTrigger>
+                            <SelectContent>
+                              {nextStatuses.map((status) => {
+                                const nextStatus = statusConfig[status];
+                                return (
+                                  <SelectItem key={status} value={status}>
+                                    <span className="flex items-center gap-2">
+                                      {nextStatus.icon}
+                                      {nextStatus.label}
+                                    </span>
+                                  </SelectItem>
+                                );
+                              })}
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          order.status === OrderStatus.READY && !order.deliveryAgent ? (
+                            <div className="w-40 text-sm text-orange-600 font-medium bg-orange-50 px-3 py-2 rounded border border-orange-200">
+                              Assign Agent First
+                            </div>
+                          ) : null
+                        );
+                      })()}
 
                       {/* Expand/Collapse Button */}
                       <Button
@@ -489,7 +512,7 @@ export default function OrdersManagementPage() {
                           <div>
                             <h4 className="font-semibold text-gray-900 mb-3">Delivery Agent</h4>
                             {order.deliveryAgent ? (
-                              <div className="flex items-center gap-3 bg-green-50 p-3 rounded-lg">
+                              <div className="flex items-center gap-3 bg-green-50 p-3 rounded-lg border border-green-200">
                                 <User className="h-5 w-5 text-green-600" />
                                 <div>
                                   <p className="font-medium text-gray-900">{order.deliveryAgent.name}</p>
@@ -499,36 +522,46 @@ export default function OrdersManagementPage() {
                             ) : (
                               <div className="space-y-2">
                                 {(order.status === OrderStatus.READY || order.status === OrderStatus.OUT_FOR_DELIVERY) && (
-                                  <div className="flex items-center gap-2">
-                                    <Select
-                                      onValueChange={(value) => handleAssignDeliveryAgent(order.id, value)}
-                                      disabled={isAssigningAgent === order.id || isLoadingAgents}
-                                    >
-                                      <SelectTrigger className="flex-1">
-                                        <SelectValue placeholder={
-                                          isAssigningAgent === order.id
-                                            ? 'Assigning...'
-                                            : 'Select delivery agent'
-                                        } />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {availableAgents.length === 0 ? (
-                                          <SelectItem value="none" disabled>
-                                            No delivery agents available
-                                          </SelectItem>
-                                        ) : (
-                                          availableAgents.map((agent) => (
-                                            <SelectItem key={agent.id} value={String(agent.id)}>
-                                              {agent.firstName} {agent.lastName} - {agent.phone}
-                                            </SelectItem>
-                                          ))
-                                        )}
-                                      </SelectContent>
-                                    </Select>
-                                    {isAssigningAgent === order.id && (
-                                      <Loader2 className="h-5 w-5 animate-spin text-orange-600" />
+                                  <>
+                                    {order.status === OrderStatus.READY && (
+                                      <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg mb-3">
+                                        <p className="text-sm font-medium text-orange-800 flex items-center gap-2">
+                                          <Truck className="h-4 w-4" />
+                                          Required: Assign a delivery agent to mark this order as "Out for Delivery"
+                                        </p>
+                                      </div>
                                     )}
-                                  </div>
+                                    <div className="flex items-center gap-2">
+                                      <Select
+                                        onValueChange={(value) => handleAssignDeliveryAgent(order.id, value)}
+                                        disabled={isAssigningAgent === order.id || isLoadingAgents}
+                                      >
+                                        <SelectTrigger className="flex-1">
+                                          <SelectValue placeholder={
+                                            isAssigningAgent === order.id
+                                              ? 'Assigning...'
+                                              : 'Select delivery agent'
+                                          } />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {availableAgents.length === 0 ? (
+                                            <SelectItem value="none" disabled>
+                                              No delivery agents available
+                                            </SelectItem>
+                                          ) : (
+                                            availableAgents.map((agent) => (
+                                              <SelectItem key={agent.id} value={String(agent.id)}>
+                                                {agent.firstName} {agent.lastName} - {agent.phone}
+                                              </SelectItem>
+                                            ))
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+                                      {isAssigningAgent === order.id && (
+                                        <Loader2 className="h-5 w-5 animate-spin text-orange-600" />
+                                      )}
+                                    </div>
+                                  </>
                                 )}
                                 {(order.status === OrderStatus.PENDING || order.status === OrderStatus.CONFIRMED || order.status === OrderStatus.PREPARING) && (
                                   <p className="text-sm text-gray-500">

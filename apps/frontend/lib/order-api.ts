@@ -230,3 +230,41 @@ export async function updateDeliveryLocation(
   return response.json();
 }
 
+/**
+ * Mark order as delivered (delivery agent only)
+ * @param token - Access token
+ * @param orderId - Order ID to mark as delivered
+ * @param paymentMethod - Payment method (optional, for COD orders)
+ * @param transactionId - Transaction ID (optional, for UPI/Card payments)
+ */
+export async function markOrderAsDelivered(
+  token: string,
+  orderId: number,
+  paymentMethod?: 'CASH' | 'UPI' | 'CARD',
+  transactionId?: string,
+): Promise<any> {
+  const body: any = {};
+  if (paymentMethod) {
+    body.paymentMethod = paymentMethod;
+  }
+  if (transactionId) {
+    body.transactionId = transactionId;
+  }
+
+  const response = await fetch(`${API_URL}/orders/${orderId}/mark-delivered`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: Object.keys(body).length > 0 ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to mark order as delivered');
+  }
+
+  return response.json();
+}
+

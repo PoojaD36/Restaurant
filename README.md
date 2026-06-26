@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-25 (Payment Gateway Fixed & Working)
+> **Last Updated:** 2026-06-25 (Payment Collection at Delivery Implemented)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -452,9 +452,10 @@ Each restaurant card features:
 | `/orders/:id/cancel` | POST | Customer JWT | - | Cancel pending order | - |
 | `/orders/by-outlet/:outletId` | GET | Admin JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get orders for outlet (paginated, optional status filter) | `page`, `limit`, `status` |
 | `/orders/:id/status` | PUT | Admin JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Update order status (notifies customer) | - |
-| `/orders/:id/delivery-agent` | PUT | Admin JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Assign delivery agent to order (notifies agent) | - |
+| `/orders/:id/delivery-agent` | PUT | Admin JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Assign delivery agent to order (auto-changes to OUT_FOR_DELIVERY, notifies agent & customer) | - |
 | `/orders/delivery-agent/my-orders` | GET | Admin JWT | DELIVERY_AGENT | Get delivery agent's assigned orders (paginated) | `page`, `limit` |
 | `/orders/:id/delivery-location` | PUT | Admin JWT | DELIVERY_AGENT | Update delivery agent location for order tracking | - |
+| `/orders/:id/mark-delivered` | PUT | Admin JWT | DELIVERY_AGENT | Mark order as delivered (only assigned agent can mark) | `paymentMethod`, `transactionId` (optional for COD) |
 
 **Order Creation Request Body:**
 ```json
@@ -480,7 +481,17 @@ Each restaurant card features:
 }
 ```
 
-**Order Status Flow:** PENDING → CONFIRMED → PREPARING → READY → OUT_FOR_DELIVERY → DELIVERED (or CANCELLED)
+**Order Status Flow:** PENDING → CONFIRMED → PREPARING → READY → (Assign Delivery Agent) → OUT_FOR_DELIVERY → (Delivery Agent marks) → DELIVERED (or CANCELLED)
+
+**Important Delivery Workflow Rules:**
+- Delivery agent MUST be assigned before order can be marked as OUT_FOR_DELIVERY
+- Only the assigned delivery agent can mark an order as DELIVERED (not restaurant staff)
+- When delivery agent is assigned to a READY order, status automatically changes to OUT_FOR_DELIVERY
+- **Payment Verification**: Before marking an order as delivered, the system checks payment status:
+  - If payment is `COMPLETED` (prepaid orders), delivery agent can directly mark as delivered
+  - If payment is `PENDING` (COD orders), delivery agent must collect payment first via the payment collection modal
+  - Delivery agent can record payments via CASH, UPI, or CARD with optional transaction ID
+  - Payment record is automatically updated to `COMPLETED` status when delivery agent confirms payment collection
 
 ### Public Outlet Endpoints (No Authentication)
 
@@ -607,9 +618,9 @@ notificationSocket.on('order.status.updated', (data) => {
 **Order Status Valid Transitions:**
 - PENDING → CONFIRMED, CANCELLED
 - CONFIRMED → PREPARING, CANCELLED
-- PREPARING → READY, OUT_FOR_DELIVERY
-- READY → OUT_FOR_DELIVERY
-- OUT_FOR_DELIVERY → DELIVERED
+- PREPARING → READY (delivery agent must be assigned before OUT_FOR_DELIVERY)
+- READY → OUT_FOR_DELIVERY (requires delivery agent assignment first)
+- OUT_FOR_DELIVERY → DELIVERED (only by assigned delivery agent)
 - DELIVERED → (no further transitions)
 - CANCELLED → (no further transitions)
 
@@ -876,6 +887,7 @@ npx prisma migrate dev --name add_order_tracking
 | `components/customer-notification-bell.tsx` | Customer notification bell icon with unread count badge and connection status |
 | `components/customer-notification-panel.tsx` | Customer notification panel with order status updates and order navigation |
 | `components/payment-method-selector.tsx` | Payment method selection component (Razorpay/COD) with icons and selection state |
+| `components/collect-payment-modal.tsx` | Payment collection modal for delivery agents to collect COD payments (Cash, UPI, Card) |
 | `lib/notifications-socket.ts` | WebSocket client service for admin/manager order notifications |
 | `lib/notification-types.ts` | TypeScript types for admin notifications and notification data |
 | `contexts/notification-context.tsx` | Admin notification state management with useNotifications hook |
@@ -1111,12 +1123,23 @@ npx shadcn@latest add dialog -y
 - ✅ **Payment Status Display** - Added payment method badges (Paid Online/COD) in restaurant orders page - 2026-06-25
 - ✅ **Delivery Agent Assignment** - Created API endpoint and UI for assigning delivery agents to orders in restaurant dashboard - 2026-06-25
 - ✅ **Delivery Agent Orders API** - Created endpoint for delivery agents to view their assigned orders - 2026-06-25
-- ✅ **Delivery Staff Dashboard** - Created /dashboard/delivery page for delivery agents to manage deliveries - 2026-06-25
+- ✅ **Delivery Staff Dashboard** - Created /dashboard/delivery page for delivery agents to manage deliveries with payment collection modal for COD orders - 2026-06-25
 - ✅ **Delivery Agent Notifications** - Implemented real-time notifications for delivery agents when orders are assigned - 2026-06-25
 - ✅ **Delivery Notification Context** - Created DeliveryNotificationProvider and delivery-notifications-socket.ts - 2026-06-25
 - ✅ **Delivery Notification Bell** - Added notification bell component for delivery agents with unread count - 2026-06-25
 - ✅ **Customer Delivery Agent Display** - Added delivery partner information in customer order details page - 2026-06-25
 - ✅ **Outlet Users Phone Field** - Added phone field to available outlet users response for delivery agent display - 2026-06-25
+- ✅ **Delivery Agent Assignment Requirement** - Backend validation requires delivery agent assignment before OUT_FOR_DELIVERY status - 2026-06-25
+- ✅ **Delivery Agent Mark Delivered API** - Created endpoint for delivery agents to mark orders as delivered - 2026-06-25
+- ✅ **Restaurant Staff Cannot Mark Delivered** - Removed DELIVERED status option from restaurant admin's status update - 2026-06-25
+- ✅ **Delivery Agent Mark Delivered UI** - Added "Mark Delivered" button to delivery agent dashboard with confirmation dialog - 2026-06-25
+- ✅ **Frontend TypeScript Fixes** - Fixed TypeScript errors in delivery page with proper type definitions - 2026-06-25
+- ✅ **Payment Collection at Delivery** - Implemented payment verification before marking orders as delivered - 2026-06-25
+  - Created CollectPaymentDto for recording COD/online payments (CASH, UPI, CARD)
+  - Updated mark-delivered endpoint to verify payment status and accept payment details
+  - Created payment collection modal for delivery agents to collect COD payments
+  - Delivery dashboard now shows payment modal for COD orders, direct delivery for prepaid orders
+  - Payment records automatically updated to COMPLETED when payment is collected
 
 ### In Progress
 - No tasks currently in progress

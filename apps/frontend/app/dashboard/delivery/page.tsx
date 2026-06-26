@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getDeliveryAgentOrders, updateDeliveryLocation } from '../../../lib/order-api';
-import { OrderStatus, OrderListItem } from '../../../lib/order-types';
+import { getDeliveryAgentOrders, updateDeliveryLocation, markOrderAsDelivered } from '../../../lib/order-api';
+import { OrderStatus, OrderListItem, PaymentStatus } from '../../../lib/order-types';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
+import { CollectPaymentModal } from '../../../components/collect-payment-modal';
 import {
   Clock,
   CheckCircle,
@@ -36,6 +37,9 @@ export default function DeliveryDashboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [isUpdatingLocation, setIsUpdatingLocation] = useState<number | null>(null);
+  const [isMarkingDelivered, setIsMarkingDelivered] = useState<number | null>(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderListItem | null>(null);
 
   useEffect(() => {
     fetchOrders();
@@ -98,6 +102,65 @@ export default function DeliveryDashboardPage() {
     // Open Google Maps with the destination
     const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
     window.open(url, '_blank');
+  };
+
+  const handleMarkAsDelivered = async (orderId: number) => {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+
+    // Check payment status
+    const isPendingPayment = order.payment && order.payment.status === PaymentStatus.PENDING;
+
+    if (isPendingPayment) {
+      // Show payment collection modal for COD orders
+      setSelectedOrder(order);
+      setPaymentModalOpen(true);
+    } else {
+      // For prepaid orders, confirm directly
+      if (!confirm('Are you sure you want to mark this order as delivered?')) {
+        return;
+      }
+      await processMarkAsDelivered(orderId);
+    }
+  };
+
+  const processMarkAsDelivered = async (
+    orderId: number,
+    paymentMethod?: 'CASH' | 'UPI' | 'CARD',
+    transactionId?: string,
+  ) => {
+    setIsMarkingDelivered(orderId);
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const response = await markOrderAsDelivered(token, orderId, paymentMethod, transactionId);
+
+      if (response.success) {
+        // Update the order in the list
+        setOrders(prev =>
+          prev.map(order =>
+            order.id === orderId
+              ? { ...order, status: OrderStatus.DELIVERED, deliveredAt: new Date().toISOString() }
+              : order,
+          ),
+        );
+        alert('Order marked as delivered successfully!');
+        setPaymentModalOpen(false);
+        setSelectedOrder(null);
+      }
+    } catch (error: any) {
+      console.error('Failed to mark order as delivered:', error);
+      alert(error.message || 'Failed to mark order as delivered');
+    } finally {
+      setIsMarkingDelivered(null);
+    }
+  };
+
+  const handlePaymentConfirm = async (paymentMethod: 'CASH' | 'UPI' | 'CARD', transactionId?: string) => {
+    if (selectedOrder) {
+      await processMarkAsDelivered(selectedOrder.id, paymentMethod, transactionId);
+    }
   };
 
   const activeOrders = orders.filter(o => o.status === OrderStatus.OUT_FOR_DELIVERY);
@@ -211,6 +274,26 @@ export default function DeliveryDashboardPage() {
                             <>
                               <Navigation className="h-4 w-4 mr-2" />
                               Update Location
+                            </>
+                          )}
+                        </Button>
+
+                        <Button
+                          onClick={() => handleMarkAsDelivered(order.id)}
+                          disabled={isMarkingDelivered === order.id}
+                          size="sm"
+                          variant="default"
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {isMarkingDelivered === order.id ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Marking...
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Mark Delivered
                             </>
                           )}
                         </Button>
@@ -357,6 +440,18 @@ export default function DeliveryDashboardPage() {
           <p className="text-gray-600">You don't have any assigned deliveries.</p>
         </Card>
       )}
+
+      {/* Payment Collection Modal */}
+      <CollectPaymentModal
+        open={paymentModalOpen}
+        onClose={() => {
+          setPaymentModalOpen(false);
+          setSelectedOrder(null);
+        }}
+        onConfirm={handlePaymentConfirm}
+        totalAmount={selectedOrder?.total || 0}
+        isLoading={isMarkingDelivered !== null}
+      />
     </div>
   );
 }

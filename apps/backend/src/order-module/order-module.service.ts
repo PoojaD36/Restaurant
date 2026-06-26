@@ -1,7 +1,7 @@
 import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
-import { CreateOrderDto, OrderItemDto, AssignDeliveryAgentDto } from './dto';
+import { CreateOrderDto, OrderItemDto, AssignDeliveryAgentDto, CollectPaymentDto } from './dto';
 import { OrderStatus, OutletStatus, MenuItemStatus, UserRole } from 'src/database/generated/prisma/enums';
 import { PaginationDto, PaginationMeta, ApiResponse, PaginatedResponse } from '../common';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
@@ -469,7 +469,7 @@ export class OrderModuleService {
     try {
       const order = await this.prisma.order.findUnique({
         where: { id: orderId },
-        select: { id: true, status: true, customerId: true, outletId: true, pickedUpAt: true },
+        select: { id: true, status: true, customerId: true, outletId: true, pickedUpAt: true, deliveryAgentId: true },
       });
 
       if (!order) {
@@ -480,9 +480,9 @@ export class OrderModuleService {
       const validTransitions: Record<OrderStatus, OrderStatus[]> = {
         PENDING: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED],
         CONFIRMED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
-        PREPARING: [OrderStatus.READY, OrderStatus.OUT_FOR_DELIVERY],
+        PREPARING: [OrderStatus.READY], // Removed OUT_FOR_DELIVERY - must assign agent first
         READY: [OrderStatus.OUT_FOR_DELIVERY],
-        OUT_FOR_DELIVERY: [OrderStatus.DELIVERED],
+        OUT_FOR_DELIVERY: [], // Restaurant cannot mark as DELIVERED - only delivery agent can
         DELIVERED: [],
         CANCELLED: [],
       };
@@ -492,6 +492,11 @@ export class OrderModuleService {
         throw new BadRequestException(
           `Cannot transition from ${order.status} to ${status}. Valid transitions: ${allowedStatuses.join(', ')}`,
         );
+      }
+
+      // Require delivery agent assignment before OUT_FOR_DELIVERY status
+      if (status === OrderStatus.OUT_FOR_DELIVERY && !order.deliveryAgentId) {
+        throw new BadRequestException('Cannot mark order as "Out for Delivery" without assigning a delivery agent first. Please assign a delivery agent to this order.');
       }
 
       // Update order status
@@ -829,6 +834,109 @@ export class OrderModuleService {
       }
       this.logger.error(`Failed to update delivery location: ${error instanceof Error ? error.message : 'Unknown error'}`);
       const errorMessage = error instanceof Error ? error.message : 'Failed to update delivery location';
+      throw new BadRequestException(`${errorMessage}`);
+    }
+  }
+
+  /**
+   * Mark order as delivered (delivery agent only)
+   * Only the assigned delivery agent can mark the order as delivered
+   * For COD orders, payment details must be provided to complete the delivery
+   */
+  async markOrderAsDelivered(
+    orderId: number,
+    deliveryAgentId: number,
+    collectPaymentDto?: CollectPaymentDto,
+  ): Promise<ApiResponse<any>> {
+    try {
+      // Verify order is assigned to this delivery agent and is OUT_FOR_DELIVERY
+      const order = await this.prisma.order.findFirst({
+        where: {
+          id: orderId,
+          deliveryAgentId,
+          status: OrderStatus.OUT_FOR_DELIVERY,
+        },
+        select: {
+          id: true,
+          status: true,
+          customerId: true,
+          outletId: true,
+          total: true,
+          payment: true,
+        },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found, not assigned to you, or not yet out for delivery');
+      }
+
+      // Check payment status
+      const isPendingPayment = order.payment && order.payment.status === 'PENDING';
+
+      // If payment is pending (COD), payment details must be provided
+      if (isPendingPayment && !collectPaymentDto) {
+        throw new BadRequestException(
+          'Payment is pending. Please collect payment from the customer before marking as delivered.',
+        );
+      }
+
+      // If payment is pending and details are provided, update the payment record
+      if (isPendingPayment && collectPaymentDto) {
+        await this.prisma.payment.update({
+          where: { orderId: order.id },
+          data: {
+            status: 'COMPLETED',
+            method: collectPaymentDto.paymentMethod,
+            transactionId: collectPaymentDto.transactionId || null,
+          },
+        });
+
+        this.logger.log(
+          `Payment collected for order ${orderId}: ${collectPaymentDto.paymentMethod}${collectPaymentDto.transactionId ? ` (txn: ${collectPaymentDto.transactionId})` : ''}`,
+        );
+      }
+
+      // Update order status to DELIVERED
+      const updatedOrder = await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.DELIVERED,
+          deliveredAt: new Date(),
+        },
+        select: {
+          id: true,
+          status: true,
+          customerId: true,
+          deliveredAt: true,
+        },
+      });
+
+      this.logger.log(`Order ${orderId} marked as DELIVERED by delivery agent ${deliveryAgentId}`);
+
+      // Notify customer that order has been delivered
+      this.notificationsGateway.notifyCustomerOrderUpdated(order.customerId, {
+        orderId: updatedOrder.id,
+        status: updatedOrder.status,
+        previousStatus: order.status,
+        total: Number(order.total),
+        deliveredAt: updatedOrder.deliveredAt,
+      });
+
+      return {
+        success: true,
+        message: 'Order marked as delivered successfully',
+        data: {
+          orderId: updatedOrder.id,
+          status: updatedOrder.status,
+          deliveredAt: updatedOrder.deliveredAt,
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(`Failed to mark order as delivered: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to mark order as delivered';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
