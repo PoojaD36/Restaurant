@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
 import { NotificationBell } from '../../components/notification-bell';
 import { DeliveryNotificationBell } from '../../components/delivery-notification-bell';
-import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen, Package, Truck } from 'lucide-react';
+import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen, Package, Truck, UtensilsCrossed } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '../../components/change-password-modal';
 
@@ -39,6 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navItems: NavItem[] = [
     { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
     { href: '/dashboard/orders', icon: Package, label: 'Orders', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'MANAGER'] },
+    { href: '/dashboard/chef', icon: UtensilsCrossed, label: 'Kitchen', allowedRoles: ['CHEF'] },
     { href: '/dashboard/delivery', icon: Truck, label: 'Delivery', allowedRoles: ['DELIVERY_AGENT'] },
     { href: '/dashboard/users', icon: Users, label: 'Manage Users', requiresRole: 'SUPER_ADMIN' },
     { href: '/dashboard/restaurants', icon: Building2, label: 'My Restaurants', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },

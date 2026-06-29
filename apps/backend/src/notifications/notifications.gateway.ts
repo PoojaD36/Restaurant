@@ -357,6 +357,54 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   }
 
   /**
+   * Notify restaurant when chef starts preparing order
+   * Called by OrderService when a chef claims an order
+   */
+  notifyOrderPreparing(outletId: number, orderData: any) {
+    this.prisma.outlet
+      .findUnique({
+        where: { id: outletId },
+        select: { restaurantId: true },
+      })
+      .then(outlet => {
+        if (outlet) {
+          const roomName = `restaurant:${outlet.restaurantId}`;
+          this.server.to(roomName).emit('order.preparing', orderData);
+          this.logger.log(
+            `Order #${orderData.orderId} preparing notification sent to ${roomName} (Chef: ${orderData.chefName})`,
+          );
+        }
+      })
+      .catch(error => {
+        this.logger.error(`Failed to notify order preparing: ${error.message}`);
+      });
+  }
+
+  /**
+   * Notify restaurant when order is ready for delivery assignment
+   * Called by OrderService when a chef marks order as ready
+   */
+  notifyOrderReady(outletId: number, orderData: any) {
+    this.prisma.outlet
+      .findUnique({
+        where: { id: outletId },
+        select: { restaurantId: true },
+      })
+      .then(outlet => {
+        if (outlet) {
+          const roomName = `restaurant:${outlet.restaurantId}`;
+          this.server.to(roomName).emit('order.ready', orderData);
+          this.logger.log(
+            `Order #${orderData.orderId} ready notification sent to ${roomName}`,
+          );
+        }
+      })
+      .catch(error => {
+        this.logger.error(`Failed to notify order ready: ${error.message}`);
+      });
+  }
+
+  /**
    * Extract JWT token from socket handshake
    */
   private extractToken(client: Socket): string | null {

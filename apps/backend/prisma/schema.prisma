@@ -51,6 +51,7 @@ model User {
   restaurants RestaurantUser[]
   outlets     OutletUser[]
   deliveredOrders Order[] @relation("DeliveryAgentOrders")
+  preparedOrders Order[] @relation("OrderChef")
 
   @@map("users")
 }
@@ -467,6 +468,12 @@ model Order {
   deliveryAgent   User?   @relation("DeliveryAgentOrders", fields: [deliveryAgentId], references: [id])
   pickedUpAt      DateTime?
   deliveredAt     DateTime?
+
+  // Chef assignment
+  chefId      Int?
+  chef        User?   @relation("OrderChef", fields: [chefId], references: [id])
+  startedAt   DateTime? // When chef started preparing
+  completedAt DateTime? // When chef marked ready
 
   payment Payment?
 

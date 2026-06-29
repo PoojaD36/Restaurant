@@ -1,10 +1,10 @@
-import { Controller, Post, Get, Body, UseGuards, Request, Param, HttpCode, HttpStatus, ParseIntPipe, Put } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Request, Param, HttpCode, HttpStatus, ParseIntPipe, Put, Query } from '@nestjs/common';
 import { OrderModuleService } from './order-module.service';
 import { CustomerJwtAuthGuard } from '../customer-module/guards/customer-jwt-auth.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { CreateOrderDto, UpdateOrderStatusDto, AssignDeliveryAgentDto, CollectPaymentDto } from './dto';
+import { CreateOrderDto, UpdateOrderStatusDto, AssignDeliveryAgentDto, CollectPaymentDto, ClaimOrderDto, MarkOrderReadyDto } from './dto';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { OrderStatus, UserRole } from 'src/database/generated/prisma/enums';
 
@@ -157,5 +157,51 @@ export class OrderModuleController {
     @Body() collectPaymentDto?: CollectPaymentDto,
   ) {
     return this.orderService.markOrderAsDelivered(orderId, req.user.userId, collectPaymentDto);
+  }
+
+  /**
+   * Get orders for chef (chef only)
+   * Returns CONFIRMED orders (pending claim) and PREPARING orders (assigned to this chef)
+   */
+  @Get('chef/my-orders')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.CHEF)
+  async getChefOrders(
+    @Request() req: any,
+    @Query('outletId') outletId?: number,
+  ) {
+    return this.orderService.getChefOrders(req.user.userId, outletId);
+  }
+
+  /**
+   * Claim an order (chef only)
+   * Assigns the order to the chef and updates status to PREPARING
+   */
+  @Post(':id/claim')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.CHEF)
+  @HttpCode(HttpStatus.OK)
+  async claimOrder(
+    @Param('id', ParseIntPipe) orderId: number,
+    @Request() req: any,
+    @Body() _claimOrderDto: ClaimOrderDto,
+  ) {
+    return this.orderService.claimOrder(orderId, req.user.userId);
+  }
+
+  /**
+   * Mark order as ready (chef only)
+   * Updates status to READY and sets completedAt timestamp
+   */
+  @Put(':id/mark-ready')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.CHEF)
+  @HttpCode(HttpStatus.OK)
+  async markOrderReady(
+    @Param('id', ParseIntPipe) orderId: number,
+    @Request() req: any,
+    @Body() _markOrderReadyDto: MarkOrderReadyDto,
+  ) {
+    return this.orderService.markOrderReady(orderId, req.user.userId);
   }
 }
