@@ -406,6 +406,13 @@ export class OrderModuleService {
                 phone: true,
               },
             },
+            chef: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+              },
+            },
           },
           orderBy: { createdAt: 'desc' },
           skip,
@@ -448,6 +455,12 @@ export class OrderModuleService {
             name: `${order.deliveryAgent.firstName} ${order.deliveryAgent.lastName || ''}`.trim(),
             phone: order.deliveryAgent.phone,
           } : null,
+          chef: order.chef ? {
+            id: order.chef.id,
+            name: `${order.chef.firstName} ${order.chef.lastName || ''}`.trim(),
+          } : null,
+          startedAt: order.startedAt,
+          completedAt: order.completedAt,
         })),
         pagination,
       };
@@ -937,6 +950,321 @@ export class OrderModuleService {
       }
       this.logger.error(`Failed to mark order as delivered: ${error instanceof Error ? error.message : 'Unknown error'}`);
       const errorMessage = error instanceof Error ? error.message : 'Failed to mark order as delivered';
+      throw new BadRequestException(`${errorMessage}`);
+    }
+  }
+
+  /**
+   * Get orders for a chef
+   * Returns CONFIRMED orders (pending claim) and PREPARING orders (assigned to this chef)
+   */
+  async getChefOrders(chefId: number, outletId?: number): Promise<ApiResponse<any>> {
+    try {
+      // Get chef's assigned outlets (if not provided)
+      let chefOutletIds: number[] = [];
+
+      if (outletId) {
+        // Validate chef is assigned to this outlet
+        const outletUser = await this.prisma.outletUser.findFirst({
+          where: {
+            outletId,
+            userId: chefId,
+          },
+        });
+
+        if (!outletUser) {
+          throw new ForbiddenException('You are not assigned to this outlet');
+        }
+
+        chefOutletIds = [outletId];
+      } else {
+        // Get all outlets assigned to this chef
+        const outletUsers = await this.prisma.outletUser.findMany({
+          where: { userId: chefId },
+          select: { outletId: true },
+        });
+
+        chefOutletIds = outletUsers.map((ou) => ou.outletId);
+
+        if (chefOutletIds.length === 0) {
+          throw new ForbiddenException('You are not assigned to any outlet');
+        }
+      }
+
+      // Get CONFIRMED orders (not yet claimed) for chef's outlets
+      const pendingOrders = await this.prisma.order.findMany({
+        where: {
+          outletId: { in: chefOutletIds },
+          status: OrderStatus.CONFIRMED,
+          chefId: null, // Not yet claimed
+        },
+        include: {
+          outlet: {
+            select: {
+              id: true,
+              name: true,
+              addressLine1: true,
+              city: true,
+            },
+          },
+          items: true,
+        },
+        orderBy: { createdAt: 'asc' }, // Oldest first
+      });
+
+      // Get PREPARING orders assigned to this chef
+      const preparingOrders = await this.prisma.order.findMany({
+        where: {
+          outletId: { in: chefOutletIds },
+          status: OrderStatus.PREPARING,
+          chefId: chefId, // Assigned to this chef
+        },
+        include: {
+          outlet: {
+            select: {
+              id: true,
+              name: true,
+              addressLine1: true,
+              city: true,
+            },
+          },
+          items: true,
+        },
+        orderBy: { startedAt: 'asc' }, // Longest preparing first
+      });
+
+      return {
+        success: true,
+        message: 'Chef orders retrieved successfully',
+        data: {
+          pending: pendingOrders.map(order => ({
+            id: order.id,
+            status: order.status,
+            subtotal: Number(order.subtotal),
+            deliveryFee: Number(order.deliveryFee),
+            total: Number(order.total),
+            specialInstructions: order.specialInstructions,
+            estimatedDeliveryTime: order.estimatedDeliveryTime,
+            createdAt: order.createdAt,
+            deliveryName: order.deliveryName,
+            deliveryPhone: order.deliveryPhone,
+            deliveryAddressLine1: order.deliveryAddressLine1,
+            deliveryCity: order.deliveryCity,
+            outlet: order.outlet,
+            items: order.items.map(item => ({
+              ...item,
+              price: Number(item.price),
+            })),
+          })),
+          preparing: preparingOrders.map(order => ({
+            id: order.id,
+            status: order.status,
+            subtotal: Number(order.subtotal),
+            deliveryFee: Number(order.deliveryFee),
+            total: Number(order.total),
+            specialInstructions: order.specialInstructions,
+            estimatedDeliveryTime: order.estimatedDeliveryTime,
+            createdAt: order.createdAt,
+            startedAt: order.startedAt,
+            deliveryName: order.deliveryName,
+            deliveryPhone: order.deliveryPhone,
+            deliveryAddressLine1: order.deliveryAddressLine1,
+            deliveryCity: order.deliveryCity,
+            outlet: order.outlet,
+            items: order.items.map(item => ({
+              ...item,
+              price: Number(item.price),
+            })),
+          })),
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      this.logger.error(`Failed to get chef orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve chef orders';
+      throw new BadRequestException(`${errorMessage}`);
+    }
+  }
+
+  /**
+   * Claim an order (chef only)
+   * Assigns the order to the chef and updates status to PREPARING
+   */
+  async claimOrder(orderId: number, chefId: number): Promise<ApiResponse<any>> {
+    try {
+      // Verify order exists and is CONFIRMED
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        select: {
+          id: true,
+          status: true,
+          outletId: true,
+          chefId: true,
+        },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found');
+      }
+
+      if (order.status !== OrderStatus.CONFIRMED) {
+        throw new BadRequestException('Can only claim orders that are confirmed');
+      }
+
+      if (order.chefId !== null) {
+        throw new BadRequestException('This order has already been claimed by another chef');
+      }
+
+      // Verify chef is assigned to this outlet
+      const outletUser = await this.prisma.outletUser.findFirst({
+        where: {
+          outletId: order.outletId,
+          userId: chefId,
+        },
+      });
+
+      if (!outletUser) {
+        throw new ForbiddenException('You are not assigned to this outlet');
+      }
+
+      // Get chef details for notification
+      const chef = await this.prisma.user.findUnique({
+        where: { id: chefId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
+
+      // Update order: assign chef and set to PREPARING
+      const updatedOrder = await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          chefId: chefId,
+          status: OrderStatus.PREPARING,
+          startedAt: new Date(),
+        },
+        select: {
+          id: true,
+          status: true,
+          outletId: true,
+          chefId: true,
+          startedAt: true,
+        },
+      });
+
+      this.logger.log(`Order ${orderId} claimed by chef ${chefId}`);
+
+      // Notify restaurant that order is being prepared
+      this.notificationsGateway.notifyOrderPreparing(order.outletId, {
+        orderId: updatedOrder.id,
+        status: updatedOrder.status,
+        chefId: updatedOrder.chefId,
+        chefName: chef ? `${chef.firstName} ${chef.lastName || ''}`.trim() : 'Unknown',
+        startedAt: updatedOrder.startedAt,
+      });
+
+      return {
+        success: true,
+        message: 'Order claimed successfully',
+        data: {
+          orderId: updatedOrder.id,
+          status: updatedOrder.status,
+          chefId: updatedOrder.chefId,
+          startedAt: updatedOrder.startedAt,
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof ForbiddenException) {
+        throw error;
+      }
+      this.logger.error(`Failed to claim order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to claim order';
+      throw new BadRequestException(`${errorMessage}`);
+    }
+  }
+
+  /**
+   * Mark order as ready (chef only)
+   * Updates status to READY and sets completedAt timestamp
+   */
+  async markOrderReady(orderId: number, chefId: number): Promise<ApiResponse<any>> {
+    try {
+      // Verify order exists, is PREPARING, and is assigned to this chef
+      const order = await this.prisma.order.findFirst({
+        where: {
+          id: orderId,
+          status: OrderStatus.PREPARING,
+          chefId: chefId,
+        },
+        select: {
+          id: true,
+          status: true,
+          outletId: true,
+          customerId: true,
+          total: true,
+          chefId: true,
+        },
+      });
+
+      if (!order) {
+        throw new NotFoundException('Order not found, not being prepared by you, or not in PREPARING status');
+      }
+
+      // Update order to READY
+      const updatedOrder = await this.prisma.order.update({
+        where: { id: orderId },
+        data: {
+          status: OrderStatus.READY,
+          completedAt: new Date(),
+        },
+        select: {
+          id: true,
+          status: true,
+          outletId: true,
+          customerId: true,
+          total: true,
+          completedAt: true,
+        },
+      });
+
+      this.logger.log(`Order ${orderId} marked as READY by chef ${chefId}`);
+
+      // Notify restaurant that order is ready for delivery assignment
+      this.notificationsGateway.notifyOrderReady(order.outletId, {
+        orderId: updatedOrder.id,
+        status: updatedOrder.status,
+        chefId: order.chefId,
+        completedAt: updatedOrder.completedAt,
+        total: Number(updatedOrder.total),
+      });
+
+      // Notify customer that order is ready
+      this.notificationsGateway.notifyCustomerOrderUpdated(order.customerId, {
+        orderId: updatedOrder.id,
+        status: updatedOrder.status,
+        previousStatus: order.status,
+        total: Number(updatedOrder.total),
+      });
+
+      return {
+        success: true,
+        message: 'Order marked as ready successfully',
+        data: {
+          orderId: updatedOrder.id,
+          status: updatedOrder.status,
+          completedAt: updatedOrder.completedAt,
+        },
+      };
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      this.logger.error(`Failed to mark order as ready: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to mark order as ready';
       throw new BadRequestException(`${errorMessage}`);
     }
   }

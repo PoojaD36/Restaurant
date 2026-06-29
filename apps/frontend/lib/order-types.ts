@@ -126,6 +126,12 @@ export interface OrderListItem {
     name: string;
     phone: string;
   };
+  chef?: {
+    id: number;
+    name: string;
+  };
+  startedAt?: string;
+  completedAt?: string;
 }
 
 export interface CreateOrderRequest {
@@ -195,4 +201,22 @@ export interface CancelOrderResponse {
     orderId: number;
     status: OrderStatus;
   };
+}
+
+// Chef-specific order types
+export interface ChefOrder extends OrderListItem {
+  chefId?: number;
+  startedAt?: string;
+  completedAt?: string;
+}
+
+export interface ChefOrderPool {
+  pending: ChefOrder[];   // CONFIRMED orders ready to claim
+  preparing: ChefOrder[]; // PREPARING orders assigned to this chef
+}
+
+export interface GetChefOrdersResponse {
+  success: boolean;
+  message: string;
+  data: ChefOrderPool;
 }

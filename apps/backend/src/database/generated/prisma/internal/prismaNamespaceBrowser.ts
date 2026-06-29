@@ -343,6 +343,9 @@ export const OrderScalarFieldEnum = {
   deliveryAgentId: 'deliveryAgentId',
   pickedUpAt: 'pickedUpAt',
   deliveredAt: 'deliveredAt',
+  chefId: 'chefId',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

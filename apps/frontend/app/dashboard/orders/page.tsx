@@ -372,6 +372,12 @@ export default function OrdersManagementPage() {
                           {statusInfo.icon}
                           <span className="ml-1">{statusInfo.label}</span>
                         </Badge>
+                        {order.chef && order.status === OrderStatus.PREPARING && (
+                          <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+                            <User className="h-3 w-3" />
+                            <span className="ml-1">{order.chef.name}</span>
+                          </Badge>
+                        )}
                         {order.payment && (
                           <Badge className={`${getPaymentConfig(order.payment).color} border`}>
                             {getPaymentConfig(order.payment).icon}

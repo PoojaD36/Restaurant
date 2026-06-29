@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-26 (QR Code Payment for COD Implemented)
+> **Last Updated:** 2026-06-29 (Chef Dashboard with Hybrid Pool-Based Order Assignment)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -186,7 +186,7 @@ d:\restaurant/
 | Restaurant Module | ✅ Complete | Restaurant CRUD with user assignment via RestaurantUser junction, auto-adds Admin/Manager to outlets |
 | Outlet Module | ✅ Complete | Outlet CRUD with restaurant relationships, user management with role-based auto-assignment, public endpoint for customer browsing, auto-geocoding |
 | Menu Module | ✅ Complete | Restaurant-level menus with categories, items, modifiers, and outlet-specific pricing |
-| Order Module | ✅ Complete | Order creation, customer order history, order cancellation, order status updates, delivery address snapshot, WebSocket notifications (bidirectional) |
+| Order Module | ✅ Complete | Order creation, customer order history, order cancellation, order status updates, delivery address snapshot, WebSocket notifications (bidirectional), chef assignment, chef dashboard |
 | Storage Module | ✅ Complete | Supabase storage service for image uploads |
 | Notifications Module | ✅ Complete | WebSocket gateway for real-time order notifications (restaurant + customer) with dual JWT token support |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
@@ -241,6 +241,7 @@ d:\restaurant/
 | Customer Orders List | ✅ Complete | /customer/orders page for viewing all customer orders with pagination |
 | Customer Notification Bell | ✅ Complete | Notification bell icon in customer header with unread count and connection status |
 | Customer Notification Panel | ✅ Complete | Slide-out panel for customer order notifications with mark as read/clear options |
+| Chef Dashboard | ✅ Complete | Kitchen dashboard with order pool, claim functionality, and status updates |
 
 ### Routing Structure
 
@@ -466,6 +467,9 @@ Each restaurant card features:
 | `/orders/delivery-agent/my-orders` | GET | Admin JWT | DELIVERY_AGENT | Get delivery agent's assigned orders (paginated) | `page`, `limit` |
 | `/orders/:id/delivery-location` | PUT | Admin JWT | DELIVERY_AGENT | Update delivery agent location for order tracking | - |
 | `/orders/:id/mark-delivered` | PUT | Admin JWT | DELIVERY_AGENT | Mark order as delivered (only assigned agent can mark) | `paymentMethod`, `transactionId` (optional for COD) |
+| `/orders/chef/my-orders` | GET | Admin JWT | CHEF | Get chef's orders (pending + preparing) | `outletId` (optional) |
+| `/orders/:id/claim` | POST | Admin JWT | CHEF | Claim an order (auto-assigns to chef, sets to PREPARING) | - |
+| `/orders/:id/mark-ready` | PUT | Admin JWT | CHEF | Mark order as ready (only assigned chef can mark) | - |
 
 **Order Creation Request Body:**
 ```json
@@ -674,6 +678,14 @@ notificationSocket.on('order.status.updated', (data) => {
 | Add categories/items | ✅ (any) | ✅ (own restaurants) | ✅ (own menus) | ❌ | ❌ |
 | Upload menu images | ✅ | ✅ (own restaurants) | ✅ (own menus) | ❌ | ❌ |
 | Set outlet pricing | ✅ | ✅ (own outlets) | ✅ (own outlets) | ❌ | ❌ |
+| **Order Management** |
+| View CONFIRMED orders for outlet | ✅ | ✅ (own outlets) | ✅ (own outlets) | ✅ (own outlets, pending pool) | ❌ |
+| Claim CONFIRMED orders | ❌ | ❌ | ❌ | ✅ (auto-assigns to self) | ❌ |
+| View PREPARING orders assigned to self | ❌ | ❌ | ❌ | ✅ (own orders) | ❌ |
+| Update CONFIRMED → PREPARING | ✅ | ✅ | ✅ | ❌ (via claim only) | ❌ |
+| Update PREPARING → READY | ✅ | ✅ | ✅ | ✅ (own orders only) | ❌ |
+| Assign delivery agent | ✅ | ✅ | ✅ | ❌ | ❌ |
+| **Outlet User Management** |
 | **Outlet User Management** |
 | View all outlets | ✅ | ❌ | ❌ | ❌ | ❌ |
 | View restaurant outlets | ✅ | ✅ (own only) | ❌ | ❌ | ❌ |
@@ -1160,6 +1172,19 @@ npx shadcn@latest add dialog -y
   - Added fallback payment link display if QR scan fails
   - Added "Confirm & Mark Delivered" button auto-enables when payment is completed
   - Customer scans QR code with any UPI app (GPay, PhonePe, Paytm) to pay at delivery
+- ✅ **Chef Dashboard Implementation** - Hybrid pool-based approach with auto-assignment for order preparation - 2026-06-29
+  - Added `chefId`, `startedAt`, `completedAt` fields to Order model in Prisma schema
+  - Created fresh database migration (`20260629064816_init`) for all tables including chef fields
+  - Added chef DTOs: `ClaimOrderDto`, `MarkOrderReadyDto`
+  - Implemented chef order management methods in OrderService: `getChefOrders()`, `claimOrder()`, `markOrderReady()`
+  - Added chef endpoints: `GET /orders/chef/my-orders`, `POST /orders/:id/claim`, `PUT /orders/:id/mark-ready`
+  - Updated NotificationsGateway with chef notification methods: `notifyOrderPreparing()`, `notifyOrderReady()`
+  - Created chef types: `ChefOrder`, `ChefOrderPool` interfaces in order-types.ts
+  - Created chef API functions in chef-api.ts
+  - Built `/dashboard/chef` page with order pool interface, claim functionality, and status updates
+  - Added Kitchen navigation item for CHEF role in dashboard sidebar
+  - Updated admin orders page to display chef names for PREPARING orders
+  - Updated Order model relation to include chef assignment tracking
 
 ### In Progress
 - No tasks currently in progress
