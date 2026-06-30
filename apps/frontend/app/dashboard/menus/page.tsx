@@ -5,9 +5,13 @@ import { ProtectedRoute } from '../../../components/protected-route';
 import { getAllMenus, deleteMenu, getMenuById } from '../../../lib/menus-api';
 import { useAuth } from '../../../contexts/auth-context';
 import { CreateMenuModal } from '../../../components/create-menu-modal';
+import { EditMenuModal } from '../../../components/edit-menu-modal';
 import { CreateCategoryModal } from '../../../components/create-category-modal';
+import { EditCategoryModal } from '../../../components/edit-category-modal';
 import { CreateMenuItemModal } from '../../../components/create-menu-item-modal';
-import type { MenuListItem, Menu, MenuCategory } from '../../../lib/types';
+import { EditMenuItemModal } from '../../../components/edit-menu-item-modal';
+import { ModifierManagement } from '../../../components/modifier-management';
+import type { MenuListItem, Menu, MenuCategory, MenuItem } from '../../../lib/types';
 import {
   Card,
   CardContent,
@@ -25,7 +29,7 @@ import {
   TableRow,
 } from '../../../components/ui/table';
 import { Badge } from '../../../components/ui/badge';
-import { Loader2, Trash2, Plus, List, Beef, ChevronRight, ChevronDown, UtensilsCrossed } from 'lucide-react';
+import { Loader2, Trash2, Plus, List, Beef, ChevronRight, ChevronDown, UtensilsCrossed, Edit, Layers } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
 
 export default function MenusPage() {
@@ -51,6 +55,22 @@ export default function MenusPage() {
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedMenuForItem, setSelectedMenuForItem] = useState<number | null>(null);
   const [selectedCategoryForItem, setSelectedCategoryForItem] = useState<number | null>(null);
+
+  // Edit menu modal
+  const [showEditMenuModal, setShowEditMenuModal] = useState(false);
+  const [selectedMenuForEdit, setSelectedMenuForEdit] = useState<MenuListItem | null>(null);
+
+  // Edit category modal
+  const [showEditCategoryModal, setShowEditCategoryModal] = useState(false);
+  const [selectedCategoryForEdit, setSelectedCategoryForEdit] = useState<MenuCategory | null>(null);
+
+  // Edit item modal
+  const [showEditItemModal, setShowEditItemModal] = useState(false);
+  const [selectedItemForEdit, setSelectedItemForEdit] = useState<MenuItem | null>(null);
+
+  // Modifier management modal
+  const [showModifierManagement, setShowModifierManagement] = useState(false);
+  const [selectedItemForModifiers, setSelectedItemForModifiers] = useState<MenuItem | null>(null);
 
   const canCreate = user?.role === 'SUPER_ADMIN' || user?.role === 'RESTAURANT_ADMIN';
   const canDelete = user?.role === 'SUPER_ADMIN';
@@ -158,6 +178,67 @@ export default function MenusPage() {
     }
   };
 
+  const handleEditMenu = (menu: MenuListItem) => {
+    setSelectedMenuForEdit(menu);
+    setShowEditMenuModal(true);
+  };
+
+  const handleMenuEdited = () => {
+    loadMenus();
+    setShowEditMenuModal(false);
+  };
+
+  const handleEditCategory = (menuId: number, category: MenuCategory) => {
+    setSelectedMenuForCategory(menuId);
+    setSelectedCategoryForEdit(category);
+    setShowEditCategoryModal(true);
+  };
+
+  const handleCategoryEdited = () => {
+    if (selectedMenuForCategory && expandedMenus.has(selectedMenuForCategory)) {
+      getMenuById(selectedMenuForCategory).then((response) => {
+        if (response.success && response.data) {
+          setSelectedMenuDetail(response.data);
+        }
+      });
+    }
+    setShowEditCategoryModal(false);
+  };
+
+  const handleEditItem = (menuId: number, item: MenuItem) => {
+    setSelectedMenuForItem(menuId);
+    setSelectedItemForEdit(item);
+    setShowEditItemModal(true);
+  };
+
+  const handleItemEdited = () => {
+    if (selectedMenuForItem && expandedMenus.has(selectedMenuForItem)) {
+      getMenuById(selectedMenuForItem).then((response) => {
+        if (response.success && response.data) {
+          setSelectedMenuDetail(response.data);
+        }
+      });
+    }
+    setShowEditItemModal(false);
+  };
+
+  const handleManageModifiers = (menuId: number, item: MenuItem) => {
+    setSelectedMenuForItem(menuId);
+    setSelectedItemForModifiers(item);
+    setShowModifierManagement(true);
+  };
+
+  const handleModifiersUpdated = () => {
+    if (selectedMenuForItem && expandedMenus.has(selectedMenuForItem)) {
+      getMenuById(selectedMenuForItem).then((response) => {
+        if (response.success && response.data) {
+          setSelectedMenuDetail(response.data);
+        }
+      });
+    }
+    setShowModifierManagement(false);
+  };
+
   return (
     <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'MANAGER']}>
       <div className="space-y-6">
@@ -224,6 +305,17 @@ export default function MenusPage() {
                         >
                           {menu.status}
                         </Badge>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditMenu(menu);
+                          }}
+                          className="text-slate-600 hover:text-slate-800 hover:bg-slate-100"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
                         {canDelete && (
                           <Button
                             variant="ghost"
@@ -258,20 +350,30 @@ export default function MenusPage() {
                                     <h4 className="font-semibold">{category.name}</h4>
                                     <Badge variant="outline">{category.items?.length || 0} items</Badge>
                                   </div>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleAddItem(menu.id, category.id)}
-                                    className="h-7"
-                                  >
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    Add Item
-                                  </Button>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => handleEditCategory(menu.id, category)}
+                                      className="h-7 text-slate-600 hover:text-slate-800"
+                                    >
+                                      <Edit className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleAddItem(menu.id, category.id)}
+                                      className="h-7"
+                                    >
+                                      <Plus className="h-3 w-3 mr-1" />
+                                      Add Item
+                                    </Button>
+                                  </div>
                                 </div>
                                 {category.items && category.items.length > 0 && (
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {category.items.map((item) => (
-                                      <div key={item.id} className="flex items-center gap-3 p-2 bg-slate-50 rounded">
+                                      <div key={item.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded">
                                         {item.imageUrl && (
                                           <img
                                             src={item.imageUrl}
@@ -281,15 +383,39 @@ export default function MenusPage() {
                                         )}
                                         <div className="flex-1 min-w-0">
                                           <p className="font-medium text-sm truncate">{item.name}</p>
-                                          <p className="text-xs text-slate-500">${Number(item.basePrice).toFixed(2)}</p>
+                                          <div className="flex items-center gap-2">
+                                            <p className="text-xs text-slate-500">${Number(item.basePrice).toFixed(2)}</p>
+                                            <div className="flex gap-1">
+                                              {item.isVegetarian && (
+                                                <span className="text-xs" title="Vegetarian">🥬</span>
+                                              )}
+                                              {item.isSpicy && (
+                                                <span className="text-xs" title="Spicy">🌶️</span>
+                                              )}
+                                            </div>
+                                          </div>
+                                          {item.modifiers && item.modifiers.length > 0 && (
+                                            <p className="text-xs text-orange-500">{item.modifiers.length} modifier{item.modifiers.length > 1 ? 's' : ''}</p>
+                                          )}
                                         </div>
-                                        <div className="flex gap-1">
-                                          {item.isVegetarian && (
-                                            <span className="text-xs" title="Vegetarian">🥬</span>
-                                          )}
-                                          {item.isSpicy && (
-                                            <span className="text-xs" title="Spicy">🌶️</span>
-                                          )}
+                                        <div className="flex flex-col gap-1">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleEditItem(menu.id, item)}
+                                            className="h-7 w-7 p-0"
+                                          >
+                                            <Edit className="h-3 w-3" />
+                                          </Button>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => handleManageModifiers(menu.id, item)}
+                                            className="h-7 w-7 p-0"
+                                            title="Manage modifiers"
+                                          >
+                                            <Layers className="h-3 w-3" />
+                                          </Button>
                                         </div>
                                       </div>
                                     ))}
@@ -359,11 +485,31 @@ export default function MenusPage() {
           onSuccess={handleMenuCreated}
         />
 
+        <EditMenuModal
+          open={showEditMenuModal}
+          onClose={() => setShowEditMenuModal(false)}
+          onSuccess={handleMenuEdited}
+          menuId={selectedMenuForEdit?.id || 0}
+          initialName={selectedMenuForEdit?.name || ''}
+          initialDescription={selectedMenuForEdit?.description}
+          initialStatus={selectedMenuForEdit?.status || 'ACTIVE'}
+        />
+
         <CreateCategoryModal
           open={showCategoryModal}
           onClose={() => setShowCategoryModal(false)}
           onSuccess={handleCategoryAdded}
           menuId={selectedMenuForCategory || 0}
+        />
+
+        <EditCategoryModal
+          open={showEditCategoryModal}
+          onClose={() => setShowEditCategoryModal(false)}
+          onSuccess={handleCategoryEdited}
+          menuId={selectedMenuForCategory || 0}
+          categoryId={selectedCategoryForEdit?.id || 0}
+          initialName={selectedCategoryForEdit?.name || ''}
+          initialDisplayOrder={selectedCategoryForEdit?.displayOrder || 0}
         />
 
         <CreateMenuItemModal
@@ -372,6 +518,44 @@ export default function MenusPage() {
           onSuccess={handleItemAdded}
           menuId={selectedMenuForItem || 0}
           categoryId={selectedCategoryForItem || 0}
+        />
+
+        <EditMenuItemModal
+          open={showEditItemModal}
+          onClose={() => setShowEditItemModal(false)}
+          onSuccess={handleItemEdited}
+          menuId={selectedMenuForItem || 0}
+          itemData={selectedItemForEdit || {
+            id: 0,
+            categoryId: 0,
+            name: '',
+            basePrice: 0,
+            isVegetarian: false,
+            isSpicy: false,
+            status: 'AVAILABLE',
+            modifiers: [],
+            createdAt: '',
+            updatedAt: '',
+          }}
+        />
+
+        <ModifierManagement
+          open={showModifierManagement}
+          onClose={() => setShowModifierManagement(false)}
+          onSuccess={handleModifiersUpdated}
+          menuId={selectedMenuForItem || 0}
+          itemData={selectedItemForModifiers || {
+            id: 0,
+            categoryId: 0,
+            name: '',
+            basePrice: 0,
+            isVegetarian: false,
+            isSpicy: false,
+            status: 'AVAILABLE',
+            modifiers: [],
+            createdAt: '',
+            updatedAt: '',
+          }}
         />
 
         <Dialog open={showDeleteConfirm} onOpenChange={() => setShowDeleteConfirm(false)}>

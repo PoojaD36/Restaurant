@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-30 (Customer Profile Page Implementation Complete)
+> **Last Updated:** 2026-06-30 (Admin Dashboard Analytics Fully Implemented)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -62,6 +62,11 @@ d:\restaurant/
 │   │   │   │   ├── interfaces/ # Response interfaces (ApiResponse, PaginatedResponse)
 │   │   │   │   ├── geocoding.service.ts # Geocoding with Nominatim API
 │   │   │   │   └── common.module.ts
+│   │   │   ├── dashboard-module/   # Dashboard analytics module
+│   │   │   │   ├── dto/        # Dashboard DTOs (DateRange enum)
+│   │   │   │   ├── dashboard-module.controller.ts
+│   │   │   │   ├── dashboard-module.service.ts
+│   │   │   │   └── dashboard-module.module.ts
 │   │   │   ├── database/       # Prisma service & module
 │   │   │   ├── user-module/    # User management module
 │   │   │   ├── restaurant-module/  # Restaurant management module
@@ -115,10 +120,11 @@ d:\restaurant/
 │       │   ├── customer-api.ts     # API functions for customers
 │       │   ├── public-api.ts       # Public API (outlets, menus)
 │       │   ├── payment-api.ts      # Payment API (Razorpay integration)
-│       │   └── razorpay-payment.ts # Razorpay checkout wrapper
+│       │   ├── razorpay-payment.ts # Razorpay checkout wrapper
 │       │   ├── users-api.ts        # API functions for users
 │       │   ├── restaurants-api.ts  # API functions for restaurants
-│       │   └── outlets-api.ts      # API functions for outlets
+│       │   ├── outlets-api.ts      # API functions for outlets
+│       │   ├── dashboard-api.ts    # API functions for dashboard analytics
 │       ├── .env.local              # API URL configuration
 │       └── package.json
 │
@@ -179,7 +185,7 @@ d:\restaurant/
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule, OrderModule, NotificationsModule imported |
+| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule, OrderModule, NotificationsModule, DashboardModule imported |
 | Auth Module | ✅ Complete | JWT auth, role-based guards, decorators (for admin users) |
 | Customer Module | ✅ Complete | Customer auth, profile, address management with auto-geocoding |
 | User Module | ✅ Complete | Full CRUD operations for users |
@@ -189,6 +195,7 @@ d:\restaurant/
 | Order Module | ✅ Complete | Order creation, customer order history, order cancellation, order status updates, delivery address snapshot, WebSocket notifications (bidirectional), chef assignment, chef dashboard |
 | Storage Module | ✅ Complete | Supabase storage service for image uploads |
 | Notifications Module | ✅ Complete | WebSocket gateway for real-time order notifications (restaurant + customer) with dual JWT token support |
+| Dashboard Module | ✅ Complete | Dashboard analytics with statistics, recent orders, revenue analytics, popular items, staff performance |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
 | Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, required lat/lng |
@@ -213,7 +220,7 @@ d:\restaurant/
 | Checkout Page | ✅ Complete | /customer/checkout with address selection, order summary, place order |
 | Shopping Cart | ✅ Complete | CartContext with localStorage persistence, quantity controls, modifier support |
 | Location Features | ✅ Complete | Browser geolocation API, distance calculation (Haversine), manual address geocoding, distance badges |
-| Admin Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible), notification bell |
+| Admin Dashboard | ✅ Complete | Protected dashboard with sidebar navigation (collapsible), notification bell, analytics widgets (stats cards, order status overview, recent orders table, quick stats) |
 | Authentication | ✅ Complete | Login, logout, JWT handling (admin users) |
 | Customer Authentication | ✅ Complete | Customer registration, login, profile management |
 | Customer Auth Sheet | ✅ Complete | Responsive dialog modal for sign-in/sign-up (centered on desktop, bottom sheet on mobile) |
@@ -554,6 +561,23 @@ Each restaurant card features:
 |----------|--------|---------------|-------------|--------------|
 | `/public/menus/outlet/:outletId` | GET | No | Get public menu with outlet pricing | - |
 | `/public/menus/restaurant/:restaurantId` | GET | No | Get public menu for restaurant | - |
+
+### Dashboard Analytics Endpoints
+
+| Endpoint | Method | Auth Required | Role Required | Description | Query Params |
+|----------|--------|---------------|---------------|-------------|--------------|
+| `/dashboard/stats` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get dashboard statistics (users, restaurants, outlets, customers, orders, revenue, order status counts, average order value, today's metrics, menu items) | `dateRange` (TODAY/WEEK/MONTH/YEAR/ALL), `restaurantId`, `outletId` |
+| `/dashboard/recent-orders` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get recent orders with customer and outlet details | `limit` (default: 10), `outletId` |
+| `/dashboard/revenue` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get revenue analytics (total revenue, payment method breakdown, outlet breakdown, daily trends) | `dateRange` (default: MONTH), `outletId` |
+| `/dashboard/popular-items` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get popular items ranking (top ordered items with order count and revenue) | `limit` (default: 10), `outletId` |
+| `/dashboard/staff-performance` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get staff performance metrics (chef preparation times, delivery agent delivery times, on-time rates) | `outletId` |
+
+**Dashboard Date Range Options:**
+- `TODAY` - Statistics for today only
+- `WEEK` - Statistics from start of current week
+- `MONTH` - Statistics from start of current month (default)
+- `YEAR` - Statistics from start of current year
+- `ALL` - All-time statistics
 
 ### Authentication Flow
 
@@ -936,7 +960,7 @@ npx prisma migrate dev --name add_order_tracking
 | `app/customer/orders/[orderId]/page.tsx` | Order details page with status, timeline, items, delivery address, cancel |
 | `app/admin/login/page.tsx` | Admin login form (email/phone + password) |
 | `app/dashboard/layout.tsx` | Dashboard layout with sidebar navigation, notification bell, logout, change password |
-| `app/dashboard/page.tsx` | Dashboard home page |
+| `app/dashboard/page.tsx` | Dashboard home page with analytics widgets (statistics cards, order status overview, recent orders table, quick stats) |
 | `app/dashboard/users/page.tsx` | Users list page with Create User button and password reset modal (Super Admin only) |
 | `app/dashboard/restaurants/page.tsx` | Restaurants list page with pagination, Create Restaurant button (SUPER_ADMIN), and Add User modal (SUPER_ADMIN, RESTAURANT_ADMIN) |
 | `app/dashboard/outlets/page.tsx` | Outlets list page with pagination, restaurant filter, and Create Outlet button (SUPER_ADMIN, RESTAURANT_ADMIN) |
@@ -967,6 +991,11 @@ npx prisma migrate dev --name add_order_tracking
 | `/outlets/:id/users` | POST | Add Outlet User modal | Add user to outlet |
 | `/outlets/:id/users/:userId` | DELETE | Add Outlet User modal | Remove user from outlet |
 | `/outlets/:id` | DELETE | Outlets list page | Delete outlet |
+| `/dashboard/stats` | GET | Dashboard home page | Get dashboard statistics (users, restaurants, outlets, customers, orders, revenue, order status counts, average order value, today's metrics, menu items) |
+| `/dashboard/recent-orders` | GET | Dashboard home page | Get recent orders with customer and outlet details |
+| `/dashboard/revenue` | GET | Dashboard analytics | Get revenue analytics (payment method breakdown, outlet breakdown, daily trends) |
+| `/dashboard/popular-items` | GET | Dashboard analytics | Get popular items ranking (top ordered items with order count and revenue) |
+| `/dashboard/staff-performance` | GET | Dashboard analytics | Get staff performance metrics (chef preparation times, delivery agent delivery times, on-time rates) |
 
 ### Environment Variables
 
@@ -1221,16 +1250,73 @@ npx shadcn@latest add dialog -y
   - Profile page displays customer status badge, contact info, and saved addresses
   - Full address CRUD operations: add, edit, delete, set default
   - Responsive design with orange/amber theme and Framer Motion animations
+- ✅ **Menu Edit Features** - Implemented complete menu editing system - 2026-06-30
+  - Created `EditMenuModal` for editing menu name, description, and status
+  - Created `EditCategoryModal` for editing category name and display order
+  - Created `EditMenuItemModal` for editing item details, pricing, dietary info, and image
+  - Created `ModifierManagement` component for managing modifier groups and options
+  - Created `CreateModifierGroupModal` and `EditModifierGroupModal` for modifier groups
+  - Created `CreateModifierOptionModal` and `EditModifierOptionModal` for modifier options
+  - Integrated all edit modals into menus dashboard with edit buttons
+  - Added modifier count display on menu items
+  - Expandable modifier groups with option management
+  - Full CRUD operations for modifiers with validation and error handling
+- ✅ **Dashboard Enhancements** - Implemented comprehensive dashboard analytics - 2026-06-30
+  - Created backend dashboard module with statistics endpoints (`/dashboard/stats`, `/dashboard/recent-orders`, `/dashboard/revenue`, `/dashboard/popular-items`, `/dashboard/staff-performance`)
+  - Implemented `DashboardService` with data aggregations for orders, revenue, users, restaurants, outlets, customers
+  - Added support for date range filtering (today, week, month, year, all-time)
+  - Created frontend dashboard API functions in `lib/dashboard-api.ts`
+  - Updated dashboard page with real-time statistics cards
+  - Added order status overview widget with 6 status indicators
+  - Added recent orders table with order details and status badges
+  - Added quick stats section showing restaurants, outlets, users, and menu items
+  - Implemented currency formatting and time display
+  - Added loading states and error handling
+  - Personalized welcome message with user's first name
+- ✅ **Admin Dashboard Analytics Module** - Full backend and frontend dashboard implementation - 2026-06-30
+  - **Backend DashboardModule (`apps/backend/src/dashboard-module/`)**:
+    - `DashboardModule` - Complete module with controller, service, DTOs
+    - `DashboardService` - Core analytics service with 5 main methods:
+      - `getDashboardStats()` - Overall statistics (users, restaurants, outlets, customers, orders, revenue, order status counts, average order value, today's metrics, menu items)
+      - `getRecentOrders()` - Recent orders with customer details and outlet information
+      - `getRevenueAnalytics()` - Revenue breakdown by payment method, by outlet, daily trends
+      - `getPopularItems()` - Top ordered items with order count and revenue
+      - `getStaffPerformance()` - Chef and delivery agent performance metrics
+    - `DashboardController` - 5 protected endpoints:
+      - `GET /dashboard/stats` - Dashboard statistics with date range, restaurant, outlet filters
+      - `GET /dashboard/recent-orders` - Recent orders with pagination
+      - `GET /dashboard/revenue` - Revenue analytics with payment method and outlet breakdown
+      - `GET /dashboard/popular-items` - Popular items ranking
+      - `GET /dashboard/staff-performance` - Staff performance metrics
+    - `DateRange` enum - TODAY, WEEK, MONTH, YEAR, ALL for flexible filtering
+    - Role-based access - SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER
+  - **Frontend Dashboard Page (`apps/frontend/app/dashboard/page.tsx`)**:
+    - Personalized welcome message with user's first name
+    - **4 Main Statistics Cards**: Total Orders (with today's count), Total Revenue (with today's revenue), Total Customers, Average Order Value
+    - **Order Status Overview Widget** - 6 status indicators: Pending (yellow), Confirmed (blue), Preparing (purple), Ready (indigo), Out for Delivery (orange), Delivered (green)
+    - **Recent Orders Table** - Latest 5 orders with order number, status badge, customer name, outlet, total, time
+    - **Quick Stats Section** - Total Restaurants, Outlets, Users, Active Menu Items, Cancelled Orders alert
+    - Currency formatting (USD), responsive design, loading states, error handling
+  - **Frontend Dashboard API (`apps/frontend/lib/dashboard-api.ts`)**:
+    - TypeScript interfaces for all dashboard data types
+    - API functions: `getDashboardStats()`, `getRecentOrders()`, `getRevenueAnalytics()`, `getPopularItems()`, `getStaffPerformance()`
+    - Query parameter support for date range, restaurant, outlet filtering
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
-- [ ] **Menu Edit Features** - Add edit menu, edit category, edit item, and modifier management UI
-- [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
-- [ ] **Production Payment Keys** - Set up live Razorpay keys for production deployment
-- [ ] **Admin Dashboard Enhancements** - Add more dashboard widgets and analytics
 - [ ] **API Documentation** - Add Swagger/OpenAPI docs
+
+### Note: Payment Configuration
+This project uses **Razorpay Test Mode** for payment processing. Test keys are configured in the backend environment variables. Live production keys are not required as the system operates in test mode only.
+
+### Note: Previously Completed Features
+- **Outlet Edit Feature** - Already fully implemented with `EditOutletModal` component
+- **Menu Edit Features** - Implemented complete menu editing system (2026-06-30)
+  - EditMenuModal, EditCategoryModal, EditMenuItemModal components
+  - ModifierManagement component with full CRUD for modifiers
+  - All edit modals integrated into menus dashboard
 
 ---
 
