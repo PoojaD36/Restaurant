@@ -10,7 +10,7 @@ import { calculateDistance, formatDistance } from '../../lib/location-utils';
 import { useRouter } from 'next/navigation';
 import {
   Utensils, MapPin, LogOut, Loader2, User,
-  Navigation, Filter, ChevronDown, ArrowRight, ShoppingBag, Package
+  Navigation, Package
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
@@ -21,23 +21,6 @@ interface OutletWithDistance extends PublicOutlet {
   distance?: number;
 }
 
-// Cuisine types for explore section
-const CUISINE_TYPES = [
-  'Beverages', 'Burger', 'Chinese', 'Coffee', 'Healthy Food', 'Momos',
-  'North Indian', 'Pasta', 'Pizza', 'Sandwich', 'Shake', 'South Indian'
-];
-
-// Restaurant types
-const RESTAURANT_TYPES = ['Dhabas', 'Quick Bites', 'Sweet Shops', 'Casual Dining', 'Fine Dining'];
-
-// Filter options
-const FILTER_OPTIONS = [
-  { id: 'rating', label: 'Rating: 4.0+' },
-  { id: 'offers', label: 'Offers' },
-  { id: 'open', label: 'Open Now' },
-  { id: 'delivery', label: 'Free Delivery' },
-];
-
 export default function CustomerPage() {
   const { customer, isAuthenticated, logout } = useCustomerAuth();
   const { location, permissionStatus, requestLocation } = useLocation();
@@ -47,13 +30,6 @@ export default function CustomerPage() {
   const [rawOutlets, setRawOutlets] = useState<PublicOutlet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showLocationPrompt, setShowLocationPrompt] = useState(false);
-
-  // Tab state (Dining Out / Delivery)
-  const [activeTab, setActiveTab] = useState<'dining' | 'delivery'>('dining');
-
-  // Filters state
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-
   const [isAuthSheetOpen, setIsAuthSheetOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
@@ -130,17 +106,18 @@ export default function CustomerPage() {
     setIsAuthSheetOpen(true);
   };
 
-  const toggleFilter = (filterId: string) => {
-    setSelectedFilters(prev =>
-      prev.includes(filterId)
-        ? prev.filter(f => f !== filterId)
-        : [...prev, filterId]
-    );
+  const handleOutletClick = (outletId: number) => {
+    if (isAuthenticated) {
+      router.push(`/customer/menu/${outletId}`);
+    } else {
+      setAuthMode('login');
+      setIsAuthSheetOpen(true);
+    }
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header - Zomato Style */}
+      {/* Header */}
       <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
@@ -159,131 +136,90 @@ export default function CustomerPage() {
             </motion.div>
 
             {/* Right Section - Location & Auth */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               {/* Location Detection */}
               <Button
                 variant="ghost"
-                size="sm"
+                size="icon"
                 onClick={() => requestLocation()}
-                className="text-gray-700 hover:text-orange-600 gap-2"
+                className="text-gray-700 hover:text-orange-600"
+                title={location ? 'Location detected' : 'Detect location'}
               >
-                <Navigation className="h-4 w-4" />
-                {location ? (
-                  <span className="hidden sm:inline text-sm">
-                    Location detected
-                  </span>
-                ) : (
-                  <span className="hidden sm:inline text-sm">Detect location</span>
-                )}
+                <Navigation className="h-5 w-5" />
               </Button>
 
               {/* Auth */}
               {isAuthenticated && customer ? (
-                <div className="flex items-center gap-2">
-                  {/* My Profile Button - Desktop */}
+                <div className="flex items-center gap-1">
+                  {/* My Profile Button */}
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => router.push('/customer/profile')}
-                    className="text-gray-700 hover:text-orange-600 gap-2 hidden sm:flex"
+                    className="text-gray-700 hover:text-orange-600 hidden sm:flex"
+                    title="My Profile"
                   >
-                    <User className="h-4 w-4" />
-                    <span className="text-sm">My Profile</span>
+                    <User className="h-5 w-5" />
                   </Button>
 
-                  {/* My Orders Button - Desktop */}
+                  {/* My Orders Button */}
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => router.push('/customer/orders')}
-                    className="text-gray-700 hover:text-orange-600 gap-2 hidden sm:flex"
+                    className="text-gray-700 hover:text-orange-600 hidden sm:flex"
+                    title="My Orders"
                   >
-                    <Package className="h-4 w-4" />
-                    <span className="text-sm">My Orders</span>
+                    <Package className="h-5 w-5" />
                   </Button>
 
                   {/* Notification Bell */}
                   <CustomerNotificationBell />
 
-                  <span className="hidden sm:inline text-sm font-medium text-gray-700">
+                  {/* User Name */}
+                  <span className="hidden lg:inline text-sm font-medium text-gray-700 px-2">
                     {customer.firstName}
                   </span>
+
+                  {/* Logout Button */}
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={handleLogout}
                     className="text-gray-700 hover:text-orange-600"
+                    title="Logout"
                   >
-                    <LogOut className="h-4 w-4" />
+                    <LogOut className="h-5 w-5" />
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
-                    size="sm"
+                    size="icon"
                     onClick={() => {
                       setAuthMode('login');
                       setIsAuthSheetOpen(true);
                     }}
                     className="text-gray-700 hover:text-orange-600"
+                    title="Log in"
                   >
-                    Log in
+                    <User className="h-5 w-5" />
                   </Button>
                   <Button
-                    size="sm"
+                    size="icon"
                     onClick={() => {
                       setAuthMode('register');
                       setIsAuthSheetOpen(true);
                     }}
                     className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white"
+                    title="Sign up"
                   >
-                    Sign up
+                    <User className="h-5 w-5" />
                   </Button>
                 </div>
               )}
             </div>
-          </div>
-        </div>
-
-        {/* Breadcrumb Navigation */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-          <div className="flex items-center gap-2 text-sm text-gray-600 overflow-x-auto">
-            <span className="hover:text-orange-600 cursor-pointer">Home</span>
-            <span>/</span>
-            <span className="hover:text-orange-600 cursor-pointer">India</span>
-            <span>/</span>
-            <span className="hover:text-orange-600 cursor-pointer">
-              Your City
-            </span>
-            <span>/</span>
-            <span className="text-gray-900 font-medium">Restaurants</span>
-          </div>
-        </div>
-
-        {/* Tabbed Navigation */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex gap-8 border-b border-gray-200">
-            <button
-              onClick={() => setActiveTab('dining')}
-              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'dining'
-                  ? 'border-orange-600 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              Dining Out
-            </button>
-            <button
-              onClick={() => setActiveTab('delivery')}
-              className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'delivery'
-                  ? 'border-orange-600 text-orange-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-900'
-              }`}
-            >
-              Delivery
-            </button>
           </div>
         </div>
       </header>
@@ -292,40 +228,9 @@ export default function CustomerPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Trending dining out restaurants in Your City
+          <h1 className="text-3xl font-bold text-gray-900">
+            {location ? 'Restaurants near you' : 'All Restaurants'}
           </h1>
-          <p className="text-gray-600">
-            Check out the list of all the best dining restaurants near you. View Menus, Pictures, Ratings & Reviews.
-          </p>
-        </div>
-
-        {/* Filters Section */}
-        <div className="mb-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Filters
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </div>
-
-          {/* Filter Chips */}
-          <div className="flex flex-wrap gap-2">
-            {FILTER_OPTIONS.map((filter) => (
-              <button
-                key={filter.id}
-                onClick={() => toggleFilter(filter.id)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
-                  selectedFilters.includes(filter.id)
-                    ? 'bg-orange-600 text-white border-orange-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-orange-400'
-                }`}
-              >
-                {filter.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Restaurant List - Grid Layout for PC, Horizontal for Mobile */}
@@ -335,7 +240,7 @@ export default function CustomerPage() {
           </div>
         ) : (
           <>
-            {/* Desktop Grid Layout (3-4 cards per row) */}
+            {/* Desktop Grid Layout */}
             <div className="hidden lg:grid grid-cols-3 xl:grid-cols-4 gap-4">
               <AnimatePresence>
                 {outlets.map((outlet, index) => (
@@ -348,14 +253,7 @@ export default function CustomerPage() {
                   >
                     <Card
                       className="overflow-hidden hover:shadow-lg transition-all duration-300 border-gray-200 cursor-pointer group h-full flex flex-col"
-                      onClick={() => {
-                        if (isAuthenticated) {
-                          router.push(`/customer/menu/${outlet.id}`);
-                        } else {
-                          setAuthMode('login');
-                          setIsAuthSheetOpen(true);
-                        }
-                      }}
+                      onClick={() => handleOutletClick(outlet.id)}
                     >
                       {/* Image Section */}
                       <div className="relative h-40 bg-gradient-to-br from-orange-400 to-amber-400">
@@ -375,31 +273,15 @@ export default function CustomerPage() {
                             {formatDistance(outlet.distance)}
                           </Badge>
                         )}
-                        {/* Pro Badge */}
-                        {Math.random() > 0.7 && (
-                          <Badge className="absolute bottom-3 left-3 bg-blue-600 text-white border-0">
-                            Pro
-                          </Badge>
-                        )}
                       </div>
 
                       {/* Content Section */}
                       <div className="flex-1 p-4 flex flex-col">
-                        {/* Restaurant Name with Rating */}
+                        {/* Restaurant Name */}
                         <div className="flex items-center justify-between mb-2">
                           <h3 className="text-base font-bold text-gray-900 truncate flex-1">
                             {outlet.name}
                           </h3>
-                          <Badge className="bg-white text-green-700 border border-green-600 shrink-0 ml-2">
-                            <span className="font-bold text-xs">4.6</span>
-                          </Badge>
-                        </div>
-
-                        {/* Cuisines */}
-                        <div className="text-sm text-gray-600 mb-2 line-clamp-2">
-                          <span className="truncate">
-                            North Indian, Chinese, Fast Food, Beverages
-                          </span>
                         </div>
 
                         {/* Location & Distance */}
@@ -411,24 +293,14 @@ export default function CustomerPage() {
                           )}
                         </div>
 
-                        {/* Cost */}
+                        {/* Order Button */}
                         <div className="mt-auto pt-3 border-t border-gray-100">
-                          <div className="text-sm text-gray-600 mb-2">
-                            <span className="font-medium">₹{(Math.random() * 300 + 200).toFixed(0)}</span>
-                            <span className="text-gray-500"> for two</span>
-                          </div>
-
                           <Button
                             size="sm"
                             className="w-full bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (isAuthenticated) {
-                                router.push(`/customer/menu/${outlet.id}`);
-                              } else {
-                                setAuthMode('login');
-                                setIsAuthSheetOpen(true);
-                              }
+                              handleOutletClick(outlet.id);
                             }}
                           >
                             Order Now
@@ -454,14 +326,7 @@ export default function CustomerPage() {
                   >
                     <Card
                       className="overflow-hidden hover:shadow-lg transition-all duration-300 border-gray-200 cursor-pointer"
-                      onClick={() => {
-                        if (isAuthenticated) {
-                          router.push(`/customer/menu/${outlet.id}`);
-                        } else {
-                          setAuthMode('login');
-                          setIsAuthSheetOpen(true);
-                        }
-                      }}
+                      onClick={() => handleOutletClick(outlet.id)}
                     >
                       <div className="flex">
                         {/* Image Section */}
@@ -486,19 +351,9 @@ export default function CustomerPage() {
 
                         {/* Content Section */}
                         <div className="flex-1 p-3 sm:p-4">
-                          <div className="flex items-start justify-between gap-2 mb-1">
-                            <h3 className="text-base font-bold text-gray-900 line-clamp-1">
-                              {outlet.name}
-                            </h3>
-                            <Badge className="bg-white text-green-700 border border-green-600 shrink-0">
-                              <span className="font-bold text-xs">4.6</span>
-                            </Badge>
-                          </div>
-
-                          {/* Cuisines */}
-                          <div className="text-xs text-gray-600 mb-1 line-clamp-1">
-                            North Indian, Chinese, Fast Food
-                          </div>
+                          <h3 className="text-base font-bold text-gray-900 line-clamp-1 mb-1">
+                            {outlet.name}
+                          </h3>
 
                           {/* Location & Distance */}
                           <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
@@ -509,24 +364,14 @@ export default function CustomerPage() {
                             )}
                           </div>
 
-                          {/* Cost & Button */}
+                          {/* Button */}
                           <div className="flex items-center justify-between mt-2">
-                            <div className="text-xs text-gray-600">
-                              <span className="font-medium">₹{(Math.random() * 300 + 200).toFixed(0)}</span>
-                              <span className="text-gray-500"> for two</span>
-                            </div>
-
                             <Button
                               size="sm"
                               className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white text-xs px-3 py-1 h-7"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (isAuthenticated) {
-                                  router.push(`/customer/menu/${outlet.id}`);
-                                } else {
-                                  setAuthMode('login');
-                                  setIsAuthSheetOpen(true);
-                                }
+                                handleOutletClick(outlet.id);
                               }}
                             >
                               Order
@@ -539,117 +384,16 @@ export default function CustomerPage() {
                 ))}
               </AnimatePresence>
             </div>
+
+            {/* No Results */}
+            {!isLoading && outlets.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No restaurants found</p>
+              </div>
+            )}
           </>
         )}
-
-        {/* End of Results */}
-        {!isLoading && outlets.length > 0 && (
-          <div className="mt-8 text-center">
-            <p className="text-gray-500">End of search results</p>
-          </div>
-        )}
       </main>
-
-      {/* Explore Options Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-t border-gray-200">
-        <h2 className="text-xl font-bold text-gray-900 mb-6">
-          Explore options near me
-        </h2>
-
-        {/* Popular Cuisines */}
-        <div className="mb-8">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Popular cuisines near me
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {CUISINE_TYPES.map((cuisine) => (
-              <button
-                key={cuisine}
-                className="px-4 py-2 bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-700 rounded-lg text-sm transition-colors"
-              >
-                {cuisine} near me
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Popular Restaurant Types */}
-        <div className="mb-8">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Popular restaurant types near me
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {RESTAURANT_TYPES.map((type) => (
-              <button
-                key={type}
-                className="px-4 py-2 bg-gray-100 hover:bg-orange-100 text-gray-700 hover:text-orange-700 rounded-lg text-sm transition-colors"
-              >
-                {type} near me
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* CTA for more */}
-        <Button
-          variant="outline"
-          className="border-orange-400 text-orange-700 hover:bg-orange-50"
-        >
-          View all restaurants
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
-      </section>
-
-      {/* Footer - Zomato Style */}
-      <footer className="bg-gray-50 border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {/* About */}
-            <div>
-              <h4 className="font-bold text-gray-900 mb-4">About FoodHub</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-orange-600">Who We Are</a></li>
-                <li><a href="#" className="hover:text-orange-600">Blog</a></li>
-                <li><a href="#" className="hover:text-orange-600">Work With Us</a></li>
-                <li><a href="#" className="hover:text-orange-600">Contact Us</a></li>
-              </ul>
-            </div>
-
-            {/* For Restaurants */}
-            <div>
-              <h4 className="font-bold text-gray-900 mb-4">For Restaurants</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-orange-600">Partner With Us</a></li>
-                <li><a href="#" className="hover:text-orange-600">Apps For You</a></li>
-              </ul>
-            </div>
-
-            {/* Learn More */}
-            <div>
-              <h4 className="font-bold text-gray-900 mb-4">Learn More</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-orange-600">Privacy</a></li>
-                <li><a href="#" className="hover:text-orange-600">Security</a></li>
-                <li><a href="#" className="hover:text-orange-600">Terms</a></li>
-              </ul>
-            </div>
-
-            {/* Social */}
-            <div>
-              <h4 className="font-bold text-gray-900 mb-4">Social Links</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-orange-600">Instagram</a></li>
-                <li><a href="#" className="hover:text-orange-600">Twitter</a></li>
-                <li><a href="#" className="hover:text-orange-600">Facebook</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-            <p>© 2026 FoodHub. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
 
       {/* Location Permission Modal */}
       <AnimatePresence>
