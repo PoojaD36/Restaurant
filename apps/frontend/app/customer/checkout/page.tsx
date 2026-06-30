@@ -22,7 +22,7 @@ import { CustomerAuthSheet } from '../../../components/customer-auth-sheet';
 export default function CheckoutPage() {
   const router = useRouter();
   const { cart, clearCart } = useCart();
-  const { customer, isAuthenticated, getCustomerToken } = useCustomerAuth();
+  const { customer, isAuthenticated, getCustomerToken, refreshProfile } = useCustomerAuth();
 
   const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<number | null>(null);
@@ -94,7 +94,8 @@ export default function CheckoutPage() {
       if (!token) return;
 
       await deleteCustomerAddress(token, addressId);
-      await loadAddresses();
+      await refreshProfile(); // Refresh customer context
+      await loadAddresses(); // Load addresses for checkout page
 
       // If deleted address was selected, select another
       if (selectedAddressId === addressId) {
@@ -112,7 +113,8 @@ export default function CheckoutPage() {
   };
 
   const handleAddressFormSuccess = async () => {
-    await loadAddresses();
+    await refreshProfile(); // Refresh customer context with new addresses
+    await loadAddresses(); // Load addresses for the checkout page
     setIsAddressFormOpen(false);
   };
 

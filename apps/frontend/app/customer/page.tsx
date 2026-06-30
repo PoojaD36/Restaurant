@@ -9,7 +9,7 @@ import { getPublicOutlets, PublicOutlet } from '../../lib/public-api';
 import { calculateDistance, formatDistance } from '../../lib/location-utils';
 import { useRouter } from 'next/navigation';
 import {
-  Utensils, MapPin, LogOut, Loader2,
+  Utensils, MapPin, LogOut, Loader2, User,
   Navigation, Filter, ChevronDown, ArrowRight, ShoppingBag, Package
 } from 'lucide-react';
 import { Button } from '../../components/ui/button';
@@ -180,6 +180,17 @@ export default function CustomerPage() {
               {/* Auth */}
               {isAuthenticated && customer ? (
                 <div className="flex items-center gap-2">
+                  {/* My Profile Button - Desktop */}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => router.push('/customer/profile')}
+                    className="text-gray-700 hover:text-orange-600 gap-2 hidden sm:flex"
+                  >
+                    <User className="h-4 w-4" />
+                    <span className="text-sm">My Profile</span>
+                  </Button>
+
                   {/* My Orders Button - Desktop */}
                   <Button
                     variant="ghost"
