@@ -65,6 +65,91 @@ export class MenuModuleController {
     return this.menuModuleService.getAllMenus(pageNum, limitNum, restaurantIdNum, userId, userRole);
   }
 
+  // ==================== IMAGE ENDPOINTS (must come before :id routes) ====================
+
+  @Get('images')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_ADMIN, UserRole.MANAGER)
+  @HttpCode(HttpStatus.OK)
+  async listImages(
+    @Query('folder') folder?: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    try {
+      const folderPath = folder || 'menu-items';
+      const limitNum = limit ? parseInt(limit, 10) : 100;
+      const offsetNum = offset ? parseInt(offset, 10) : 0;
+
+      const result = await this.menuModuleService['supabase'].listImages(folderPath, limitNum, offsetNum);
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error?.message || 'Failed to list images',
+      };
+    }
+  }
+
+  @Post('upload-image')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_ADMIN, UserRole.MANAGER)
+  @UseInterceptors(FileInterceptor('file'))
+  @HttpCode(HttpStatus.OK)
+  async uploadImage(@UploadedFile() file: any) {
+    if (!file) {
+      return {
+        success: false,
+        message: 'No file uploaded',
+      };
+    }
+
+    try {
+      const imageUrl = await this.menuModuleService['supabase'].uploadImage(file);
+      return {
+        success: true,
+        message: 'Image uploaded successfully',
+        data: { imageUrl },
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error?.message || 'Upload failed',
+      };
+    }
+  }
+
+  @Delete('images')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_ADMIN, UserRole.MANAGER)
+  @HttpCode(HttpStatus.OK)
+  async deleteImage(@Body('imageUrl') imageUrl: string) {
+    if (!imageUrl) {
+      return {
+        success: false,
+        message: 'Image URL is required',
+      };
+    }
+
+    try {
+      await this.menuModuleService['supabase'].deleteImage(imageUrl);
+      return {
+        success: true,
+        message: 'Image deleted successfully',
+      };
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error?.message || 'Failed to delete image',
+      };
+    }
+  }
+
+  // ==================== MENU ID-BASED ENDPOINTS ====================
+
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   async getMenuById(@Param('id', ParseIntPipe) id: number, @Request() req?: any) {
@@ -73,6 +158,8 @@ export class MenuModuleController {
 
     return this.menuModuleService.getMenuById(id, userId, userRole);
   }
+
+  // ==================== MENU UPDATE/DELETE ENDPOINTS ====================
 
   @Put(':id')
   @HttpCode(HttpStatus.OK)
@@ -265,36 +352,6 @@ export class MenuModuleController {
     @Param('outletId', ParseIntPipe) outletId: number,
   ) {
     return this.menuModuleService.getOutletPricing(id, outletId);
-  }
-
-  // ==================== IMAGE UPLOAD ENDPOINT ====================
-
-  @Post('upload-image')
-  @UseGuards(RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_ADMIN, UserRole.MANAGER)
-  @UseInterceptors(FileInterceptor('file'))
-  @HttpCode(HttpStatus.OK)
-  async uploadImage(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      return {
-        success: false,
-        message: 'No file uploaded',
-      };
-    }
-
-    try {
-      const imageUrl = await this.menuModuleService['supabase'].uploadImage(file);
-      return {
-        success: true,
-        message: 'Image uploaded successfully',
-        data: { imageUrl },
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.message,
-      };
-    }
   }
 }
 

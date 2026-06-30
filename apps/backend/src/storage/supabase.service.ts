@@ -104,6 +104,50 @@ export class SupabaseService {
     }
   }
 
+  async listImages(folder: string = 'menu-items', limit: number = 100, offset: number = 0): Promise<{ files: Array<{ name: string; url: string; size: number }>, total: number }> {
+    if (!this.supabase) {
+      throw new BadRequestException('Supabase is not configured');
+    }
+
+    try {
+      const { data, error } = await this.supabase.storage
+        .from(this.bucket)
+        .list(folder, {
+          limit,
+          offset,
+          sortBy: { column: 'created_at', order: 'desc' },
+        });
+
+      if (error) {
+        this.logger.error(`Image list failed: ${error.message}`);
+        throw new BadRequestException(`Image list failed: ${error.message}`);
+      }
+
+      // Get public URLs for each file, filtering out placeholder files
+      const files = (data || [])
+        .filter((file: any) => file.name !== '.emptyFolderPlaceholder' && !file.name.startsWith('.'))
+        .map((file: any) => {
+          const path = folder ? `${folder}/${file.name}` : file.name;
+          const { data: { publicUrl } } = this.supabase.storage
+            .from(this.bucket)
+            .getPublicUrl(path);
+          return {
+            name: file.name,
+            url: publicUrl,
+            size: file.metadata?.size || 0,
+          };
+        });
+
+      return {
+        files,
+        total: files.length,
+      };
+    } catch (error) {
+      this.logger.error('Image list error', error);
+      throw new BadRequestException('Failed to list images');
+    }
+  }
+
   isConfigured(): boolean {
     return !!this.supabase;
   }

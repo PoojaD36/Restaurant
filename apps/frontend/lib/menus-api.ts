@@ -240,6 +240,21 @@ export async function uploadMenuImage(file: File): Promise<ApiResponse<{ imageUr
   return response.json();
 }
 
+export async function listMenuImages(
+  folder: string = 'menu-items',
+  limit: number = 100,
+  offset: number = 0,
+): Promise<ApiResponse<{ files: Array<{ name: string; url: string; size: number }>; total: number }>> {
+  return request(`/menus/images?folder=${folder}&limit=${limit}&offset=${offset}`);
+}
+
+export async function deleteMenuImage(imageUrl: string): Promise<ApiResponse<null>> {
+  return request('/menus/images', {
+    method: 'DELETE',
+    body: JSON.stringify({ imageUrl }),
+  });
+}
+
 // ==================== PUBLIC ENDPOINTS ====================
 
 export async function getPublicMenuByOutlet(outletId: number): Promise<ApiResponse<PublicMenu>> {

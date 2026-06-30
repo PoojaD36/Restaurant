@@ -541,6 +541,8 @@ Each restaurant card features:
 | `/menus/:id/outlets/:outletId/pricing` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Set outlet-specific pricing | - |
 | `/menus/:id/outlets/:outletId/pricing` | GET | JWT | - | Get outlet pricing for menu | - |
 | `/menus/upload-image` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Upload menu image to Supabase | - |
+| `/menus/images` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | List all images from Supabase storage | `folder`, `limit`, `offset` |
+| `/menus/images` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Delete image from Supabase storage | - |
 
 ### Public Menu Endpoints (No Authentication)
 
@@ -896,7 +898,8 @@ npx prisma migrate dev --name add_order_tracking
 | `components/create-menu-modal.tsx` | Modal for creating restaurant menus with restaurant selection |
 | `components/create-category-modal.tsx` | Modal for adding categories to menus (e.g., Appetizers, Main Course) |
 | `components/create-menu-item-modal.tsx` | Modal for adding items to categories with image upload, pricing, dietary info |
-| `components/image-upload-component.tsx` | Reusable image upload component with Supabase integration |
+| `components/image-upload-component.tsx` | Enhanced image upload with Browse Media button and Upload New option |
+| `components/media-gallery-modal.tsx` | Media gallery for browsing and selecting existing Supabase images |
 | `components/ui/button.tsx` | shadcn Button component |
 | `components/ui/card.tsx` | shadcn Card component |
 | `components/ui/input.tsx` | shadcn Input component |
@@ -1194,6 +1197,13 @@ npx shadcn@latest add dialog -y
   - Updated AddRestaurantUserModal to use new endpoint, fixing "Forbidden" errors for RESTAURANT_ADMIN
   - Fixed orders page to use `getOutletUsers` instead of `getAvailableOutletUsers` for delivery agent dropdown
   - Delivery agents now correctly appear in dropdown when they are assigned to the outlet
+- ✅ **Media Gallery Feature** - Implemented Supabase image management for menu items - 2026-06-30
+  - Added backend endpoints: `GET /menus/images` (list images), `DELETE /menus/images` (delete images)
+  - Created `MediaGalleryModal` component for browsing and selecting existing images from Supabase
+  - Enhanced `ImageUploadComponent` with "Browse Media" and "Upload New" buttons
+  - Images are filtered to exclude `.emptyFolderPlaceholder` and hidden files
+  - Users can now reuse existing images to avoid duplicates in Supabase storage
+  - Delete functionality with confirmation dialog for removing wrong images
 
 ### In Progress
 - No tasks currently in progress

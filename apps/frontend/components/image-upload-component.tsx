@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { UploadCloud, X, Loader2 } from 'lucide-react';
+import { UploadCloud, X, Loader2, Images } from 'lucide-react';
 import { uploadMenuImage } from '@/lib/menus-api';
+import { MediaGalleryModal } from '@/components/media-gallery-modal';
 
 interface ImageUploadProps {
   onImageUploaded: (imageUrl: string) => void;
@@ -14,6 +15,7 @@ export function ImageUploadComponent({ onImageUploaded, currentImage, onRemove }
   const [isUploading, setIsUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImage || null);
   const [error, setError] = useState('');
+  const [showMediaGallery, setShowMediaGallery] = useState(false);
 
   const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -55,42 +57,89 @@ export function ImageUploadComponent({ onImageUploaded, currentImage, onRemove }
     onRemove?.();
   };
 
+  const handleSelectFromGallery = (imageUrl: string) => {
+    onImageUploaded(imageUrl);
+    setPreview(imageUrl);
+    setShowMediaGallery(false);
+  };
+
   return (
-    <div className="flex items-start gap-4">
-      {preview ? (
-        <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-orange-200 bg-white">
-          <img src={preview} alt="Preview" className="w-full h-full object-cover" />
-          <button
-            type="button"
-            onClick={handleRemove}
-            className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
-            disabled={isUploading}
-          >
-            <X className="h-3 w-3" />
-          </button>
-        </div>
-      ) : (
-        <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-orange-300 rounded-lg cursor-pointer hover:border-orange-500 transition-colors bg-white">
-          {isUploading ? (
-            <Loader2 className="h-8 w-8 text-orange-500 animate-spin" />
+    <>
+      <div className="space-y-3">
+        {/* Image preview or upload area */}
+        <div className="flex items-start gap-4">
+          {preview ? (
+            <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-orange-200 bg-white">
+              <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={handleRemove}
+                className="absolute top-1 right-1 p-1 bg-red-500 rounded-full text-white hover:bg-red-600 transition-colors"
+                disabled={isUploading}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
           ) : (
-            <>
-              <UploadCloud className="h-8 w-8 text-orange-400" />
-              <span className="text-xs text-slate-500 mt-1">Upload</span>
-            </>
+            <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-orange-300 rounded-lg cursor-pointer hover:border-orange-500 transition-colors bg-white">
+              {isUploading ? (
+                <Loader2 className="h-8 w-8 text-orange-500 animate-spin" />
+              ) : (
+                <>
+                  <UploadCloud className="h-8 w-8 text-orange-400" />
+                  <span className="text-xs text-slate-500 mt-1">Upload</span>
+                </>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileSelect}
+                className="hidden"
+                disabled={isUploading}
+              />
+            </label>
           )}
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileSelect}
-            className="hidden"
-            disabled={isUploading}
-          />
-        </label>
-      )}
-      {error && (
-        <p className="text-sm text-red-600 mt-1">{error}</p>
-      )}
-    </div>
+
+          {/* Action buttons */}
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => setShowMediaGallery(true)}
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors text-sm"
+              disabled={isUploading}
+            >
+              <Images className="h-4 w-4 text-orange-500" />
+              Browse Media
+            </button>
+            {!preview && (
+              <label className="flex items-center gap-2 px-3 py-2 bg-white border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors text-sm cursor-pointer">
+                <UploadCloud className="h-4 w-4 text-orange-500" />
+                Upload New
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  disabled={isUploading}
+                />
+              </label>
+            )}
+          </div>
+        </div>
+
+        {/* Error message */}
+        {error && (
+          <p className="text-sm text-red-600">{error}</p>
+        )}
+      </div>
+
+      {/* Media Gallery Modal */}
+      <MediaGalleryModal
+        open={showMediaGallery}
+        onClose={() => setShowMediaGallery(false)}
+        onSelectImage={handleSelectFromGallery}
+        currentImage={preview || undefined}
+      />
+    </>
   );
 }
