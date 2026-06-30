@@ -37,6 +37,17 @@ export class UserModuleController {
   }
 
   /**
+   * Get assignable users (Manager, Chef, Delivery Agent)
+   * Accessible by Super Admin and Restaurant Admin
+   */
+  @Get('assignable')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.RESTAURANT_ADMIN)
+  async getAssignableUsers(@Query() getUserDto: GetUserDto) {
+    return this.userModuleService.getAssignableUsers(getUserDto);
+  }
+
+  /**
    * Change password (Any authenticated user)
    */
   @Post('change-password')

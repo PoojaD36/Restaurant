@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,9 +10,9 @@ import {
 } from './ui/dialog';
 import { Button } from './ui/button';
 import { Label } from './ui/label';
-import { Loader2, UserPlus, X } from 'lucide-react';
+import { Loader2, UserPlus, X, Search } from 'lucide-react';
 import { addUserToRestaurant, getRestaurantUsers } from '../lib/restaurants-api';
-import { getAllUsers } from '../lib/users-api';
+import { getAssignableUsers } from '../lib/users-api';
 import type { RestaurantListItem, RestaurantUser } from '../lib/types';
 import {
   Select,
@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { Badge } from './ui/badge';
+import { Input } from './ui/input';
 import { useAuth } from '../contexts/auth-context';
 
 interface AddRestaurantUserModalProps {
@@ -44,12 +45,27 @@ export function AddRestaurantUserModal({
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [error, setError] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+
+  // Filter users based on search input
+  const filteredUsers = useMemo(() => {
+    if (!searchInput.trim()) return availableUsers;
+    const searchLower = searchInput.toLowerCase();
+    return availableUsers.filter(
+      (u) =>
+        u.firstName?.toLowerCase().includes(searchLower) ||
+        u.lastName?.toLowerCase().includes(searchLower) ||
+        u.email?.toLowerCase().includes(searchLower) ||
+        u.phone?.includes(searchInput)
+    );
+  }, [availableUsers, searchInput]);
 
   useEffect(() => {
     if (open) {
       loadAvailableUsers();
       loadCurrentUsers();
       setSelectedUserId('');
+      setSearchInput('');
       setError('');
     }
   }, [open, restaurant.id]);
@@ -57,10 +73,10 @@ export function AddRestaurantUserModal({
   const loadAvailableUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      const response = await getAllUsers(1, 100);
-      // Filter out SUPER_ADMIN and users who are already in this restaurant
+      const response = await getAssignableUsers(1, 100);
+      // Filter out users who are already in this restaurant
       const filtered = response.data.filter(
-        (u) => u.role !== 'SUPER_ADMIN' && u.role !== 'RESTAURANT_ADMIN'
+        (u) => !currentUsers.some((cu) => cu.userId === u.id)
       );
       setAvailableUsers(filtered);
     } catch (err) {
@@ -222,35 +238,59 @@ export function AddRestaurantUserModal({
                   No available users. Create users (Manager, Chef, Delivery Agent) first.
                 </p>
               ) : (
-                <div className="flex gap-2">
-                  <Select
-                    value={selectedUserId}
-                    onValueChange={setSelectedUserId}
-                    disabled={isLoading}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select user to add" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableUsers.map((u) => (
-                        <SelectItem key={u.id} value={u.id}>
-                          {u.firstName} {u.lastName || ''} ({u.role})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleAddUser}
-                    disabled={!selectedUserId || isLoading}
-                    className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600"
-                  >
-                    {isLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <UserPlus className="h-4 w-4" />
+                <>
+                  {/* Search Input */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                    <Input
+                      type="text"
+                      placeholder="Search by name, email, or phone..."
+                      value={searchInput}
+                      onChange={(e) => setSearchInput(e.target.value)}
+                      className="pl-10"
+                    />
+                    {searchInput && (
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">
+                        {filteredUsers.length} users
+                      </span>
                     )}
-                  </Button>
-                </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Select
+                      value={selectedUserId}
+                      onValueChange={setSelectedUserId}
+                      disabled={isLoading}
+                    >
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select user to add" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {filteredUsers.length === 0 ? (
+                          <div className="p-2 text-sm text-slate-500 text-center">
+                            No users found matching "{searchInput}"
+                          </div>
+                        ) : (
+                          filteredUsers.map((u) => (
+                            <SelectItem key={u.id} value={u.id}>
+                              {u.firstName} {u.lastName || ''} ({u.role}) - {u.email}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={handleAddUser}
+                      disabled={!selectedUserId || isLoading}
+                      className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600"
+                    >
+                      {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <UserPlus className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </>
               )}
             </div>
           )}

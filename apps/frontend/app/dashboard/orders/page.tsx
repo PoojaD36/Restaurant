@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { getOutletOrders, updateOrderStatus, assignDeliveryAgent } from '../../../lib/order-api';
-import { getAllOutlets, getAvailableOutletUsers } from '../../../lib/outlets-api';
+import { getAllOutlets, getOutletUsers } from '../../../lib/outlets-api';
 import { OrderStatus, OrderListItem } from '../../../lib/order-types';
-import { OutletListItem, AvailableOutletUser } from '../../../lib/types';
+import { OutletListItem, OutletUser } from '../../../lib/types';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
@@ -94,7 +94,7 @@ export default function OrdersManagementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState<number | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
-  const [availableAgents, setAvailableAgents] = useState<AvailableOutletUser[]>([]);
+  const [availableAgents, setAvailableAgents] = useState<OutletUser[]>([]);
   const [isLoadingAgents, setIsLoadingAgents] = useState(false);
   const [isAssigningAgent, setIsAssigningAgent] = useState<number | null>(null);
 
@@ -154,11 +154,12 @@ export default function OrdersManagementPage() {
         const token = localStorage.getItem('accessToken');
         if (!token) return;
 
-        const response = await getAvailableOutletUsers(selectedOutlet);
+        // Get users assigned to this outlet (not available users to add)
+        const response = await getOutletUsers(selectedOutlet);
 
         if (response.success && response.data) {
           // Filter only delivery agents
-          const agents = response.data.filter((user: AvailableOutletUser) => user.role === 'DELIVERY_AGENT');
+          const agents = response.data.filter((user: any) => user.role === 'DELIVERY_AGENT');
           setAvailableAgents(agents);
         }
       } catch (error) {

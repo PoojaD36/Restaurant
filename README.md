@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-29 (Chef Dashboard with Hybrid Pool-Based Order Assignment)
+> **Last Updated:** 2026-06-30 (Authentication Fixes & API Endpoint Improvements)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -357,6 +357,7 @@ Each restaurant card features:
 |----------|--------|---------------|---------------|-------------|--------------|
 | `/users/create` | POST | JWT | SUPER_ADMIN | Create new user | - |
 | `/users/list` | GET | JWT | SUPER_ADMIN | Get all users (paginated) | `page`, `limit` |
+| `/users/assignable` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Get assignable users (MANAGER, CHEF, DELIVERY_AGENT) | `page`, `limit` |
 | `/users/change-password` | POST | JWT | - | Change password | - |
 | `/users/profile` | GET | JWT | - | Get user profile | - |
 | `/users/:id` | GET | JWT | SUPER_ADMIN | Get user by ID | - |
@@ -1185,6 +1186,14 @@ npx shadcn@latest add dialog -y
   - Added Kitchen navigation item for CHEF role in dashboard sidebar
   - Updated admin orders page to display chef names for PREPARING orders
   - Updated Order model relation to include chef assignment tracking
+- ✅ **Authentication & API Fixes** - Fixed token handling and user management endpoints - 2026-06-30
+  - Fixed chef-api.ts to use `accessToken` instead of `token` for localStorage authentication
+  - Created `/users/assignable` endpoint for fetching assignable users (MANAGER, CHEF, DELIVERY_AGENT)
+  - Added `getAssignableUsers()` service method accessible by SUPER_ADMIN and RESTAURANT_ADMIN
+  - Added frontend `getAssignableUsers()` function in users-api.ts
+  - Updated AddRestaurantUserModal to use new endpoint, fixing "Forbidden" errors for RESTAURANT_ADMIN
+  - Fixed orders page to use `getOutletUsers` instead of `getAvailableOutletUsers` for delivery agent dropdown
+  - Delivery agents now correctly appear in dropdown when they are assigned to the outlet
 
 ### In Progress
 - No tasks currently in progress
