@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-30 (Authentication Fixes & API Endpoint Improvements)
+> **Last Updated:** 2026-06-30 (Customer Profile Page Implementation Complete)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -241,6 +241,9 @@ d:\restaurant/
 | Customer Orders List | ✅ Complete | /customer/orders page for viewing all customer orders with pagination |
 | Customer Notification Bell | ✅ Complete | Notification bell icon in customer header with unread count and connection status |
 | Customer Notification Panel | ✅ Complete | Slide-out panel for customer order notifications with mark as read/clear options |
+| Customer Profile Page | ✅ Complete | /customer/profile page for viewing and managing customer profile information, saved addresses |
+| Customer Profile Edit | ✅ Complete | Profile form modal for editing name, email with validation and profile image upload |
+| Customer Address Management | ✅ Complete | Full CRUD operations for addresses (add, edit, delete, set default) with checkout sync |
 | Chef Dashboard | ✅ Complete | Kitchen dashboard with order pool, claim functionality, and status updates |
 
 ### Routing Structure
@@ -253,6 +256,7 @@ The application uses separate routing for admin and customer portals:
 | `/customer` | Customer portal - browse outlets with geolocation, distance sorting, notification bell, My Orders link | Customer JWT (optional for browsing, required for ordering) |
 | `/customer/menu/[outletId]` | Menu browsing page with categories, items, modifiers, add to cart | Public (cart requires customer auth for checkout) |
 | `/customer/checkout` | Checkout page with address selection, order summary, place order | Customer JWT required |
+| `/customer/profile` | Customer profile page with address management and account settings | Customer JWT required |
 | `/customer/orders` | Customer orders list page with status tracking | Customer JWT required |
 | `/customer/orders/[orderId]` | Order details page with status, timeline, items, delivery address | Customer JWT required |
 | `/admin/login` | Admin login page | Public (redirects to `/dashboard` after login) |
@@ -914,6 +918,8 @@ npx prisma migrate dev --name add_order_tracking
 | `components/customer-notification-panel.tsx` | Customer notification panel with order status updates and order navigation |
 | `components/payment-method-selector.tsx` | Payment method selection component (Razorpay/COD) with icons and selection state |
 | `components/collect-payment-modal.tsx` | Payment collection modal for delivery agents to collect COD payments (Cash, UPI) with QR code for UPI payments |
+| `components/profile-form-modal.tsx` | Profile edit modal for updating customer name and email with validation |
+| `components/profile-image-upload.tsx` | Profile image upload component with live preview and image validation (max 5MB) |
 | `lib/notifications-socket.ts` | WebSocket client service for admin/manager order notifications |
 | `lib/notification-types.ts` | TypeScript types for admin notifications and notification data |
 | `contexts/notification-context.tsx` | Admin notification state management with useNotifications hook |
@@ -925,6 +931,7 @@ npx prisma migrate dev --name add_order_tracking
 | `app/customer/checkout/page.tsx` | Checkout page with address selection, order summary, place order |
 | `app/customer/orders/[orderId]/page.tsx` | Order details page with status, timeline, items, delivery address, cancel |
 | `app/customer/orders/page.tsx` | Customer orders list page with pagination, order tracking, status badges |
+| `app/customer/profile/page.tsx` | Customer profile page with account info, address management, quick actions |
 | `app/customer/checkout/page.tsx` | Checkout page with address selection, order summary, place order |
 | `app/customer/orders/[orderId]/page.tsx` | Order details page with status, timeline, items, delivery address, cancel |
 | `app/admin/login/page.tsx` | Admin login form (email/phone + password) |
@@ -1204,12 +1211,21 @@ npx shadcn@latest add dialog -y
   - Images are filtered to exclude `.emptyFolderPlaceholder` and hidden files
   - Users can now reuse existing images to avoid duplicates in Supabase storage
   - Delete functionality with confirmation dialog for removing wrong images
+- ✅ **Customer Profile Page** - Implemented complete customer profile management - 2026-06-30
+  - Created `/customer/profile` page with profile information display and editing
+  - Created `ProfileImageUpload` component for profile picture management with live preview
+  - Created `ProfileFormModal` component for editing name and email with validation
+  - Integrated existing `AddressForm` and `AddressSelector` components for address management
+  - Added "My Profile" link to customer page header navigation
+  - Fixed address sync issue: addresses added during checkout now appear in profile page
+  - Profile page displays customer status badge, contact info, and saved addresses
+  - Full address CRUD operations: add, edit, delete, set default
+  - Responsive design with orange/amber theme and Framer Motion animations
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
-- [ ] **Customer Profile Page** - Create /customer/profile page for customer information and address management
 - [ ] **Menu Edit Features** - Add edit menu, edit category, edit item, and modifier management UI
 - [ ] **Outlet Edit Feature** - Add edit outlet modal for updating outlet details
 - [ ] **Production Payment Keys** - Set up live Razorpay keys for production deployment
