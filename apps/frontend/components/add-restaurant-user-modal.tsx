@@ -76,7 +76,7 @@ export function AddRestaurantUserModal({
       const response = await getAssignableUsers(1, 100);
       // Filter out users who are already in this restaurant
       const filtered = response.data.filter(
-        (u) => !currentUsers.some((cu) => cu.userId === u.id)
+        (u) => !currentUsers.some((cu) => cu.id === u.id)
       );
       setAvailableUsers(filtered);
     } catch (err) {
