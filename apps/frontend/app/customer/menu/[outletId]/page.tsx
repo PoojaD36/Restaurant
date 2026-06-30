@@ -7,6 +7,7 @@ import { useCart } from '../../../../contexts/cart-context';
 import { getPublicMenuByOutlet, getPublicOutletById } from '../../../../lib/public-api';
 import { PublicMenu, MenuItem as MenuItemType } from '../../../../lib/menu-types';
 import { Utensils, MapPin, Clock, ArrowLeft, Loader2, Plus, Minus, ShoppingBag, Check } from 'lucide-react';
+import { cn } from '../../../../lib/utils';
 import { Button } from '../../../../components/ui/button';
 import { Badge } from '../../../../components/ui/badge';
 import { Card } from '../../../../components/ui/card';
@@ -151,6 +152,44 @@ export default function MenuPage() {
     return price;
   };
 
+  // Helper function to find if an item with specific modifiers is in cart
+  const findItemInCart = (item: MenuItemType) => {
+    if (!cart || cart.items.length === 0) return null;
+
+    // Build modifier string for comparison
+    const buildModifierString = (modifiers: typeof item.modifiers) => {
+      if (!modifiers || modifiers.length === 0) return '[]';
+      return JSON.stringify(
+        modifiers.map(m => ({
+          modifierGroupId: m.id,
+          selectedOptions: m.options.map(o => o.id).sort()
+        }))
+      );
+    };
+
+    const itemModifierStr = buildModifierString(item.modifiers);
+
+    // Find matching item in cart
+    const cartItem = cart.items.find(ci => {
+      if (ci.menuItemId !== item.id) return false;
+
+      // Build cart item modifier string
+      const cartModifierStr = JSON.stringify(
+        ci.modifiers.map(m => ({
+          modifierGroupId: m.modifierGroupId,
+          selectedOptions: m.selectedOptions.map(o => o.id).sort()
+        }))
+      );
+
+      return cartModifierStr === itemModifierStr;
+    });
+
+    return cartItem || null;
+  };
+
+  // Get cart item count for badge
+  const cartItemCount = cart ? cart.items.reduce((sum, item) => sum + item.quantity, 0) : 0;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
@@ -199,18 +238,21 @@ export default function MenuPage() {
               <p className="text-sm text-gray-600">{menu.name}</p>
             </div>
 
-            {cart && cart.items.length > 0 && (
-              <Button
-                onClick={() => router.push('/customer/checkout')}
-                className="relative bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600"
-              >
-                <ShoppingBag className="h-4 w-4 mr-2" />
-                Cart
+            <Button
+              onClick={() => router.push('/customer/checkout')}
+              className={cn(
+                "relative bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600",
+                cartItemCount === 0 && "opacity-70"
+              )}
+            >
+              <ShoppingBag className="h-4 w-4 mr-2" />
+              Cart
+              {cartItemCount > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+                  {cartItemCount}
                 </span>
-              </Button>
-            )}
+              )}
+            </Button>
           </div>
         </div>
       </motion.header>
@@ -295,17 +337,49 @@ export default function MenuPage() {
                     )}
                   </div>
 
-                  {/* Add to Cart */}
+                  {/* Add to Cart / Quantity Controls */}
                   <div className="flex flex-col items-end justify-between">
                     <span className="text-lg font-bold text-orange-900">₹{item.price}</span>
-                    <Button
-                      size="sm"
-                      onClick={() => setSelectedItem(item)}
-                      className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Add
-                    </Button>
+                    {(() => {
+                      const cartItem = findItemInCart(item);
+                      if (cartItem && cartItem.quantity > 0) {
+                        // Show quantity controls
+                        return (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateQuantity(cartItem.tempId, cartItem.quantity - 1)}
+                              className="h-8 w-8 p-0 rounded-full border-orange-300 text-orange-600 hover:bg-orange-100"
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="font-semibold text-orange-900 w-8 text-center">
+                              {cartItem.quantity}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => updateQuantity(cartItem.tempId, cartItem.quantity + 1)}
+                              className="h-8 w-8 p-0 rounded-full border-orange-300 text-orange-600 hover:bg-orange-100"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        );
+                      }
+                      // Show Add button
+                      return (
+                        <Button
+                          size="sm"
+                          onClick={() => setSelectedItem(item)}
+                          className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add
+                        </Button>
+                      );
+                    })()}
                   </div>
                 </div>
               </Card>

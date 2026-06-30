@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ShoppingBag, MapPin, Clock, Check, Loader2 } from 'lucide-react';
+import { ShoppingBag, MapPin, Clock, Check, Loader2, Plus, Minus } from 'lucide-react';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -13,6 +13,8 @@ interface OrderSummaryProps {
   canPlaceOrder?: boolean;
   onPlaceOrder?: () => void;
   selectedAddressLabel?: string;
+  onUpdateQuantity?: (tempId: string, quantity: number) => void;
+  onRemoveItem?: (tempId: string) => void;
 }
 
 const DELIVERY_FEE = 30;
@@ -23,6 +25,8 @@ export function OrderSummary({
   canPlaceOrder = false,
   onPlaceOrder,
   selectedAddressLabel,
+  onUpdateQuantity,
+  onRemoveItem,
 }: OrderSummaryProps) {
   const subtotal = cart.subtotal;
   const deliveryFee = DELIVERY_FEE;
@@ -89,14 +93,47 @@ export function OrderSummary({
               {/* Item Details */}
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-gray-900 text-sm">{item.name}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">
-                    Qty: {item.quantity}
-                  </span>
-                  <span className="text-sm font-semibold text-orange-900">
-                    ₹{(item.price * item.quantity).toFixed(2)}
-                  </span>
-                </div>
+                {!isPlacingOrder && onUpdateQuantity ? (
+                  // Show quantity controls
+                  <div className="flex items-center gap-2 mt-1">
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onUpdateQuantity(item.tempId, item.quantity - 1)}
+                        className="h-7 w-7 p-0 rounded-full border-orange-300 text-orange-600 hover:bg-orange-100"
+                        disabled={isPlacingOrder}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="font-semibold text-orange-900 w-6 text-center text-sm">
+                        {item.quantity}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => onUpdateQuantity(item.tempId, item.quantity + 1)}
+                        className="h-7 w-7 p-0 rounded-full border-orange-300 text-orange-600 hover:bg-orange-100"
+                        disabled={isPlacingOrder}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <span className="text-sm font-semibold text-orange-900 ml-auto">
+                      ₹{(item.price * item.quantity).toFixed(2)}
+                    </span>
+                  </div>
+                ) : (
+                  // Show static quantity badge
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">
+                      Qty: {item.quantity}
+                    </span>
+                    <span className="text-sm font-semibold text-orange-900">
+                      ₹{(item.price * item.quantity).toFixed(2)}
+                    </span>
+                  </div>
+                )}
 
                 {/* Modifiers */}
                 {item.modifiers && item.modifiers.length > 0 && (
