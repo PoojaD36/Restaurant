@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-30 (Admin Dashboard Analytics Fully Implemented)
+> **Last Updated:** 2026-06-30 (API Documentation with Swagger/OpenAPI Implemented)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -1301,12 +1301,46 @@ npx shadcn@latest add dialog -y
     - TypeScript interfaces for all dashboard data types
     - API functions: `getDashboardStats()`, `getRecentOrders()`, `getRevenueAnalytics()`, `getPopularItems()`, `getStaffPerformance()`
     - Query parameter support for date range, restaurant, outlet filtering
+- ✅ **API Documentation (Swagger/OpenAPI)** - Implemented comprehensive API documentation - 2026-06-30
+  - **Swagger Configuration (`apps/backend/src/main.ts`)**:
+    - Installed `@nestjs/swagger` package
+    - Configured Swagger with DocumentBuilder including:
+      - API title: "Restaurant Management API"
+      - Comprehensive description with module overview
+      - Version 1.0
+      - Tags for all modules: Auth, Users, Restaurants, Outlets, Customers, Menus, Orders, Payments, Dashboard, Public
+      - Bearer auth configuration with JWT
+      - Contact, license, and external documentation links
+    - Swagger UI setup at `/api-docs` endpoint with:
+      - Persist authorization enabled
+      - Request duration display
+      - Syntax highlighting (Monokai theme)
+      - Custom site title
+    - Console logging for server URL and documentation URL
+  - **Swagger Decorators Added**:
+    - **Auth Module**: `@ApiTags('Auth')`, `@ApiOperation`, `@ApiResponse`, `@ApiBody`, `@ApiBearerAuth` decorators for login, refresh, profile, logout, admin-only endpoints
+    - **Auth DTOs**: `@ApiProperty`, `@ApiPropertyOptional` decorators for LoginDto, RefreshTokenDto
+    - **Users Module**: Full Swagger decorators for all CRUD endpoints with role descriptions
+    - **Users DTOs**: `@ApiProperty` decorators for CreateUserDto, ChangePasswordDto, UpdateUserDto
+    - **Dashboard Module**: Complete API documentation with detailed schemas for all 5 endpoints
+    - **Dashboard DTOs**: `@ApiPropertyOptional` decorator for GetDashboardStatsDto with DateRange enum
+    - **Customers Module**: Full Swagger decorators for authentication, profile, and address management endpoints
+  - **API Documentation Access**:
+    - Development: http://localhost:3001/api-docs
+    - Production: https://restaurant-t24q.onrender.com/api-docs
+  - **Features**:
+    - Interactive API testing with "Try it out" button
+    - JWT Bearer token authentication support
+    - Request/response schema examples
+    - Enum values displayed as dropdowns
+    - Role-based access documentation
+    - Comprehensive error responses (401, 403, 404, etc.)
 
 ### In Progress
 - No tasks currently in progress
 
 ### Pending Tasks
-- [ ] **API Documentation** - Add Swagger/OpenAPI docs
+- No pending tasks
 
 ### Note: Payment Configuration
 This project uses **Razorpay Test Mode** for payment processing. Test keys are configured in the backend environment variables. Live production keys are not required as the system operates in test mode only.
