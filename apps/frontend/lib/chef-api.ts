@@ -7,7 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
  * Returns CONFIRMED orders (pending claim) and PREPARING orders (assigned to this chef)
  */
 export async function getChefOrders(outletId?: number): Promise<GetChefOrdersResponse> {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('accessToken');
   if (!token) {
     throw new Error('No authentication token found');
   }
@@ -36,7 +36,7 @@ export async function getChefOrders(outletId?: number): Promise<GetChefOrdersRes
  * Assigns the order to the chef and updates status to PREPARING
  */
 export async function claimOrder(orderId: number): Promise<void> {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('accessToken');
   if (!token) {
     throw new Error('No authentication token found');
   }
@@ -61,7 +61,7 @@ export async function claimOrder(orderId: number): Promise<void> {
  * Updates status to READY and sets completedAt timestamp
  */
 export async function markOrderReady(orderId: number): Promise<void> {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('accessToken');
   if (!token) {
     throw new Error('No authentication token found');
   }

@@ -34,6 +34,14 @@ export async function getAllUsers(page: number = 1, limit: number = 10): Promise
   return request(`/users/list?page=${page}&limit=${limit}`);
 }
 
+/**
+ * Get assignable users (Manager, Chef, Delivery Agent)
+ * Accessible by Super Admin and Restaurant Admin
+ */
+export async function getAssignableUsers(page: number = 1, limit: number = 100): Promise<PaginatedResponse<UserListItem>> {
+  return request(`/users/assignable?page=${page}&limit=${limit}`);
+}
+
 export async function changePassword(data: ChangePasswordRequest): Promise<ApiResponse<null>> {
   return request('/users/change-password', {
     method: 'POST',

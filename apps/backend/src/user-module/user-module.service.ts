@@ -70,6 +70,67 @@ export class UserModuleService {
   }
 
   /**
+   * Get users that can be assigned to restaurants/outlets (MANAGER, CHEF, DELIVERY_AGENT)
+   * Accessible by SUPER_ADMIN and RESTAURANT_ADMIN
+   */
+  async getAssignableUsers(getUserDto: GetUserDto): Promise<PaginatedResponse<any>> {
+    try {
+      const { page, limit, skip } = getUserDto;
+
+      const assignableRoles = [UserRole.MANAGER, UserRole.CHEF, UserRole.DELIVERY_AGENT];
+
+      const [users, total] = await Promise.all([
+        this.prisma.user.findMany({
+          where: {
+            role: {
+              in: assignableRoles,
+            },
+            status: {
+              equals: 'ACTIVE',
+            },
+          },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            phone: true,
+            role: true,
+            status: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          skip,
+          take: limit,
+        }),
+        this.prisma.user.count({
+          where: {
+            role: {
+              in: assignableRoles,
+            },
+            status: {
+              equals: 'ACTIVE',
+            },
+          },
+        }),
+      ]);
+
+      const pagination = new PaginationMeta(total, page, limit);
+
+      return {
+        success: true,
+        message: 'Assignable users retrieved successfully',
+        data: users,
+        pagination,
+      };
+    } catch (error) {
+      console.error('Error in getAssignableUsers:', error);
+      throw new BadRequestException('Failed to retrieve assignable users');
+    }
+  }
+
+  /**
    * Get all users excluding superadmin with limited details and pagination
    */
   async getAllUsers(getUserDto: GetUserDto): Promise<PaginatedResponse<any>> {
