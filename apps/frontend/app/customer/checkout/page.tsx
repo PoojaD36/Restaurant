@@ -21,7 +21,7 @@ import { CustomerAuthSheet } from '../../../components/customer-auth-sheet';
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, updateQuantity, removeFromCart } = useCart();
   const { customer, isAuthenticated, getCustomerToken, refreshProfile } = useCustomerAuth();
 
   const [addresses, setAddresses] = useState<CustomerAddress[]>([]);
@@ -429,6 +429,8 @@ export default function CheckoutPage() {
                   canPlaceOrder={canPlaceOrder}
                   onPlaceOrder={handlePlaceOrder}
                   selectedAddressLabel={selectedAddress?.label}
+                  onUpdateQuantity={updateQuantity}
+                  onRemoveItem={removeFromCart}
                 />
               )}
             </div>
