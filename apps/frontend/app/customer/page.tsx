@@ -106,9 +106,10 @@ export default function CustomerPage() {
     setIsAuthSheetOpen(true);
   };
 
-  const handleOutletClick = (outletId: number) => {
+  const handleOutletClick = (outletId: string | number) => {
+    const id = typeof outletId === 'string' ? parseInt(outletId) : outletId;
     if (isAuthenticated) {
-      router.push(`/customer/menu/${outletId}`);
+      router.push(`/customer/menu/${id}`);
     } else {
       setAuthMode('login');
       setIsAuthSheetOpen(true);
