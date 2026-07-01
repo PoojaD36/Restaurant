@@ -28,6 +28,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
+import { CustomerHeader } from '@/components/customer-header';
+import { CustomerBottomNav } from '@/components/customer-bottom-nav';
 
 const statusColors: Record<OrderStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -113,23 +115,9 @@ export default function CustomerOrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 pb-16 lg:pb-0">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push('/customer')}
-            >
-              <ChevronRight className="h-5 w-5 rotate-180" />
-            </Button>
-            <h1 className="text-lg font-semibold text-gray-900">My Orders</h1>
-            <div className="w-9" />
-          </div>
-        </div>
-      </header>
+      <CustomerHeader title="My Orders" showBackButton onBackClick={() => router.push('/customer')} />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -289,6 +277,9 @@ export default function CustomerOrdersPage() {
           </>
         )}
       </main>
+
+      {/* Bottom Navigation (Mobile Only) */}
+      <CustomerBottomNav />
     </div>
   );
 }
