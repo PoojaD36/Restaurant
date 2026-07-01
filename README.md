@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-07-01 (Cart Module Complete with Cross-Device Sync & Race Condition Fixes)
+> **Last Updated:** 2026-07-01 (Mobile Navigation Enhancement - Customer Bottom Nav & Responsive Header)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -940,6 +940,8 @@ npx prisma migrate dev --name add_order_tracking
 | `components/notification-panel.tsx` | Slide-out panel displaying all notifications with mark as read/clear options (admin) |
 | `components/customer-notification-bell.tsx` | Customer notification bell icon with unread count badge and connection status |
 | `components/customer-notification-panel.tsx` | Customer notification panel with order status updates and order navigation |
+| `components/customer-header.tsx` | Shared header component for customer pages with Logo, Location, Profile, Orders, Notifications, and Logout (responsive - desktop shows all icons, mobile shows minimal icons) |
+| `components/customer-bottom-nav.tsx` | Mobile-only sticky bottom navigation bar with Home, Orders, Profile, and Alerts tabs (hidden on desktop) |
 | `components/payment-method-selector.tsx` | Payment method selection component (Razorpay/COD) with icons and selection state |
 | `components/collect-payment-modal.tsx` | Payment collection modal for delivery agents to collect COD payments (Cash, UPI) with QR code for UPI payments |
 | `components/profile-form-modal.tsx` | Profile edit modal for updating customer name and email with validation |
@@ -1356,6 +1358,26 @@ npx shadcn@latest add dialog -y
     - Added comprehensive error logging and detailed error messages
   - **Cross-Device Sync**: When customer adds items on PC, they automatically appear on mobile upon login and visiting the outlet page
   - **Race Condition Handling**: Uses Prisma `upsert` for atomic cart creation - handles concurrent requests safely
+- ✅ **Mobile Navigation Enhancement** - Implemented responsive customer navigation with mobile bottom nav - 2026-07-01
+  - **CustomerHeader Component**: Shared header component for all customer pages
+    - Logo, Location detection button, and Logout button on all screens
+    - Desktop (sm+): Shows Profile, Orders, Notification Bell, User Name in header
+    - Mobile: Minimal header with only Logo, Location, Logout
+  - **CustomerBottomNav Component**: Mobile-only sticky bottom navigation
+    - 4 tabs: Home, Orders, Profile, Alerts
+    - Fixed to bottom of screen on mobile devices (lg:hidden)
+    - Active state highlighting for current page
+    - Integrated CustomerNotificationBell for Alerts tab
+  - **Responsive Design**:
+    - Mobile: Header (Logo, Location, Logout) + Bottom Nav (Home, Orders, Profile, Alerts)
+    - Desktop: Header (Logo, Location, Profile, Orders, Notifications, User Name, Logout)
+  - **Hydration Fix**: Used `<div>` instead of `<button>` for Alerts tab to avoid nested button elements
+  - **Updated Pages**: customer/page.tsx, customer/orders/page.tsx, customer/profile/page.tsx use new components
+- ✅ **Profile Image Mobile Centering Fix** - Fixed profile image layout on mobile view - 2026-07-01
+  - Updated profile page flex container to use `items-center sm:items-start`
+  - Profile image now centered horizontally on mobile (< 640px) as per design
+  - Desktop layout (≥ 640px) remains unchanged with side-by-side alignment
+  - Verified shadcn/ui components are used consistently across the project
 
 ### In Progress
 - No tasks currently in progress

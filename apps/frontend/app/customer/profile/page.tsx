@@ -4,16 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ArrowLeft,
-  User,
   MapPin,
   Package,
-  LogOut,
   Loader2,
   Plus,
   Edit,
   Trash2,
-  Utensils,
   Phone,
   Mail,
   Shield,
@@ -25,16 +21,16 @@ import { useCustomerAuth } from '../../../contexts/customer-auth-context';
 import { ProfileImageUpload } from '../../../components/profile-image-upload';
 import { ProfileFormModal } from '../../../components/profile-form-modal';
 import { AddressForm } from '../../../components/address-form';
-import { CustomerAddress, UpdateCustomerRequest } from '../../../lib/customer-types';
+import { CustomerHeader } from '../../../components/customer-header';
+import { CustomerBottomNav } from '../../../components/customer-bottom-nav';
+import { CustomerAddress } from '../../../lib/customer-types';
 import {
-  addCustomerAddress,
-  updateCustomerAddress,
   deleteCustomerAddress,
   setDefaultCustomerAddress,
 } from '../../../lib/customer-api';
 
 export default function CustomerProfilePage() {
-  const { customer, isAuthenticated, isLoading: authLoading, logout, refreshProfile } = useCustomerAuth();
+  const { customer, isAuthenticated, isLoading: authLoading, refreshProfile } = useCustomerAuth();
   const router = useRouter();
 
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
@@ -121,11 +117,6 @@ export default function CustomerProfilePage() {
     setEditAddress(null);
   };
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/customer');
-  };
-
   if (authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
@@ -141,46 +132,9 @@ export default function CustomerProfilePage() {
   const displayName = `${customer.firstName}${customer.lastName ? ' ' + customer.lastName : ''}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 pb-16 lg:pb-0">
       {/* Header */}
-      <motion.header
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-40 bg-white/60 backdrop-blur-xl border-b border-orange-200/40 shadow-sm"
-      >
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            {/* Back Button & Logo */}
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.push('/customer')}
-                className="text-orange-600 hover:text-orange-700 hover:bg-orange-100"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <div className="flex items-center gap-2">
-                <div className="bg-gradient-to-br from-orange-600 to-amber-500 p-1.5 rounded-lg">
-                  <Utensils className="h-4 w-4 text-white" />
-                </div>
-                <span className="text-lg font-bold text-orange-900">My Profile</span>
-              </div>
-            </div>
-
-            {/* Logout Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleLogout}
-              className="text-gray-600 hover:text-red-600 hover:bg-red-50 gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
-          </div>
-        </div>
-      </motion.header>
+      <CustomerHeader title="My Profile" showBackButton onBackClick={() => router.push('/customer')} />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -192,7 +146,7 @@ export default function CustomerProfilePage() {
             transition={{ delay: 0.1 }}
           >
             <Card className="p-6 sm:p-8">
-              <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
                 {/* Profile Image */}
                 <div className="flex-shrink-0">
                   <ProfileImageUpload
@@ -416,23 +370,14 @@ export default function CustomerProfilePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4"
           >
             <Button
               variant="outline"
-              className="flex-1"
+              className="w-full"
               onClick={() => router.push('/customer/orders')}
             >
               <Package className="h-4 w-4 mr-2" />
               View Order History
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
             </Button>
           </motion.div>
         </div>
@@ -454,6 +399,9 @@ export default function CustomerProfilePage() {
         editAddress={editAddress}
         token={localStorage.getItem('customerAccessToken') || ''}
       />
+
+      {/* Bottom Navigation (Mobile Only) */}
+      <CustomerBottomNav />
     </div>
   );
 }

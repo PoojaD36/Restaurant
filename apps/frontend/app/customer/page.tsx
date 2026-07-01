@@ -8,14 +8,12 @@ import { useLocation } from '../../contexts/location-context';
 import { getPublicOutlets, PublicOutlet } from '../../lib/public-api';
 import { calculateDistance, formatDistance } from '../../lib/location-utils';
 import { useRouter } from 'next/navigation';
-import {
-  Utensils, MapPin, LogOut, Loader2, User,
-  Navigation, Package
-} from 'lucide-react';
+import { Utensils, MapPin, Loader2, Navigation } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
-import { CustomerNotificationBell } from '../../components/customer-notification-bell';
+import { CustomerHeader } from '../../components/customer-header';
+import { CustomerBottomNav } from '../../components/customer-bottom-nav';
 
 interface OutletWithDistance extends PublicOutlet {
   distance?: number;
@@ -117,113 +115,9 @@ export default function CustomerPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white pb-16 lg:pb-0">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            {/* Logo */}
-            <motion.div
-              className="flex items-center gap-2 cursor-pointer"
-              whileHover={{ scale: 1.02 }}
-              onClick={() => router.push('/')}
-            >
-              <div className="bg-gradient-to-br from-orange-600 to-amber-500 p-2 rounded-lg">
-                <Utensils className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">
-                FoodHub
-              </span>
-            </motion.div>
-
-            {/* Right Section - Location & Auth */}
-            <div className="flex items-center gap-2">
-              {/* Location Detection */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => requestLocation()}
-                className="text-gray-700 hover:text-orange-600"
-                title={location ? 'Location detected' : 'Detect location'}
-              >
-                <Navigation className="h-5 w-5" />
-              </Button>
-
-              {/* Auth */}
-              {isAuthenticated && customer ? (
-                <div className="flex items-center gap-1">
-                  {/* My Profile Button */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => router.push('/customer/profile')}
-                    className="text-gray-700 hover:text-orange-600 hidden sm:flex"
-                    title="My Profile"
-                  >
-                    <User className="h-5 w-5" />
-                  </Button>
-
-                  {/* My Orders Button */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => router.push('/customer/orders')}
-                    className="text-gray-700 hover:text-orange-600 hidden sm:flex"
-                    title="My Orders"
-                  >
-                    <Package className="h-5 w-5" />
-                  </Button>
-
-                  {/* Notification Bell */}
-                  <CustomerNotificationBell />
-
-                  {/* User Name */}
-                  <span className="hidden lg:inline text-sm font-medium text-gray-700 px-2">
-                    {customer.firstName}
-                  </span>
-
-                  {/* Logout Button */}
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleLogout}
-                    className="text-gray-700 hover:text-orange-600"
-                    title="Logout"
-                  >
-                    <LogOut className="h-5 w-5" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setAuthMode('login');
-                      setIsAuthSheetOpen(true);
-                    }}
-                    className="text-gray-700 hover:text-orange-600"
-                    title="Log in"
-                  >
-                    <User className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    onClick={() => {
-                      setAuthMode('register');
-                      setIsAuthSheetOpen(true);
-                    }}
-                    className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white"
-                    title="Sign up"
-                  >
-                    <User className="h-5 w-5" />
-                  </Button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <CustomerHeader />
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -448,6 +342,9 @@ export default function CustomerPage() {
         onClose={() => setIsAuthSheetOpen(false)}
         defaultMode={authMode}
       />
+
+      {/* Bottom Navigation (Mobile Only) */}
+      <CustomerBottomNav />
     </div>
   );
 }
