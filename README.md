@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-07-01 (Cart Sync Across Devices Fixed)
+> **Last Updated:** 2026-07-01 (Cart Module Complete with Cross-Device Sync & Race Condition Fixes)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -1335,16 +1335,27 @@ npx shadcn@latest add dialog -y
     - Enum values displayed as dropdowns
     - Role-based access documentation
     - Comprehensive error responses (401, 403, 404, etc.)
-- ✅ **Cart Sync Across Devices** - Fixed cross-device cart synchronization for authenticated customers - 2026-07-01
-  - **Backend**: `CustomerCart` and `CartItem` models in Prisma schema with server-side cart storage
-  - **Cart API**: `GET/POST/PUT/DELETE /customers/cart` endpoints for cart CRUD operations
-  - **Cart Context Enhancement**: 
-    - `setOutletInfo()` now syncs from server when user is authenticated and cart is empty
-    - `customerLogin` event handler improved with better logging and sync logic
-    - Added sync on mount when user is already logged in with stored cart
+- ✅ **Cart Sync Across Devices** - Complete server-side cart system with cross-device synchronization - 2026-07-01
+  - **Database Schema**: `CustomerCart` and `CartItem` models with unique constraint on (customerId, outletId)
+  - **Cart API Endpoints**:
+    - `GET /customers/cart?outletId=123` - Get customer's cart for specific outlet
+    - `POST /customers/cart/items` - Add item to cart (or update quantity if exists)
+    - `PUT /customers/cart/items/:id` - Update cart item quantity
+    - `DELETE /customers/cart/items/:id` - Remove item from cart
+    - `DELETE /customers/cart?outletId=123` - Clear cart for specific outlet
+  - **Bug Fixes**:
+    - **Fixed req.user.customerId**: Cart controller was using `req.user.sub` but customer JWT returns `customerId` - caused all cart operations to fail silently
+    - **Fixed Race Condition**: Used `upsert` instead of `create` to handle concurrent cart creation requests
+    - **Fixed Modifiers Parsing**: Server returns modifiers as JSON string, added parsing logic to convert to array for frontend use
+    - **Fixed Frontend Sync**: Cart operations now update local state with server response to maintain correct server IDs
+  - **Frontend Enhancements**:
+    - `setOutletInfo()` - Syncs from server when user is authenticated and cart is empty or outlet changes
+    - `addToCart()` - Updates local cart with server response after successful sync
+    - `updateQuantity()` - Syncs with server response to maintain correct IDs
+    - `removeFromCart()` - Syncs with server response to maintain correct IDs
+    - Added comprehensive error logging and detailed error messages
   - **Cross-Device Sync**: When customer adds items on PC, they automatically appear on mobile upon login and visiting the outlet page
-  - **Smart Sync Logic**: Only syncs from server when local cart is empty or outlet changes, preserving local changes
-  - **Console Logging**: Added debug logs for troubleshooting cart sync issues
+  - **Race Condition Handling**: Uses Prisma `upsert` for atomic cart creation - handles concurrent requests safely
 
 ### In Progress
 - No tasks currently in progress
