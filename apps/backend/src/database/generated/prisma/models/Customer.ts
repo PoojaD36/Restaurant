@@ -251,6 +251,7 @@ export type CustomerWhereInput = {
   password?: Prisma.XOR<Prisma.CustomerPasswordNullableScalarRelationFilter, Prisma.CustomerPasswordWhereInput> | null
   addresses?: Prisma.CustomerAddressListRelationFilter
   orders?: Prisma.OrderListRelationFilter
+  carts?: Prisma.CustomerCartListRelationFilter
 }
 
 export type CustomerOrderByWithRelationInput = {
@@ -266,6 +267,7 @@ export type CustomerOrderByWithRelationInput = {
   password?: Prisma.CustomerPasswordOrderByWithRelationInput
   addresses?: Prisma.CustomerAddressOrderByRelationAggregateInput
   orders?: Prisma.OrderOrderByRelationAggregateInput
+  carts?: Prisma.CustomerCartOrderByRelationAggregateInput
 }
 
 export type CustomerWhereUniqueInput = Prisma.AtLeast<{
@@ -284,6 +286,7 @@ export type CustomerWhereUniqueInput = Prisma.AtLeast<{
   password?: Prisma.XOR<Prisma.CustomerPasswordNullableScalarRelationFilter, Prisma.CustomerPasswordWhereInput> | null
   addresses?: Prisma.CustomerAddressListRelationFilter
   orders?: Prisma.OrderListRelationFilter
+  carts?: Prisma.CustomerCartListRelationFilter
 }, "id" | "email" | "phone">
 
 export type CustomerOrderByWithAggregationInput = {
@@ -330,6 +333,7 @@ export type CustomerCreateInput = {
   password?: Prisma.CustomerPasswordCreateNestedOneWithoutCustomerInput
   addresses?: Prisma.CustomerAddressCreateNestedManyWithoutCustomerInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  carts?: Prisma.CustomerCartCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateInput = {
@@ -345,6 +349,7 @@ export type CustomerUncheckedCreateInput = {
   password?: Prisma.CustomerPasswordUncheckedCreateNestedOneWithoutCustomerInput
   addresses?: Prisma.CustomerAddressUncheckedCreateNestedManyWithoutCustomerInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  carts?: Prisma.CustomerCartUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUpdateInput = {
@@ -359,6 +364,7 @@ export type CustomerUpdateInput = {
   password?: Prisma.CustomerPasswordUpdateOneWithoutCustomerNestedInput
   addresses?: Prisma.CustomerAddressUpdateManyWithoutCustomerNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  carts?: Prisma.CustomerCartUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateInput = {
@@ -374,6 +380,7 @@ export type CustomerUncheckedUpdateInput = {
   password?: Prisma.CustomerPasswordUncheckedUpdateOneWithoutCustomerNestedInput
   addresses?: Prisma.CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  carts?: Prisma.CustomerCartUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateManyInput = {
@@ -492,6 +499,20 @@ export type CustomerUpdateOneRequiredWithoutAddressesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutAddressesInput, Prisma.CustomerUpdateWithoutAddressesInput>, Prisma.CustomerUncheckedUpdateWithoutAddressesInput>
 }
 
+export type CustomerCreateNestedOneWithoutCartsInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutCartsInput, Prisma.CustomerUncheckedCreateWithoutCartsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutCartsInput
+  connect?: Prisma.CustomerWhereUniqueInput
+}
+
+export type CustomerUpdateOneRequiredWithoutCartsNestedInput = {
+  create?: Prisma.XOR<Prisma.CustomerCreateWithoutCartsInput, Prisma.CustomerUncheckedCreateWithoutCartsInput>
+  connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutCartsInput
+  upsert?: Prisma.CustomerUpsertWithoutCartsInput
+  connect?: Prisma.CustomerWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.CustomerUpdateToOneWithWhereWithoutCartsInput, Prisma.CustomerUpdateWithoutCartsInput>, Prisma.CustomerUncheckedUpdateWithoutCartsInput>
+}
+
 export type CustomerCreateNestedOneWithoutOrdersInput = {
   create?: Prisma.XOR<Prisma.CustomerCreateWithoutOrdersInput, Prisma.CustomerUncheckedCreateWithoutOrdersInput>
   connectOrCreate?: Prisma.CustomerCreateOrConnectWithoutOrdersInput
@@ -517,6 +538,7 @@ export type CustomerCreateWithoutPasswordInput = {
   updatedAt?: Date | string
   addresses?: Prisma.CustomerAddressCreateNestedManyWithoutCustomerInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  carts?: Prisma.CustomerCartCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutPasswordInput = {
@@ -531,6 +553,7 @@ export type CustomerUncheckedCreateWithoutPasswordInput = {
   updatedAt?: Date | string
   addresses?: Prisma.CustomerAddressUncheckedCreateNestedManyWithoutCustomerInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  carts?: Prisma.CustomerCartUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutPasswordInput = {
@@ -560,6 +583,7 @@ export type CustomerUpdateWithoutPasswordInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   addresses?: Prisma.CustomerAddressUpdateManyWithoutCustomerNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  carts?: Prisma.CustomerCartUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutPasswordInput = {
@@ -574,6 +598,7 @@ export type CustomerUncheckedUpdateWithoutPasswordInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   addresses?: Prisma.CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  carts?: Prisma.CustomerCartUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutAddressesInput = {
@@ -587,6 +612,7 @@ export type CustomerCreateWithoutAddressesInput = {
   updatedAt?: Date | string
   password?: Prisma.CustomerPasswordCreateNestedOneWithoutCustomerInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  carts?: Prisma.CustomerCartCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutAddressesInput = {
@@ -601,6 +627,7 @@ export type CustomerUncheckedCreateWithoutAddressesInput = {
   updatedAt?: Date | string
   password?: Prisma.CustomerPasswordUncheckedCreateNestedOneWithoutCustomerInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  carts?: Prisma.CustomerCartUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutAddressesInput = {
@@ -630,6 +657,7 @@ export type CustomerUpdateWithoutAddressesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   password?: Prisma.CustomerPasswordUpdateOneWithoutCustomerNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  carts?: Prisma.CustomerCartUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutAddressesInput = {
@@ -644,6 +672,81 @@ export type CustomerUncheckedUpdateWithoutAddressesInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   password?: Prisma.CustomerPasswordUncheckedUpdateOneWithoutCustomerNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  carts?: Prisma.CustomerCartUncheckedUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerCreateWithoutCartsInput = {
+  firstName: string
+  lastName?: string | null
+  email?: string | null
+  phone: string
+  profileImage?: string | null
+  status?: $Enums.CustomerStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  password?: Prisma.CustomerPasswordCreateNestedOneWithoutCustomerInput
+  addresses?: Prisma.CustomerAddressCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerUncheckedCreateWithoutCartsInput = {
+  id?: number
+  firstName: string
+  lastName?: string | null
+  email?: string | null
+  phone: string
+  profileImage?: string | null
+  status?: $Enums.CustomerStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  password?: Prisma.CustomerPasswordUncheckedCreateNestedOneWithoutCustomerInput
+  addresses?: Prisma.CustomerAddressUncheckedCreateNestedManyWithoutCustomerInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+}
+
+export type CustomerCreateOrConnectWithoutCartsInput = {
+  where: Prisma.CustomerWhereUniqueInput
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutCartsInput, Prisma.CustomerUncheckedCreateWithoutCartsInput>
+}
+
+export type CustomerUpsertWithoutCartsInput = {
+  update: Prisma.XOR<Prisma.CustomerUpdateWithoutCartsInput, Prisma.CustomerUncheckedUpdateWithoutCartsInput>
+  create: Prisma.XOR<Prisma.CustomerCreateWithoutCartsInput, Prisma.CustomerUncheckedCreateWithoutCartsInput>
+  where?: Prisma.CustomerWhereInput
+}
+
+export type CustomerUpdateToOneWithWhereWithoutCartsInput = {
+  where?: Prisma.CustomerWhereInput
+  data: Prisma.XOR<Prisma.CustomerUpdateWithoutCartsInput, Prisma.CustomerUncheckedUpdateWithoutCartsInput>
+}
+
+export type CustomerUpdateWithoutCartsInput = {
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  profileImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.CustomerPasswordUpdateOneWithoutCustomerNestedInput
+  addresses?: Prisma.CustomerAddressUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+}
+
+export type CustomerUncheckedUpdateWithoutCartsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  firstName?: Prisma.StringFieldUpdateOperationsInput | string
+  lastName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  profileImage?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumCustomerStatusFieldUpdateOperationsInput | $Enums.CustomerStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  password?: Prisma.CustomerPasswordUncheckedUpdateOneWithoutCustomerNestedInput
+  addresses?: Prisma.CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerCreateWithoutOrdersInput = {
@@ -657,6 +760,7 @@ export type CustomerCreateWithoutOrdersInput = {
   updatedAt?: Date | string
   password?: Prisma.CustomerPasswordCreateNestedOneWithoutCustomerInput
   addresses?: Prisma.CustomerAddressCreateNestedManyWithoutCustomerInput
+  carts?: Prisma.CustomerCartCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerUncheckedCreateWithoutOrdersInput = {
@@ -671,6 +775,7 @@ export type CustomerUncheckedCreateWithoutOrdersInput = {
   updatedAt?: Date | string
   password?: Prisma.CustomerPasswordUncheckedCreateNestedOneWithoutCustomerInput
   addresses?: Prisma.CustomerAddressUncheckedCreateNestedManyWithoutCustomerInput
+  carts?: Prisma.CustomerCartUncheckedCreateNestedManyWithoutCustomerInput
 }
 
 export type CustomerCreateOrConnectWithoutOrdersInput = {
@@ -700,6 +805,7 @@ export type CustomerUpdateWithoutOrdersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   password?: Prisma.CustomerPasswordUpdateOneWithoutCustomerNestedInput
   addresses?: Prisma.CustomerAddressUpdateManyWithoutCustomerNestedInput
+  carts?: Prisma.CustomerCartUpdateManyWithoutCustomerNestedInput
 }
 
 export type CustomerUncheckedUpdateWithoutOrdersInput = {
@@ -714,6 +820,7 @@ export type CustomerUncheckedUpdateWithoutOrdersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   password?: Prisma.CustomerPasswordUncheckedUpdateOneWithoutCustomerNestedInput
   addresses?: Prisma.CustomerAddressUncheckedUpdateManyWithoutCustomerNestedInput
+  carts?: Prisma.CustomerCartUncheckedUpdateManyWithoutCustomerNestedInput
 }
 
 
@@ -724,11 +831,13 @@ export type CustomerUncheckedUpdateWithoutOrdersInput = {
 export type CustomerCountOutputType = {
   addresses: number
   orders: number
+  carts: number
 }
 
 export type CustomerCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   addresses?: boolean | CustomerCountOutputTypeCountAddressesArgs
   orders?: boolean | CustomerCountOutputTypeCountOrdersArgs
+  carts?: boolean | CustomerCountOutputTypeCountCartsArgs
 }
 
 /**
@@ -755,6 +864,13 @@ export type CustomerCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types
   where?: Prisma.OrderWhereInput
 }
 
+/**
+ * CustomerCountOutputType without action
+ */
+export type CustomerCountOutputTypeCountCartsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CustomerCartWhereInput
+}
+
 
 export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -769,6 +885,7 @@ export type CustomerSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   password?: boolean | Prisma.Customer$passwordArgs<ExtArgs>
   addresses?: boolean | Prisma.Customer$addressesArgs<ExtArgs>
   orders?: boolean | Prisma.Customer$ordersArgs<ExtArgs>
+  carts?: boolean | Prisma.Customer$cartsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["customer"]>
 
@@ -813,6 +930,7 @@ export type CustomerInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   password?: boolean | Prisma.Customer$passwordArgs<ExtArgs>
   addresses?: boolean | Prisma.Customer$addressesArgs<ExtArgs>
   orders?: boolean | Prisma.Customer$ordersArgs<ExtArgs>
+  carts?: boolean | Prisma.Customer$cartsArgs<ExtArgs>
   _count?: boolean | Prisma.CustomerCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type CustomerIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -824,6 +942,7 @@ export type $CustomerPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     password: Prisma.$CustomerPasswordPayload<ExtArgs> | null
     addresses: Prisma.$CustomerAddressPayload<ExtArgs>[]
     orders: Prisma.$OrderPayload<ExtArgs>[]
+    carts: Prisma.$CustomerCartPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1232,6 +1351,7 @@ export interface Prisma__CustomerClient<T, Null = never, ExtArgs extends runtime
   password<T extends Prisma.Customer$passwordArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$passwordArgs<ExtArgs>>): Prisma.Prisma__CustomerPasswordClient<runtime.Types.Result.GetResult<Prisma.$CustomerPasswordPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   addresses<T extends Prisma.Customer$addressesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$addressesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerAddressPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   orders<T extends Prisma.Customer$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  carts<T extends Prisma.Customer$cartsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Customer$cartsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CustomerCartPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1727,6 +1847,30 @@ export type Customer$ordersArgs<ExtArgs extends runtime.Types.Extensions.Interna
   take?: number
   skip?: number
   distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
+}
+
+/**
+ * Customer.carts
+ */
+export type Customer$cartsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CustomerCart
+   */
+  select?: Prisma.CustomerCartSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CustomerCart
+   */
+  omit?: Prisma.CustomerCartOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CustomerCartInclude<ExtArgs> | null
+  where?: Prisma.CustomerCartWhereInput
+  orderBy?: Prisma.CustomerCartOrderByWithRelationInput | Prisma.CustomerCartOrderByWithRelationInput[]
+  cursor?: Prisma.CustomerCartWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CustomerCartScalarFieldEnum | Prisma.CustomerCartScalarFieldEnum[]
 }
 
 /**

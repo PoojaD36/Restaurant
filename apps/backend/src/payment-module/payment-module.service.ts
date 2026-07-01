@@ -52,6 +52,16 @@ export class PaymentModuleService {
       return razorpayOrder as RazorpayOrderResponse;
     } catch (error) {
       this.logger.error('Failed to create Razorpay order:', error);
+      // Log detailed diagnostic information for deployment debugging
+      this.logger.error(`Razorpay instance exists: ${!!this.razorpay}`);
+      if (error instanceof Error) {
+        this.logger.error(`Error message: ${error.message}`);
+        this.logger.error(`Error name: ${error.name}`);
+      }
+      // Log error details if available
+      if (error && typeof error === 'object' && 'error' in error) {
+        this.logger.error(`Razorpay error details: ${JSON.stringify(error)}`);
+      }
       throw new BadRequestException('Failed to create payment order');
     }
   }

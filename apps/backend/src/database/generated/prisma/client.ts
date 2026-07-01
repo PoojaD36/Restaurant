@@ -87,6 +87,16 @@ export type CustomerPassword = Prisma.CustomerPasswordModel
  */
 export type CustomerAddress = Prisma.CustomerAddressModel
 /**
+ * Model CustomerCart
+ * 
+ */
+export type CustomerCart = Prisma.CustomerCartModel
+/**
+ * Model CartItem
+ * 
+ */
+export type CartItem = Prisma.CartItemModel
+/**
  * Model Menu
  * 
  */

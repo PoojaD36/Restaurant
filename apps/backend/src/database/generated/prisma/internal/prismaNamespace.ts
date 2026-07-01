@@ -393,6 +393,8 @@ export const ModelName = {
   Customer: 'Customer',
   CustomerPassword: 'CustomerPassword',
   CustomerAddress: 'CustomerAddress',
+  CustomerCart: 'CustomerCart',
+  CartItem: 'CartItem',
   Menu: 'Menu',
   MenuCategory: 'MenuCategory',
   MenuItem: 'MenuItem',
@@ -417,7 +419,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "userPassword" | "restaurant" | "restaurantUser" | "outlet" | "outletUser" | "customer" | "customerPassword" | "customerAddress" | "menu" | "menuCategory" | "menuItem" | "menuItemOutletPricing" | "modifierGroup" | "modifierOption" | "order" | "orderItem" | "payment"
+    modelProps: "user" | "userPassword" | "restaurant" | "restaurantUser" | "outlet" | "outletUser" | "customer" | "customerPassword" | "customerAddress" | "customerCart" | "cartItem" | "menu" | "menuCategory" | "menuItem" | "menuItemOutletPricing" | "modifierGroup" | "modifierOption" | "order" | "orderItem" | "payment"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1084,6 +1086,154 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CustomerAddressCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CustomerAddressCountAggregateOutputType> | number
+        }
+      }
+    }
+    CustomerCart: {
+      payload: Prisma.$CustomerCartPayload<ExtArgs>
+      fields: Prisma.CustomerCartFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CustomerCartFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CustomerCartFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload>
+        }
+        findFirst: {
+          args: Prisma.CustomerCartFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CustomerCartFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload>
+        }
+        findMany: {
+          args: Prisma.CustomerCartFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload>[]
+        }
+        create: {
+          args: Prisma.CustomerCartCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload>
+        }
+        createMany: {
+          args: Prisma.CustomerCartCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CustomerCartCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload>[]
+        }
+        delete: {
+          args: Prisma.CustomerCartDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload>
+        }
+        update: {
+          args: Prisma.CustomerCartUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload>
+        }
+        deleteMany: {
+          args: Prisma.CustomerCartDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CustomerCartUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CustomerCartUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload>[]
+        }
+        upsert: {
+          args: Prisma.CustomerCartUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CustomerCartPayload>
+        }
+        aggregate: {
+          args: Prisma.CustomerCartAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCustomerCart>
+        }
+        groupBy: {
+          args: Prisma.CustomerCartGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CustomerCartGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CustomerCartCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CustomerCartCountAggregateOutputType> | number
+        }
+      }
+    }
+    CartItem: {
+      payload: Prisma.$CartItemPayload<ExtArgs>
+      fields: Prisma.CartItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.CartItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.CartItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload>
+        }
+        findFirst: {
+          args: Prisma.CartItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.CartItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload>
+        }
+        findMany: {
+          args: Prisma.CartItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload>[]
+        }
+        create: {
+          args: Prisma.CartItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload>
+        }
+        createMany: {
+          args: Prisma.CartItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.CartItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload>[]
+        }
+        delete: {
+          args: Prisma.CartItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload>
+        }
+        update: {
+          args: Prisma.CartItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.CartItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.CartItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.CartItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.CartItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$CartItemPayload>
+        }
+        aggregate: {
+          args: Prisma.CartItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateCartItem>
+        }
+        groupBy: {
+          args: Prisma.CartItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CartItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.CartItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.CartItemCountAggregateOutputType> | number
         }
       }
     }
@@ -1935,6 +2085,34 @@ export const CustomerAddressScalarFieldEnum = {
 export type CustomerAddressScalarFieldEnum = (typeof CustomerAddressScalarFieldEnum)[keyof typeof CustomerAddressScalarFieldEnum]
 
 
+export const CustomerCartScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  outletId: 'outletId',
+  outletName: 'outletName',
+  outletAddress: 'outletAddress',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomerCartScalarFieldEnum = (typeof CustomerCartScalarFieldEnum)[keyof typeof CustomerCartScalarFieldEnum]
+
+
+export const CartItemScalarFieldEnum = {
+  id: 'id',
+  cartId: 'cartId',
+  menuItemId: 'menuItemId',
+  name: 'name',
+  price: 'price',
+  quantity: 'quantity',
+  modifiers: 'modifiers',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CartItemScalarFieldEnum = (typeof CartItemScalarFieldEnum)[keyof typeof CartItemScalarFieldEnum]
+
+
 export const MenuScalarFieldEnum = {
   id: 'id',
   restaurantId: 'restaurantId',
@@ -2092,6 +2270,13 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullableJsonNullValueInput = {
@@ -2267,6 +2452,20 @@ export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
 
 
 /**
+ * Reference to a field of type 'Json'
+ */
+export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+/**
+ * Reference to a field of type 'QueryMode'
+ */
+export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
+    
+
+
+/**
  * Reference to a field of type 'MenuStatus'
  */
 export type EnumMenuStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'MenuStatus'>
@@ -2319,20 +2518,6 @@ export type EnumOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$Pris
  * Reference to a field of type 'OrderStatus[]'
  */
 export type ListEnumOrderStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OrderStatus[]'>
-    
-
-
-/**
- * Reference to a field of type 'Json'
- */
-export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
-    
-
-
-/**
- * Reference to a field of type 'QueryMode'
- */
-export type EnumQueryModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'QueryMode'>
     
 
 
@@ -2496,6 +2681,8 @@ export type GlobalOmitConfig = {
   customer?: Prisma.CustomerOmit
   customerPassword?: Prisma.CustomerPasswordOmit
   customerAddress?: Prisma.CustomerAddressOmit
+  customerCart?: Prisma.CustomerCartOmit
+  cartItem?: Prisma.CartItemOmit
   menu?: Prisma.MenuOmit
   menuCategory?: Prisma.MenuCategoryOmit
   menuItem?: Prisma.MenuItemOmit
