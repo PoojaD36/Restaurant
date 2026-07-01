@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-06-30 (API Documentation with Swagger/OpenAPI Implemented)
+> **Last Updated:** 2026-07-01 (Cart Sync Across Devices Fixed)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -1335,6 +1335,16 @@ npx shadcn@latest add dialog -y
     - Enum values displayed as dropdowns
     - Role-based access documentation
     - Comprehensive error responses (401, 403, 404, etc.)
+- ✅ **Cart Sync Across Devices** - Fixed cross-device cart synchronization for authenticated customers - 2026-07-01
+  - **Backend**: `CustomerCart` and `CartItem` models in Prisma schema with server-side cart storage
+  - **Cart API**: `GET/POST/PUT/DELETE /customers/cart` endpoints for cart CRUD operations
+  - **Cart Context Enhancement**: 
+    - `setOutletInfo()` now syncs from server when user is authenticated and cart is empty
+    - `customerLogin` event handler improved with better logging and sync logic
+    - Added sync on mount when user is already logged in with stored cart
+  - **Cross-Device Sync**: When customer adds items on PC, they automatically appear on mobile upon login and visiting the outlet page
+  - **Smart Sync Logic**: Only syncs from server when local cart is empty or outlet changes, preserving local changes
+  - **Console Logging**: Added debug logs for troubleshooting cart sync issues
 
 ### In Progress
 - No tasks currently in progress

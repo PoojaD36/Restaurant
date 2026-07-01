@@ -97,36 +97,65 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [getCustomerToken]);
 
-  // Load cart from localStorage on mount
+  // Load cart from localStorage on mount and sync from server if authenticated
   useEffect(() => {
     const stored = localStorage.getItem(CART_STORAGE_KEY);
+    let storedCart: CartState | null = null;
     if (stored) {
       try {
-        setCart(JSON.parse(stored));
+        storedCart = JSON.parse(stored);
+        setCart(storedCart);
       } catch (error) {
         console.error('Failed to parse stored cart:', error);
         localStorage.removeItem(CART_STORAGE_KEY);
       }
     }
-  }, []);
+
+    // If user is authenticated and has a stored cart with outletId, sync from server
+    const token = getCustomerToken();
+    if (token && storedCart && storedCart.outletId) {
+      console.log('User is authenticated with stored cart, syncing from server on mount');
+      (async () => {
+        try {
+          const response = await getCustomerCart(token, storedCart.outletId);
+          if (response.success && response.data) {
+            const serverCart = serverCartToLocalCart(response.data);
+            if (serverCart && serverCart.items.length > 0) {
+              setCart(serverCart);
+              console.log('Cart synced from server on mount:', serverCart);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to sync cart from server on mount:', error);
+        }
+      })();
+    }
+  }, [getCustomerToken]);
 
   // Listen for token changes and sync cart from server
   useEffect(() => {
-    const handleTokenChange = () => {
+    const handleLogin = () => {
       const token = getCustomerToken();
       if (token && cart && cart.outletId) {
-        console.log('Token detected, syncing cart from server');
+        console.log('Customer logged in, syncing cart from server for outlet:', cart.outletId);
         syncCartFromServer(cart.outletId);
+      } else if (token) {
+        console.log('Customer logged in, but no outlet set yet. Will sync when outlet is selected.');
       }
     };
 
-    // Listen for custom event when customer logs in
-    window.addEventListener('customerLogin', handleTokenChange);
-    window.addEventListener('customerLogout', handleTokenChange);
+    const handleLogout = () => {
+      console.log('Customer logged out, clearing cart');
+      setCart(null);
+    };
+
+    // Listen for custom events when customer logs in/out
+    window.addEventListener('customerLogin', handleLogin);
+    window.addEventListener('customerLogout', handleLogout);
 
     return () => {
-      window.removeEventListener('customerLogin', handleTokenChange);
-      window.removeEventListener('customerLogout', handleTokenChange);
+      window.removeEventListener('customerLogin', handleLogin);
+      window.removeEventListener('customerLogout', handleLogout);
     };
   }, [cart, getCustomerToken, syncCartFromServer]);
 
@@ -142,6 +171,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   /**
    * Set outlet information for the cart
    * Items can only be added from one outlet at a time
+   * Syncs from server if user is authenticated and cart is empty
    */
   const setOutletInfo = useCallback((
     outletId: number,
@@ -160,15 +190,49 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         };
       }
 
-      return {
+      const newCart = {
         items: prev?.items || [],
         subtotal: prev?.subtotal || 0,
         outletId,
         outletName,
         outletAddress,
       };
+
+      // Sync from server if:
+      // 1. User is authenticated (has token)
+      // 2. Cart is empty or has no items
+      // 3. This is a new outlet (not just updating address)
+      const token = getCustomerToken();
+      const shouldSyncFromServer = token && (!prev || prev.items.length === 0 || prev.outletId !== outletId);
+
+      if (shouldSyncFromServer) {
+        // Async sync from server - don't block the UI
+        (async () => {
+          try {
+            const response = await getCustomerCart(token, outletId);
+            if (response.success && response.data) {
+              const serverCart = serverCartToLocalCart(response.data);
+              if (serverCart && serverCart.items.length > 0) {
+                // Update cart with server data
+                setCart(currentCart => {
+                  // Only update if still on the same outlet
+                  if (currentCart?.outletId === outletId) {
+                    return serverCart;
+                  }
+                  return currentCart;
+                });
+                console.log('Cart synced from server for outlet:', outletId);
+              }
+            }
+          } catch (error) {
+            console.error('Failed to sync cart from server:', error);
+          }
+        })();
+      }
+
+      return newCart;
     });
-  }, []);
+  }, [getCustomerToken]);
 
   /**
    * Add item to cart
