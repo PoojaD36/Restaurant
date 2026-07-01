@@ -77,6 +77,7 @@ export async function addCartItem(
   token: string,
   item: CartItemRequest
 ): Promise<{ success: boolean; data: ServerCartResponse }> {
+  console.log('🛒 Adding cart item to server:', item);
   const response = await fetch(`${API_URL}/customers/cart/items`, {
     method: 'POST',
     headers: {
@@ -87,10 +88,21 @@ export async function addCartItem(
   });
 
   if (!response.ok) {
-    throw new Error('Failed to add item to cart');
+    const errorText = await response.text();
+    console.error('❌ Failed to add item to cart:', response.status, errorText);
+    let errorMessage = `Failed to add item to cart: ${response.status}`;
+    try {
+      const errorJson = JSON.parse(errorText);
+      errorMessage += ` - ${errorJson.message || errorJson.error || errorText}`;
+    } catch {
+      errorMessage += ` - ${errorText}`;
+    }
+    throw new Error(errorMessage);
   }
 
-  return response.json();
+  const result = await response.json();
+  console.log('✅ Cart item added successfully:', result);
+  return result;
 }
 
 /**
@@ -170,14 +182,31 @@ export function serverCartToLocalCart(serverCart: ServerCartResponse): CartState
   }
 
   return {
-    items: serverCart.items.map((item) => ({
-      tempId: `server-${item.id}`,
-      menuItemId: item.menuItemId,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      modifiers: item.modifiers || [],
-    })),
+    items: serverCart.items.map((item) => {
+      // Parse modifiers if they're a string (from database JSON storage)
+      let modifiers: any[] = [];
+      if (item.modifiers) {
+        if (typeof item.modifiers === 'string') {
+          try {
+            modifiers = JSON.parse(item.modifiers);
+          } catch (e) {
+            console.error('Failed to parse modifiers:', item.modifiers);
+            modifiers = [];
+          }
+        } else {
+          modifiers = item.modifiers;
+        }
+      }
+
+      return {
+        tempId: `server-${item.id}`,
+        menuItemId: item.menuItemId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        modifiers: modifiers || [],
+      };
+    }),
     subtotal: serverCart.subtotal,
     outletId: serverCart.outletId,
     outletName: serverCart.outletName || '',

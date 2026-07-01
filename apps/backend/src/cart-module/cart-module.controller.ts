@@ -6,7 +6,7 @@ import type { Request } from 'express';
 
 interface AuthenticatedRequest extends Request {
   user: {
-    sub: number;
+    customerId: number;
     email: string;
     phone: string;
     type: string;
@@ -25,7 +25,7 @@ export class CartModuleController {
   @Get()
   @HttpCode(HttpStatus.OK)
   async getCart(@Req() req: AuthenticatedRequest, @Query('outletId') outletId: string) {
-    const customerId = req.user.sub;
+    const customerId = req.user.customerId;
 
     if (!outletId) {
       // Return all carts if no outlet specified
@@ -51,7 +51,7 @@ export class CartModuleController {
   @Post('items')
   @HttpCode(HttpStatus.OK)
   async addCartItem(@Req() req: AuthenticatedRequest, @Body() dto: AddCartItemDto) {
-    const customerId = req.user.sub;
+    const customerId = req.user.customerId;
 
     const cart = await this.cartService.addOrUpdateCartItem(customerId, dto);
 
@@ -73,7 +73,7 @@ export class CartModuleController {
     @Param('id') itemId: string,
     @Body() dto: UpdateCartItemDto
   ) {
-    const customerId = req.user.sub;
+    const customerId = req.user.customerId;
 
     const cart = await this.cartService.updateCartItem(
       customerId,
@@ -95,7 +95,7 @@ export class CartModuleController {
   @Delete('items/:id')
   @HttpCode(HttpStatus.OK)
   async removeCartItem(@Req() req: AuthenticatedRequest, @Param('id') itemId: string) {
-    const customerId = req.user.sub;
+    const customerId = req.user.customerId;
 
     const cart = await this.cartService.removeCartItem(customerId, parseInt(itemId));
 
@@ -113,7 +113,7 @@ export class CartModuleController {
   @Delete()
   @HttpCode(HttpStatus.OK)
   async clearCart(@Req() req: AuthenticatedRequest, @Query('outletId') outletId: string) {
-    const customerId = req.user.sub;
+    const customerId = req.user.customerId;
 
     if (!outletId) {
       return {

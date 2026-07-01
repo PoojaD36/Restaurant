@@ -242,6 +242,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
    */
   const addToCart = useCallback(async (item: Omit<CartItem, 'tempId'>) => {
     const token = getCustomerToken();
+    console.log('🔐 addToCart called, token exists:', !!token);
 
     setCart(prev => {
       if (!prev || prev.outletId === 0) {
@@ -250,6 +251,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
       // Check if user is authenticated
       if (!token) {
+        console.error('❌ No token found, user not authenticated');
         throw new Error('Please log in to add items to cart');
       }
 
@@ -290,7 +292,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         subtotal: Math.round(subtotal * 100) / 100,
       };
 
-      // Sync to server in background
+      // Sync to server in background and update local cart with server response
       (async () => {
         try {
           const request = localCartItemToServerRequest(
@@ -299,10 +301,31 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             prev.outletName,
             prev.outletAddress
           );
-          await addCartItem(token, request);
-          console.log('Item synced to server');
+          console.log('🔄 Syncing to server:', {
+            outletId: prev.outletId,
+            outletName: prev.outletName,
+            item: item.name,
+            modifiers: item.modifiers,
+          });
+          const response = await addCartItem(token, request);
+          console.log('✅ Item synced to server successfully:', response);
+
+          // Update local cart with server response to get correct server IDs
+          if (response.success && response.data) {
+            const serverCart = serverCartToLocalCart(response.data);
+            if (serverCart) {
+              setCart(currentCart => {
+                // Only update if still on the same outlet
+                if (currentCart?.outletId === prev.outletId) {
+                  console.log('🔄 Updating local cart with server data');
+                  return serverCart;
+                }
+                return currentCart;
+              });
+            }
+          }
         } catch (error) {
-          console.error('Failed to sync item to server:', error);
+          console.error('❌ Failed to sync item to server:', error);
         }
       })();
 
@@ -337,15 +360,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         subtotal: Math.round(subtotal * 100) / 100,
       };
 
-      // If item has server ID, remove from server
+      // If item has server ID, remove from server and sync response
       if (token && item && tempId.startsWith('server-')) {
         const itemId = parseInt(tempId.replace('server-', ''));
         (async () => {
           try {
-            await removeCartItemApi(token, itemId);
-            console.log('Item removed from server');
+            const response = await removeCartItemApi(token, itemId);
+            console.log('✅ Item removed from server:', response);
+
+            // Update local cart with server response
+            if (response.success && response.data) {
+              const serverCart = serverCartToLocalCart(response.data);
+              if (serverCart) {
+                setCart(currentCart => {
+                  if (currentCart?.outletId === prev.outletId) {
+                    return serverCart;
+                  }
+                  return currentCart;
+                });
+              }
+            }
           } catch (error) {
-            console.error('Failed to remove item from server:', error);
+            console.error('❌ Failed to remove item from server:', error);
           }
         })();
       }
@@ -381,15 +417,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           subtotal: Math.round(subtotal * 100) / 100,
         };
 
-        // If item has server ID, remove from server
+        // If item has server ID, remove from server and sync response
         if (token && tempId.startsWith('server-')) {
           const itemId = parseInt(tempId.replace('server-', ''));
           (async () => {
             try {
-              await removeCartItemApi(token, itemId);
-              console.log('Item removed from server (quantity 0)');
+              const response = await removeCartItemApi(token, itemId);
+              console.log('✅ Item removed from server (quantity 0):', response);
+
+              // Update local cart with server response
+              if (response.success && response.data) {
+                const serverCart = serverCartToLocalCart(response.data);
+                if (serverCart) {
+                  setCart(currentCart => {
+                    if (currentCart?.outletId === prev.outletId) {
+                      return serverCart;
+                    }
+                    return currentCart;
+                  });
+                }
+              }
             } catch (error) {
-              console.error('Failed to remove item from server:', error);
+              console.error('❌ Failed to remove item from server:', error);
             }
           })();
         }
@@ -416,15 +465,28 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         subtotal: Math.round(subtotal * 100) / 100,
       };
 
-      // If item has server ID, update on server
+      // If item has server ID, update on server and sync response
       if (token && tempId.startsWith('server-')) {
         const itemId = parseInt(tempId.replace('server-', ''));
         (async () => {
           try {
-            await updateCartItemApi(token, itemId, quantity);
-            console.log('Item quantity updated on server');
+            const response = await updateCartItemApi(token, itemId, quantity);
+            console.log('✅ Item quantity updated on server:', response);
+
+            // Update local cart with server response
+            if (response.success && response.data) {
+              const serverCart = serverCartToLocalCart(response.data);
+              if (serverCart) {
+                setCart(currentCart => {
+                  if (currentCart?.outletId === prev.outletId) {
+                    return serverCart;
+                  }
+                  return currentCart;
+                });
+              }
+            }
           } catch (error) {
-            console.error('Failed to update item quantity on server:', error);
+            console.error('❌ Failed to update item quantity on server:', error);
           }
         })();
       }

@@ -65,10 +65,14 @@ export class CartModuleService {
    * @returns Updated cart
    */
   async addOrUpdateCartItem(customerId: number, dto: AddCartItemDto) {
-    const { outletId, menuItemId, name, price, quantity, modifiers, outletName, outletAddress } = dto;
+    try {
+      const { outletId, menuItemId, name, price, quantity, modifiers, outletName, outletAddress } = dto;
 
-    // Check if item with same modifiers exists in cart
-    const cart = await this.prisma.customerCart.findUnique({
+      this.logger.log(`🛒 Adding cart item for customer ${customerId}: ${name} x${quantity} at outlet ${outletId}`);
+      this.logger.log(`📦 Cart item details:`, JSON.stringify({ outletId, menuItemId, name, price, quantity, modifiers, outletName, outletAddress }));
+
+      // Check if item with same modifiers exists in cart
+      const cart = await this.prisma.customerCart.findUnique({
       where: {
         customerId_outletId: {
           customerId,
@@ -99,22 +103,8 @@ export class CartModuleService {
 
       this.logger.log(`Updated cart item ${existingItem.id}, new quantity: ${updatedItem.quantity}`);
     } else {
-      // Create new cart if it doesn't exist
-      if (!cart) {
-        await this.prisma.customerCart.create({
-          data: {
-            customerId,
-            outletId,
-            outletName: outletName || 'Unknown Outlet',
-            outletAddress: outletAddress || null,
-          },
-        });
-
-        this.logger.log(`Created new cart for customer ${customerId} at outlet ${outletId}`);
-      }
-
-      // Get or create cart (in case we just created it)
-      const targetCart = await this.prisma.customerCart.findUnique({
+      // Create or get cart using upsert to handle race conditions
+      let targetCart = await this.prisma.customerCart.findUnique({
         where: {
           customerId_outletId: {
             customerId,
@@ -124,7 +114,24 @@ export class CartModuleService {
       });
 
       if (!targetCart) {
-        throw new BadRequestException('Failed to create cart');
+        // Use upsert to handle race conditions - if cart doesn't exist, create it
+        targetCart = await this.prisma.customerCart.upsert({
+          where: {
+            customerId_outletId: {
+              customerId,
+              outletId,
+            },
+          },
+          create: {
+            customerId,
+            outletId,
+            outletName: outletName || 'Unknown Outlet',
+            outletAddress: outletAddress || null,
+          },
+          update: {}, // If it exists, don't update anything
+        });
+
+        this.logger.log(`Created new cart ${targetCart.id} for customer ${customerId} at outlet ${outletId}`);
       }
 
       // Create new cart item
@@ -135,7 +142,7 @@ export class CartModuleService {
           name,
           price,
           quantity,
-          modifiers: modifiersJson,
+          modifiers: modifiers as any,  // Pass the object directly, Prisma Json type handles serialization
         },
       });
 
@@ -144,6 +151,13 @@ export class CartModuleService {
 
     // Return updated cart
     return this.getCustomerCart(customerId, outletId);
+    } catch (error: any) {
+      this.logger.error(`❌ Failed to add/update cart item:`, error);
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to add item to cart: ${error?.message || 'Unknown error'}`);
+    }
   }
 
   /**
