@@ -60,6 +60,8 @@ export const ModelName = {
   Customer: 'Customer',
   CustomerPassword: 'CustomerPassword',
   CustomerAddress: 'CustomerAddress',
+  CustomerCart: 'CustomerCart',
+  CartItem: 'CartItem',
   Menu: 'Menu',
   MenuCategory: 'MenuCategory',
   MenuItem: 'MenuItem',
@@ -230,6 +232,34 @@ export const CustomerAddressScalarFieldEnum = {
 export type CustomerAddressScalarFieldEnum = (typeof CustomerAddressScalarFieldEnum)[keyof typeof CustomerAddressScalarFieldEnum]
 
 
+export const CustomerCartScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  outletId: 'outletId',
+  outletName: 'outletName',
+  outletAddress: 'outletAddress',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CustomerCartScalarFieldEnum = (typeof CustomerCartScalarFieldEnum)[keyof typeof CustomerCartScalarFieldEnum]
+
+
+export const CartItemScalarFieldEnum = {
+  id: 'id',
+  cartId: 'cartId',
+  menuItemId: 'menuItemId',
+  name: 'name',
+  price: 'price',
+  quantity: 'quantity',
+  modifiers: 'modifiers',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CartItemScalarFieldEnum = (typeof CartItemScalarFieldEnum)[keyof typeof CartItemScalarFieldEnum]
+
+
 export const MenuScalarFieldEnum = {
   id: 'id',
   restaurantId: 'restaurantId',
@@ -387,6 +417,13 @@ export const SortOrder = {
 } as const
 
 export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const NullableJsonNullValueInput = {

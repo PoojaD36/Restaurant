@@ -209,6 +209,7 @@ model Customer {
   password  CustomerPassword?
   addresses CustomerAddress[]
   orders    Order[]
+  carts     CustomerCart[]
 
   @@map("customers")
 }
@@ -264,6 +265,43 @@ model CustomerAddress {
 
   @@index([customerId])
   @@map("customer_addresses")
+}
+
+// Customer Cart models - Server-side cart storage for cross-device sync
+model CustomerCart {
+  id           Int       @id @default(autoincrement())
+  customerId   Int
+  outletId     Int
+  outletName   String
+  outletAddress String?
+
+  customer     Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  items        CartItem[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@unique([customerId, outletId])
+  @@index([customerId])
+  @@map("customer_carts")
+}
+
+model CartItem {
+  id              Int          @id @default(autoincrement())
+  cartId          Int
+  menuItemId      Int
+  name            String
+  price           Decimal      @db.Decimal(10, 2)
+  quantity        Int
+  modifiers       Json
+
+  cart            CustomerCart @relation(fields: [cartId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([cartId])
+  @@map("cart_items")
 }
 
 // Menu models - Restaurant level with outlet-specific pricing

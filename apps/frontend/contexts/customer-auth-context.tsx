@@ -66,6 +66,8 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
         setCustomer(response.customer);
         localStorage.setItem(CUSTOMER_TOKEN_KEY, response.accessToken);
         localStorage.setItem(CUSTOMER_REFRESH_TOKEN_KEY, response.refreshToken);
+        // Dispatch event for cart sync
+        window.dispatchEvent(new Event('customerLogin'));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Registration failed';
@@ -83,6 +85,8 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
         setCustomer(response.customer);
         localStorage.setItem(CUSTOMER_TOKEN_KEY, response.accessToken);
         localStorage.setItem(CUSTOMER_REFRESH_TOKEN_KEY, response.refreshToken);
+        // Dispatch event for cart sync
+        window.dispatchEvent(new Event('customerLogin'));
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed';
@@ -103,6 +107,8 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
       setCustomer(null);
       localStorage.removeItem(CUSTOMER_TOKEN_KEY);
       localStorage.removeItem(CUSTOMER_REFRESH_TOKEN_KEY);
+      // Dispatch event for cart clear
+      window.dispatchEvent(new Event('customerLogout'));
     }
   };
 

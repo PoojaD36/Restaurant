@@ -16,6 +16,7 @@ import { OrderModule } from './order-module/order-module.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { PaymentModule } from './payment-module/payment-module.module';
 import { DashboardModule } from './dashboard-module/dashboard-module.module';
+import { CartModule } from './cart-module/cart-module.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { DashboardModule } from './dashboard-module/dashboard-module.module';
     NotificationsModule,
     PaymentModule,
     DashboardModule,
+    CartModule,
   ],
   controllers: [AppController, UserModuleController],
   providers: [AppService, UserModuleService],
