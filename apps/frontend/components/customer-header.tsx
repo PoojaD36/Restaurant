@@ -11,9 +11,10 @@ interface CustomerHeaderProps {
   title?: string;
   showBackButton?: boolean;
   onBackClick?: () => void;
+  showLocationIcon?: boolean;
 }
 
-export function CustomerHeader({ title, showBackButton = false, onBackClick }: CustomerHeaderProps) {
+export function CustomerHeader({ title, showBackButton = false, onBackClick, showLocationIcon = true }: CustomerHeaderProps) {
   const { customer, isAuthenticated, logout } = useCustomerAuth();
   const { location, requestLocation } = useLocation();
   const router = useRouter();
@@ -58,16 +59,18 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
 
           {/* Right Section - Location, Icons, Logout */}
           <div className="flex items-center gap-2">
-            {/* Location Detection */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => requestLocation()}
-              className="text-gray-700 hover:text-emerald-600"
-              title={location ? 'Location detected' : 'Detect location'}
-            >
-              <Navigation className="h-5 w-5" />
-            </Button>
+            {/* Location Detection - only show on main customer page */}
+            {showLocationIcon && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => requestLocation()}
+                className="text-gray-700 hover:text-emerald-600 hover:bg-emerald-50"
+                title={location ? 'Location detected' : 'Detect location'}
+              >
+                <Navigation className="h-5 w-5" />
+              </Button>
+            )}
 
             {/* Authenticated User Icons (Desktop Only - hidden on mobile) */}
             {isAuthenticated && customer && (
@@ -77,7 +80,7 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
                   variant="ghost"
                   size="icon"
                   onClick={() => router.push('/customer/profile')}
-                  className="text-gray-700 hover:text-emerald-600 hidden sm:flex"
+                  className="text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 hidden sm:flex"
                   title="My Profile"
                 >
                   <User className="h-5 w-5" />
@@ -88,7 +91,7 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
                   variant="ghost"
                   size="icon"
                   onClick={() => router.push('/customer/orders')}
-                  className="text-gray-700 hover:text-emerald-600 hidden sm:flex"
+                  className="text-gray-700 hover:text-emerald-600 hover:bg-emerald-50 hidden sm:flex"
                   title="My Orders"
                 >
                   <Package className="h-5 w-5" />
@@ -109,7 +112,7 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
                   variant="ghost"
                   size="icon"
                   onClick={handleLogout}
-                  className="text-gray-700 hover:text-emerald-600"
+                  className="text-gray-700 hover:text-red-600 hover:bg-red-50"
                   title="Logout"
                 >
                   <LogOut className="h-5 w-5" />

@@ -60,7 +60,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <NotificationProvider>
       <DeliveryNotificationProvider>
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 dark:from-emerald-950 dark:via-teal-950/40 dark:to-green-950">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50">
           {/* Change Password Modal */}
           <ChangePasswordModal
             open={showChangePasswordModal}
@@ -76,7 +76,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
 
           {/* Mobile Header */}
-          <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm border-b border-emerald-200 dark:border-emerald-800 z-50">
+          <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm border-b border-emerald-200 z-50">
             <div className="flex items-center justify-between px-4 h-full">
               <div className="flex items-center gap-3">
                 <Button
@@ -132,13 +132,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                     }`}
                   >
-                    <Icon className="h-5 w-5 mr-3" />
+                    <Icon className={`h-5 w-5 mr-3 ${isActive ? 'text-white' : ''}`} />
                     {item.label}
                   </Button>
                 </Link>
               );
             })}
-            <div className="border-t border-emerald-200 dark:border-emerald-800 pt-4 mt-4 space-y-2">
+            <div className="border-t border-emerald-200 pt-4 mt-4 space-y-2">
               <Button
                 onClick={() => {
                   setShowChangePasswordModal(true);
@@ -151,7 +151,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 Change Password
               </Button>
             </div>
-            <div className="border-t border-emerald-200 dark:border-emerald-800 pt-4 mt-4">
+            <div className="border-t border-emerald-200 pt-4 mt-4">
               <div className="px-3 py-2 text-sm text-slate-600">
                 <p className="font-medium">{user?.firstName || user?.email}</p>
                 <p className="text-xs text-slate-500">{user?.role}</p>
@@ -163,12 +163,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar - Desktop */}
       <aside
-        className={`hidden md:flex fixed left-0 top-0 bottom-0 flex-col bg-white/95 backdrop-blur-sm border-r border-emerald-200 dark:border-emerald-800 transition-all duration-300 z-50 ${
+        className={`hidden md:flex fixed left-0 top-0 bottom-0 flex-col bg-white/95 backdrop-blur-sm border-r border-emerald-200 transition-all duration-300 z-50 ${
           sidebarCollapsed ? 'w-16' : 'w-64'
         }`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-emerald-200 dark:border-emerald-800">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-emerald-200">
           {!sidebarCollapsed && (
             <Link href="/dashboard" className="flex items-center gap-2">
               <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-1.5 rounded-lg shadow-md">
@@ -209,11 +209,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     sidebarCollapsed ? 'px-3' : 'px-4'
                   } ${
                     isActive
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white hover:from-red-700 hover:to-orange-600'
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white hover:from-emerald-700 hover:to-teal-600'
                       : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                   }`}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className={`h-5 w-5 ${isActive ? 'text-white' : ''}`} />
                   {!sidebarCollapsed && <span className="ml-3">{item.label}</span>}
                 </Button>
               </Link>
@@ -222,7 +222,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* User Info & Actions */}
-        <div className="border-t border-emerald-200 dark:border-emerald-800 p-2 space-y-1">
+        <div className="border-t border-emerald-200 p-2 space-y-1">
           {/* Notification Bell - Desktop */}
           {!sidebarCollapsed && (
             <div className="px-4 py-2">

@@ -284,7 +284,7 @@ export default function CheckoutPage() {
   // Show auth sheet if not authenticated
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50">
         {/* Header */}
         <motion.header
           initial={{ y: -100, opacity: 0 }}
@@ -331,7 +331,7 @@ export default function CheckoutPage() {
   // Order success state
   if (orderSuccess) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 flex items-center justify-center p-4">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -352,7 +352,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50">
       {/* Header */}
       <motion.header
         initial={{ y: -100, opacity: 0 }}

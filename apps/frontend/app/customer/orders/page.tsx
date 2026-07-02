@@ -117,7 +117,7 @@ export default function CustomerOrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50 pb-16 lg:pb-0">
       {/* Header */}
-      <CustomerHeader title="My Orders" showBackButton onBackClick={() => router.push('/customer')} />
+      <CustomerHeader title="My Orders" showBackButton showLocationIcon={false} onBackClick={() => router.push('/customer')} />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

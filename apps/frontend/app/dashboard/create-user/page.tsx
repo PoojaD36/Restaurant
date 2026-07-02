@@ -210,7 +210,7 @@ export default function CreateUserPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg shadow-emerald-500/30"
+                className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30"
               >
                 {isLoading ? 'Creating...' : 'Create User'}
               </Button>

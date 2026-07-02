@@ -153,7 +153,7 @@ export default function OutletsListPage() {
           {canCreate && (
             <Button
               onClick={() => setShowCreateModal(true)}
-              className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg shadow-emerald-500/30"
+              className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30"
             >
               <MapPin className="h-4 w-4 mr-2" />
               Create Outlet
