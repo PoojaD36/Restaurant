@@ -134,7 +134,7 @@ export default function CustomerProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 pb-16 lg:pb-0">
       {/* Header */}
-      <CustomerHeader title="My Profile" showBackButton onBackClick={() => router.push('/customer')} />
+      <CustomerHeader title="My Profile" showBackButton showLocationIcon={false} onBackClick={() => router.push('/customer')} />
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

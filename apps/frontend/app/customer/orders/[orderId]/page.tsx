@@ -99,7 +99,7 @@ export default function OrderDetailsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 flex items-center justify-center">
         <Loader2 className="h-8 w-8 text-emerald-600 animate-spin" />
       </div>
     );
@@ -107,7 +107,7 @@ export default function OrderDetailsPage() {
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 flex items-center justify-center p-4">
         <Card className="p-8 max-w-md w-full text-center">
           <XCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold text-gray-900 mb-2">Error Loading Order</h2>
@@ -124,7 +124,7 @@ export default function OrderDetailsPage() {
   const canCancel = order.status === OrderStatus.PENDING;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50">
       {/* Header */}
       <motion.header
         initial={{ y: -100, opacity: 0 }}

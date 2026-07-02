@@ -192,7 +192,7 @@ export default function MenuPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
       </div>
     );
@@ -200,7 +200,7 @@ export default function MenuPage() {
 
   if (error || !menu) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 flex items-center justify-center p-4">
         <Card className="p-8 max-w-md w-full">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
           <p className="text-gray-600 mb-4">{error || 'Menu not found'}</p>
@@ -215,7 +215,7 @@ export default function MenuPage() {
   const activeCategoryData = menu.categories.find(c => c.id.toString() === activeCategory);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50">
       {/* Header */}
       <motion.header
         initial={{ y: -100, opacity: 0 }}
@@ -291,7 +291,7 @@ export default function MenuPage() {
               <Card key={item.id} className="p-4 hover:shadow-lg transition-shadow">
                 <div className="flex gap-4">
                   {/* Item Image */}
-                  <div className="w-24 h-24 rounded-lg bg-gradient-to-br from-orange-200 to-amber-200 flex-shrink-0 flex items-center justify-center">
+                  <div className="w-24 h-24 rounded-lg bg-gradient-to-br from-emerald-200 to-teal-200 flex-shrink-0 flex items-center justify-center">
                     {item.imageUrl ? (
                       <img
                         src={item.imageUrl}

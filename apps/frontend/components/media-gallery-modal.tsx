@@ -189,7 +189,7 @@ export function MediaGalleryModal({ open, onClose, onSelectImage, currentImage }
             <Button
               onClick={handleConfirmSelection}
               disabled={!selectedImage}
-              className="bg-gradient-to-r from-emerald-600 to-teal-500"
+              className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white"
             >
               Select Image
             </Button>

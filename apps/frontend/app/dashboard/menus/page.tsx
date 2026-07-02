@@ -250,7 +250,7 @@ export default function MenusPage() {
             <p className="text-slate-600">Create and manage restaurant menus with categories and items.</p>
           </div>
           {canCreate && (
-            <Button onClick={() => setShowCreateModal(true)} className="bg-gradient-to-r from-emerald-600 to-teal-500">
+            <Button onClick={() => setShowCreateModal(true)} className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white">
               <Plus className="h-4 w-4 mr-2" />
               Create Menu
             </Button>
@@ -355,7 +355,7 @@ export default function MenusPage() {
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => handleEditCategory(menu.id, category)}
-                                      className="h-7 text-slate-600 hover:text-slate-800"
+                                      className="h-7 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50"
                                     >
                                       <Edit className="h-3 w-3" />
                                     </Button>
@@ -403,7 +403,7 @@ export default function MenusPage() {
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => handleEditItem(menu.id, item)}
-                                            className="h-7 w-7 p-0"
+                                            className="h-7 w-7 p-0 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50"
                                           >
                                             <Edit className="h-3 w-3" />
                                           </Button>
@@ -411,7 +411,7 @@ export default function MenusPage() {
                                             variant="ghost"
                                             size="sm"
                                             onClick={() => handleManageModifiers(menu.id, item)}
-                                            className="h-7 w-7 p-0"
+                                            className="h-7 w-7 p-0 text-slate-600 hover:text-emerald-600 hover:bg-emerald-50"
                                             title="Manage modifiers"
                                           >
                                             <Layers className="h-3 w-3" />

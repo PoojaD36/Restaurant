@@ -1412,6 +1412,39 @@ npx shadcn@latest add dialog -y
     - `hover:bg-orange-*` → `hover:bg-emerald-*`
     - `shadow-orange-*` → `shadow-emerald-*`
     - `shadow-red-*` → `shadow-emerald-*`
+- ✅ **Hover Effects & Icon Visibility Fixes** - Fixed all hover gradients and icon visibility issues - 2026-07-02
+  - **Hover Gradients Fixed** (red/orange → emerald/teal):
+    - [`dashboard/layout.tsx`](apps/frontend/app/dashboard/layout.tsx) - Sidebar navigation active state (desktop + mobile)
+    - [`dashboard/users/page.tsx`](apps/frontend/app/dashboard/users/page.tsx) - Create User button
+    - [`dashboard/create-user/page.tsx`](apps/frontend/app/dashboard/create-user/page.tsx) - Submit button
+    - [`dashboard/outlets/page.tsx`](apps/frontend/app/dashboard/outlets/page.tsx) - Create Outlet button
+    - [`dashboard/restaurants/page.tsx`](apps/frontend/app/dashboard/restaurants/page.tsx) - Create Restaurant button
+  - **Button Gradients Fixed** (red/orange → emerald/teal + text-white):
+    - [`create-modifier-group-modal.tsx`](apps/frontend/components/create-modifier-group-modal.tsx)
+    - [`create-modifier-option-modal.tsx`](apps/frontend/components/create-modifier-option-modal.tsx)
+    - [`edit-modifier-group-modal.tsx`](apps/frontend/components/edit-modifier-group-modal.tsx)
+    - [`edit-modifier-option-modal.tsx`](apps/frontend/components/edit-modifier-option-modal.tsx)
+    - [`create-category-modal.tsx`](apps/frontend/components/create-category-modal.tsx)
+    - [`create-menu-item-modal.tsx`](apps/frontend/components/create-menu-item-modal.tsx)
+    - [`create-menu-modal.tsx`](apps/frontend/components/create-menu-modal.tsx)
+    - [`edit-category-modal.tsx`](apps/frontend/components/edit-category-modal.tsx)
+    - [`edit-menu-item-modal.tsx`](apps/frontend/components/edit-menu-item-modal.tsx)
+    - [`edit-menu-modal.tsx`](apps/frontend/components/edit-menu-modal.tsx)
+    - [`media-gallery-modal.tsx`](apps/frontend/components/media-gallery-modal.tsx)
+    - [`menus/page.tsx`](apps/frontend/app/dashboard/menus/page.tsx) - Create Menu button
+  - **Page Backgrounds Fixed** (orange/amber/rose → emerald/teal/green):
+    - All customer pages now use `from-emerald-50 via-teal-50 to-green-50` gradient
+    - [`customer/checkout/page.tsx`](apps/frontend/app/customer/checkout/page.tsx) - All 3 occurrences
+    - [`customer/menu/[outletId]/page.tsx`](apps/frontend/app/customer/menu/[outletId]/page.tsx) - All 3 occurrences + item image placeholder
+    - [`customer/orders/[orderId]/page.tsx`](apps/frontend/app/customer/orders/[orderId]/page.tsx) - All 3 occurrences
+  - **Admin Dashboard Background Fixed**:
+    - Removed all `dark:` prefixed classes from [`dashboard/layout.tsx`](apps/frontend/app/dashboard/layout.tsx)
+    - Changed from dark emerald background to light `from-emerald-50 via-teal-50 to-green-50` gradient
+    - All text now clearly visible with proper contrast
+  - **Icon Visibility Fixed**:
+    - Added conditional `text-white` class to active navigation icons in sidebar
+    - All gradient buttons now have `text-white` class for proper icon visibility
+    - Fixed icons: Plus, Loader2, Check, and navigation icons
 
 ### In Progress
 - No tasks currently in progress
