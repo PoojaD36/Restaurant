@@ -85,7 +85,7 @@ export function EditMenuModal({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <UtensilsCrossed className="h-5 w-5 text-orange-500" />
+            <UtensilsCrossed className="h-5 w-5 text-emerald-500" />
             Edit Menu
           </DialogTitle>
           <DialogDescription>
@@ -101,7 +101,7 @@ export function EditMenuModal({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="name">Menu Name <span className="text-red-500">*</span></Label>
+            <Label htmlFor="name">Menu Name <span className="text-emerald-500">*</span></Label>
             <Input
               id="name"
               value={formData.name}
@@ -130,7 +130,7 @@ export function EditMenuModal({
               value={formData.status}
               onChange={(e) => setFormData({ ...formData, status: e.target.value as 'ACTIVE' | 'INACTIVE' })}
               disabled={isSubmitting}
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <option value="ACTIVE">Active</option>
               <option value="INACTIVE">Inactive</option>
@@ -144,7 +144,7 @@ export function EditMenuModal({
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-red-600 to-orange-500">
+            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-emerald-600 to-teal-500">
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

@@ -94,8 +94,8 @@ export function ProfileFormModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-orange-900 flex items-center gap-2">
-            <User className="h-5 w-5 text-orange-600" />
+          <DialogTitle className="text-emerald-900 flex items-center gap-2">
+            <User className="h-5 w-5 text-emerald-600" />
             Edit Profile
           </DialogTitle>
           <DialogDescription>
@@ -176,7 +176,7 @@ export function ProfileFormModal({
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600"
+              className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600"
             >
               {isLoading ? (
                 <>

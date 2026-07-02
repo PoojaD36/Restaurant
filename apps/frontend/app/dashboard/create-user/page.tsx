@@ -70,7 +70,7 @@ export default function CreateUserPage() {
     <ProtectedRoute requiredRole="SUPER_ADMIN">
       <div className="max-w-2xl mx-auto">
         <div className="mb-6">
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
             Create New User
           </h2>
           <p className="text-slate-600">
@@ -78,7 +78,7 @@ export default function CreateUserPage() {
           </p>
         </div>
 
-        <Card className="border-orange-100 shadow-xl bg-white/90 backdrop-blur">
+        <Card className="border-emerald-100 shadow-xl bg-white/90 backdrop-blur">
           <form onSubmit={handleSubmit}>
             <CardHeader>
               <CardTitle>User Information</CardTitle>
@@ -100,7 +100,7 @@ export default function CreateUserPage() {
                       onChange={(e) => handleChange('firstName', e.target.value)}
                       required
                       placeholder="John"
-                      className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+                      className="pl-10 h-10 border-emerald-200 focus:border-emerald-500"
                     />
                   </div>
                 </div>
@@ -113,7 +113,7 @@ export default function CreateUserPage() {
                     value={formData.lastName}
                     onChange={(e) => handleChange('lastName', e.target.value)}
                     placeholder="Doe"
-                    className="h-10 border-orange-200 focus:border-orange-500"
+                    className="h-10 border-emerald-200 focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -130,7 +130,7 @@ export default function CreateUserPage() {
                       onChange={(e) => handleChange('email', e.target.value)}
                       required
                       placeholder="user@restaurant.com"
-                      className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+                      className="pl-10 h-10 border-emerald-200 focus:border-emerald-500"
                     />
                   </div>
                 </div>
@@ -146,7 +146,7 @@ export default function CreateUserPage() {
                       onChange={(e) => handleChange('phone', e.target.value)}
                       required
                       placeholder="+1234567890"
-                      className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+                      className="pl-10 h-10 border-emerald-200 focus:border-emerald-500"
                     />
                   </div>
                 </div>
@@ -163,7 +163,7 @@ export default function CreateUserPage() {
                     onChange={(e) => handleChange('password', e.target.value)}
                     required
                     placeholder="••••••••"
-                    className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+                    className="pl-10 h-10 border-emerald-200 focus:border-emerald-500"
                   />
                 </div>
               </div>
@@ -175,7 +175,7 @@ export default function CreateUserPage() {
                   onValueChange={(value) => handleChange('role', value)}
                   required
                 >
-                  <SelectTrigger className="h-10 border-orange-200 focus:border-orange-500">
+                  <SelectTrigger className="h-10 border-emerald-200 focus:border-emerald-500">
                     <SelectValue placeholder="Select a role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -210,7 +210,7 @@ export default function CreateUserPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg shadow-red-500/30"
+                className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg shadow-emerald-500/30"
               >
                 {isLoading ? 'Creating...' : 'Create User'}
               </Button>

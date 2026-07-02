@@ -170,7 +170,7 @@ export function AddRestaurantUserModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-orange-500" />
+            <UserPlus className="h-5 w-5 text-emerald-500" />
             Manage Restaurant Users
           </DialogTitle>
           <DialogDescription>
@@ -188,7 +188,7 @@ export function AddRestaurantUserModal({
           {/* Current Users */}
           <div className="space-y-2">
             <Label>Current Users ({currentUsers.length})</Label>
-            <div className="border border-orange-100 rounded-lg p-3 bg-slate-50 max-h-40 overflow-y-auto">
+            <div className="border border-emerald-100 rounded-lg p-3 bg-slate-50 max-h-40 overflow-y-auto">
               {currentUsers.length === 0 ? (
                 <p className="text-sm text-slate-500 text-center py-2">No users added yet</p>
               ) : (
@@ -196,7 +196,7 @@ export function AddRestaurantUserModal({
                   {currentUsers.map((u) => (
                     <div
                       key={u.id}
-                      className="flex items-center justify-between bg-white p-2 rounded border border-orange-100"
+                      className="flex items-center justify-between bg-white p-2 rounded border border-emerald-100"
                     >
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium">
@@ -281,7 +281,7 @@ export function AddRestaurantUserModal({
                     <Button
                       onClick={handleAddUser}
                       disabled={!selectedUserId || isLoading}
-                      className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600"
+                      className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600"
                     >
                       {isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

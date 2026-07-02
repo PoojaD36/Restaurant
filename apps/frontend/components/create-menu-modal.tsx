@@ -91,7 +91,7 @@ export function CreateMenuModal({ open, onClose, onSuccess }: CreateMenuModalPro
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <UtensilsCrossed className="h-5 w-5 text-orange-500" />
+            <UtensilsCrossed className="h-5 w-5 text-emerald-500" />
             Create Menu
           </DialogTitle>
           <DialogDescription>
@@ -107,10 +107,10 @@ export function CreateMenuModal({ open, onClose, onSuccess }: CreateMenuModalPro
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="restaurant">Restaurant <span className="text-red-500">*</span></Label>
+            <Label htmlFor="restaurant">Restaurant <span className="text-emerald-500">*</span></Label>
             {isLoading ? (
               <div className="flex items-center justify-center py-2">
-                <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+                <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
               </div>
             ) : (
               <select
@@ -118,7 +118,7 @@ export function CreateMenuModal({ open, onClose, onSuccess }: CreateMenuModalPro
                 value={formData.restaurantId}
                 onChange={(e) => setFormData({ ...formData, restaurantId: e.target.value })}
                 disabled={isSubmitting}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
                 required
               >
                 <option value="">Select a restaurant</option>
@@ -132,7 +132,7 @@ export function CreateMenuModal({ open, onClose, onSuccess }: CreateMenuModalPro
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Menu Name <span className="text-red-500">*</span></Label>
+            <Label htmlFor="name">Menu Name <span className="text-emerald-500">*</span></Label>
             <Input
               id="name"
               value={formData.name}
@@ -158,7 +158,7 @@ export function CreateMenuModal({ open, onClose, onSuccess }: CreateMenuModalPro
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-red-600 to-orange-500">
+            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-emerald-600 to-teal-500">
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

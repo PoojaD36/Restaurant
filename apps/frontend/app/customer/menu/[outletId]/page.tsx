@@ -193,7 +193,7 @@ export default function MenuPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
       </div>
     );
   }
@@ -220,7 +220,7 @@ export default function MenuPage() {
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-40 border-b border-orange-200/40 bg-white/60 backdrop-blur-xl shadow-sm"
+        className="sticky top-0 z-40 border-b border-emerald-200/40 bg-white/60 backdrop-blur-xl shadow-sm"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center gap-4">
@@ -228,20 +228,20 @@ export default function MenuPage() {
               variant="ghost"
               size="icon"
               onClick={() => router.push('/customer')}
-              className="hover:bg-orange-100"
+              className="hover:bg-emerald-100"
             >
-              <ArrowLeft className="h-5 w-5 text-orange-600" />
+              <ArrowLeft className="h-5 w-5 text-emerald-600" />
             </Button>
 
             <div className="flex-1">
-              <h1 className="text-lg font-bold text-orange-900">{outlet?.name}</h1>
+              <h1 className="text-lg font-bold text-emerald-900">{outlet?.name}</h1>
               <p className="text-sm text-gray-600">{menu.name}</p>
             </div>
 
             <Button
               onClick={() => router.push('/customer/checkout')}
               className={cn(
-                "relative bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600",
+                "relative bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600",
                 cartItemCount === 0 && "opacity-70"
               )}
             >
@@ -258,7 +258,7 @@ export default function MenuPage() {
       </motion.header>
 
       {/* Category Navigation */}
-      <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-sm border-b border-orange-200/40">
+      <div className="sticky top-16 z-30 bg-white/80 backdrop-blur-sm border-b border-emerald-200/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex gap-2 overflow-x-auto py-3 scrollbar-hide">
             {menu.categories.map(category => (
@@ -267,7 +267,7 @@ export default function MenuPage() {
                 onClick={() => setActiveCategory(category.id.toString())}
                 className={`px-4 py-2 rounded-full whitespace-nowrap transition-all ${
                   activeCategory === category.id.toString()
-                    ? 'bg-gradient-to-r from-orange-600 to-amber-500 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -299,7 +299,7 @@ export default function MenuPage() {
                         className="w-full h-full object-cover rounded-lg"
                       />
                     ) : (
-                      <Utensils className="h-8 w-8 text-orange-400" />
+                      <Utensils className="h-8 w-8 text-emerald-400" />
                     )}
                   </div>
 
@@ -307,7 +307,7 @@ export default function MenuPage() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <h3 className="font-bold text-orange-900">{item.name}</h3>
+                        <h3 className="font-bold text-emerald-900">{item.name}</h3>
                         {item.description && (
                           <p className="text-sm text-gray-600 mt-1 line-clamp-2">{item.description}</p>
                         )}
@@ -331,7 +331,7 @@ export default function MenuPage() {
 
                     {/* Modifiers */}
                     {item.modifiers && item.modifiers.length > 0 && (
-                      <div className="mt-2 text-sm text-orange-600">
+                      <div className="mt-2 text-sm text-emerald-600">
                         + Customizable
                       </div>
                     )}
@@ -339,7 +339,7 @@ export default function MenuPage() {
 
                   {/* Add to Cart / Quantity Controls */}
                   <div className="flex flex-col items-end justify-between">
-                    <span className="text-lg font-bold text-orange-900">₹{item.price}</span>
+                    <span className="text-lg font-bold text-emerald-900">₹{item.price}</span>
                     {(() => {
                       const cartItem = findItemInCart(item);
                       if (cartItem && cartItem.quantity > 0) {
@@ -350,18 +350,18 @@ export default function MenuPage() {
                               size="sm"
                               variant="outline"
                               onClick={() => updateQuantity(cartItem.tempId, cartItem.quantity - 1)}
-                              className="h-8 w-8 p-0 rounded-full border-orange-300 text-orange-600 hover:bg-orange-100"
+                              className="h-8 w-8 p-0 rounded-full border-emerald-300 text-emerald-600 hover:bg-emerald-100"
                             >
                               <Minus className="h-3 w-3" />
                             </Button>
-                            <span className="font-semibold text-orange-900 w-8 text-center">
+                            <span className="font-semibold text-emerald-900 w-8 text-center">
                               {cartItem.quantity}
                             </span>
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => updateQuantity(cartItem.tempId, cartItem.quantity + 1)}
-                              className="h-8 w-8 p-0 rounded-full border-orange-300 text-orange-600 hover:bg-orange-100"
+                              className="h-8 w-8 p-0 rounded-full border-emerald-300 text-emerald-600 hover:bg-emerald-100"
                             >
                               <Plus className="h-3 w-3" />
                             </Button>
@@ -373,7 +373,7 @@ export default function MenuPage() {
                         <Button
                           size="sm"
                           onClick={() => setSelectedItem(item)}
-                          className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600"
+                          className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600"
                         >
                           <Plus className="h-4 w-4 mr-1" />
                           Add
@@ -415,7 +415,7 @@ export default function MenuPage() {
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-xl font-bold text-orange-900">{selectedItem.name}</h3>
+                  <h3 className="text-xl font-bold text-emerald-900">{selectedItem.name}</h3>
                   {selectedItem.description && (
                     <p className="text-gray-600 mt-1">{selectedItem.description}</p>
                   )}
@@ -451,8 +451,8 @@ export default function MenuPage() {
                         key={option.id}
                         className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
                           modifierSelections[modifier.id]?.includes(option.id)
-                            ? 'border-orange-500 bg-orange-50'
-                            : 'border-gray-200 hover:border-orange-300'
+                            ? 'border-emerald-500 bg-emerald-50'
+                            : 'border-gray-200 hover:border-emerald-300'
                         }`}
                       >
                         <div className="flex items-center gap-3">
@@ -461,12 +461,12 @@ export default function MenuPage() {
                             name={`modifier-${modifier.id}`}
                             checked={modifierSelections[modifier.id]?.includes(option.id) || false}
                             onChange={() => handleModifierSelection(modifier.id, option.id, modifier.type)}
-                            className="w-4 h-4 text-orange-600"
+                            className="w-4 h-4 text-emerald-600"
                           />
                           <span className="font-medium">{option.name}</span>
                         </div>
                         {option.priceAdjustment > 0 && (
-                          <span className="text-orange-600 font-semibold">+₹{option.priceAdjustment}</span>
+                          <span className="text-emerald-600 font-semibold">+₹{option.priceAdjustment}</span>
                         )}
                       </label>
                     ))}
@@ -477,12 +477,12 @@ export default function MenuPage() {
               {/* Add to Cart Button */}
               <div className="flex items-center justify-between mt-6 pt-4 border-t">
                 <div>
-                  <span className="text-2xl font-bold text-orange-900">₹{calculateItemPrice(selectedItem)}</span>
+                  <span className="text-2xl font-bold text-emerald-900">₹{calculateItemPrice(selectedItem)}</span>
                 </div>
                 <Button
                   onClick={() => handleAddToCart(selectedItem)}
                   disabled={!isModifierValid(selectedItem)}
-                  className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 disabled:opacity-50"
+                  className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 disabled:opacity-50"
                 >
                   <ShoppingBag className="h-4 w-4 mr-2" />
                   Add to Cart

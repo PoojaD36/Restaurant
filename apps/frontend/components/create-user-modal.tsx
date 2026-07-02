@@ -94,7 +94,7 @@ export function CreateUserModal({ open, onClose, onSuccess }: CreateUserModalPro
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5 text-orange-500" />
+            <UserPlus className="h-5 w-5 text-emerald-500" />
             Create New User
           </DialogTitle>
           <DialogDescription>
@@ -115,7 +115,7 @@ export function CreateUserModal({ open, onClose, onSuccess }: CreateUserModalPro
                   onChange={(e) => handleChange('firstName', e.target.value)}
                   required
                   placeholder="John"
-                  className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+                  className="pl-10 h-10 border-emerald-200 focus:border-emerald-500"
                 />
               </div>
             </div>
@@ -128,7 +128,7 @@ export function CreateUserModal({ open, onClose, onSuccess }: CreateUserModalPro
                 value={formData.lastName}
                 onChange={(e) => handleChange('lastName', e.target.value)}
                 placeholder="Doe"
-                className="h-10 border-orange-200 focus:border-orange-500"
+                className="h-10 border-emerald-200 focus:border-emerald-500"
               />
             </div>
           </div>
@@ -144,7 +144,7 @@ export function CreateUserModal({ open, onClose, onSuccess }: CreateUserModalPro
                 onChange={(e) => handleChange('email', e.target.value)}
                 required
                 placeholder="user@restaurant.com"
-                className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+                className="pl-10 h-10 border-emerald-200 focus:border-emerald-500"
               />
             </div>
           </div>
@@ -160,7 +160,7 @@ export function CreateUserModal({ open, onClose, onSuccess }: CreateUserModalPro
                 onChange={(e) => handleChange('phone', e.target.value)}
                 required
                 placeholder="+1234567890"
-                className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+                className="pl-10 h-10 border-emerald-200 focus:border-emerald-500"
               />
             </div>
           </div>
@@ -176,7 +176,7 @@ export function CreateUserModal({ open, onClose, onSuccess }: CreateUserModalPro
                 onChange={(e) => handleChange('password', e.target.value)}
                 required
                 placeholder="••••••••"
-                className="pl-10 h-10 border-orange-200 focus:border-orange-500"
+                className="pl-10 h-10 border-emerald-200 focus:border-emerald-500"
               />
             </div>
           </div>
@@ -188,7 +188,7 @@ export function CreateUserModal({ open, onClose, onSuccess }: CreateUserModalPro
               onValueChange={(value) => handleChange('role', value)}
               required
             >
-              <SelectTrigger className="h-10 border-orange-200 focus:border-orange-500">
+              <SelectTrigger className="h-10 border-emerald-200 focus:border-emerald-500">
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
@@ -225,7 +225,7 @@ export function CreateUserModal({ open, onClose, onSuccess }: CreateUserModalPro
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white"
+              className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white"
             >
               {isLoading ? 'Creating...' : 'Create User'}
             </Button>

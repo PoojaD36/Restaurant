@@ -131,7 +131,7 @@ export function EditRestaurantModal({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
             Edit Restaurant
           </DialogTitle>
           <DialogDescription>
@@ -148,7 +148,7 @@ export function EditRestaurantModal({
 
           <div className="space-y-2">
             <Label htmlFor="name">
-              Restaurant Name <span className="text-red-500">*</span>
+              Restaurant Name <span className="text-emerald-500">*</span>
             </Label>
             <Input
               id="name"
@@ -162,7 +162,7 @@ export function EditRestaurantModal({
 
           <div className="space-y-2">
             <Label htmlFor="slug">
-              Slug <span className="text-red-500">*</span>
+              Slug <span className="text-emerald-500">*</span>
             </Label>
             <Input
               id="slug"
@@ -251,7 +251,7 @@ export function EditRestaurantModal({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600"
+              className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600"
             >
               {isSubmitting ? (
                 <>

@@ -25,7 +25,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode }> = {
   PENDING: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: <Clock className="h-4 w-4" /> },
   CONFIRMED: { label: 'Confirmed', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: <CheckCircle className="h-4 w-4" /> },
-  PREPARING: { label: 'Preparing', color: 'bg-orange-100 text-orange-800 border-orange-300', icon: <Flame className="h-4 w-4" /> },
+  PREPARING: { label: 'Preparing', color: 'bg-emerald-100 text-orange-800 border-emerald-300', icon: <Flame className="h-4 w-4" /> },
   READY: { label: 'Ready', color: 'bg-green-100 text-green-800 border-green-300', icon: <Package className="h-4 w-4" /> },
   OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'bg-indigo-100 text-indigo-800 border-indigo-300', icon: <Package className="h-4 w-4" /> },
   DELIVERED: { label: 'Delivered', color: 'bg-green-100 text-green-800 border-green-300', icon: <CheckCircle className="h-4 w-4" /> },
@@ -273,7 +273,7 @@ export default function ChefDashboardPage() {
 
       {isLoading && orderPool.pending.length === 0 && orderPool.preparing.length === 0 ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -303,10 +303,10 @@ export default function ChefDashboardPage() {
           {/* My Active Orders */}
           <div>
             <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              <Flame className="h-5 w-5 text-orange-600" />
+              <Flame className="h-5 w-5 text-emerald-600" />
               My Active Orders
               {orderPool.preparing.length > 0 && (
-                <Badge className="bg-orange-100 text-orange-800">
+                <Badge className="bg-emerald-100 text-orange-800">
                   {orderPool.preparing.length}
                 </Badge>
               )}

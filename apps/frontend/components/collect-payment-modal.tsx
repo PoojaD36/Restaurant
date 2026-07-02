@@ -133,9 +133,9 @@ export function CollectPaymentModal({
 
         <div className="space-y-6 py-4">
           {/* Amount Display */}
-          <div className="bg-orange-50 p-4 rounded-lg text-center">
+          <div className="bg-emerald-50 p-4 rounded-lg text-center">
             <p className="text-sm text-gray-600 mb-1">Amount to Collect</p>
-            <p className="text-3xl font-bold text-orange-600 flex items-center justify-center gap-2">
+            <p className="text-3xl font-bold text-emerald-600 flex items-center justify-center gap-2">
               <IndianRupee className="h-6 w-6" />
               {totalAmount}
             </p>
@@ -152,14 +152,14 @@ export function CollectPaymentModal({
                 className={`
                   flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all
                   ${paymentMethod === 'CASH'
-                    ? 'border-orange-500 bg-orange-50'
-                    : 'border-gray-200 hover:border-orange-300 bg-white'
+                    ? 'border-orange-500 bg-emerald-50'
+                    : 'border-gray-200 hover:border-emerald-300 bg-white'
                   }
                   ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
               >
-                <Banknote className={`h-6 w-6 ${paymentMethod === 'CASH' ? 'text-orange-600' : 'text-gray-500'}`} />
-                <span className={`text-sm font-medium ${paymentMethod === 'CASH' ? 'text-orange-700' : 'text-gray-600'}`}>
+                <Banknote className={`h-6 w-6 ${paymentMethod === 'CASH' ? 'text-emerald-600' : 'text-gray-500'}`} />
+                <span className={`text-sm font-medium ${paymentMethod === 'CASH' ? 'text-emerald-700' : 'text-gray-600'}`}>
                   Cash
                 </span>
               </button>
@@ -171,14 +171,14 @@ export function CollectPaymentModal({
                 className={`
                   flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-all
                   ${paymentMethod === 'UPI'
-                    ? 'border-orange-500 bg-orange-50'
-                    : 'border-gray-200 hover:border-orange-300 bg-white'
+                    ? 'border-orange-500 bg-emerald-50'
+                    : 'border-gray-200 hover:border-emerald-300 bg-white'
                   }
                   ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
                 `}
               >
-                <Smartphone className={`h-6 w-6 ${paymentMethod === 'UPI' ? 'text-orange-600' : 'text-gray-500'}`} />
-                <span className={`text-sm font-medium ${paymentMethod === 'UPI' ? 'text-orange-700' : 'text-gray-600'}`}>
+                <Smartphone className={`h-6 w-6 ${paymentMethod === 'UPI' ? 'text-emerald-600' : 'text-gray-500'}`} />
+                <span className={`text-sm font-medium ${paymentMethod === 'UPI' ? 'text-emerald-700' : 'text-gray-600'}`}>
                   UPI
                 </span>
               </button>
@@ -190,7 +190,7 @@ export function CollectPaymentModal({
             <div className="space-y-3 animate-in slide-in-from-top-2 duration-200">
               {isGeneratingQr ? (
                 <div className="flex flex-col items-center justify-center py-8">
-                  <Loader2 className="h-8 w-8 text-orange-600 animate-spin mb-3" />
+                  <Loader2 className="h-8 w-8 text-emerald-600 animate-spin mb-3" />
                   <p className="text-sm text-gray-600">Generating QR Code...</p>
                 </div>
               ) : paymentStatus === 'failed' ? (

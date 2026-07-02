@@ -65,7 +65,7 @@ export function CreateCategoryModal({ open, onClose, onSuccess, menuId }: Create
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <List className="h-5 w-5 text-orange-500" />
+            <List className="h-5 w-5 text-emerald-500" />
             Add Category
           </DialogTitle>
           <DialogDescription>
@@ -81,7 +81,7 @@ export function CreateCategoryModal({ open, onClose, onSuccess, menuId }: Create
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="name">Category Name <span className="text-red-500">*</span></Label>
+            <Label htmlFor="name">Category Name <span className="text-emerald-500">*</span></Label>
             <Input
               id="name"
               value={formData.name}
@@ -109,7 +109,7 @@ export function CreateCategoryModal({ open, onClose, onSuccess, menuId }: Create
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-red-600 to-orange-500">
+            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-emerald-600 to-teal-500">
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

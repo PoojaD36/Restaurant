@@ -34,10 +34,10 @@ export function OrderSummary({
 
   return (
     <Card className="sticky top-24 overflow-hidden">
-      <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-100">
+      <CardHeader className="bg-gradient-to-r from-emerald-50 to-teal-50 border-b border-emerald-100">
         <div className="flex items-center gap-2">
-          <ShoppingBag className="h-5 w-5 text-orange-600" />
-          <h2 className="text-lg font-bold text-orange-900">Order Summary</h2>
+          <ShoppingBag className="h-5 w-5 text-emerald-600" />
+          <h2 className="text-lg font-bold text-emerald-900">Order Summary</h2>
         </div>
       </CardHeader>
 
@@ -45,8 +45,8 @@ export function OrderSummary({
         {/* Outlet Info */}
         {cart.outletName && (
           <div className="flex items-start gap-3 pb-3 border-b border-gray-100">
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
-              <MapPin className="h-4 w-4 text-orange-600" />
+            <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+              <MapPin className="h-4 w-4 text-emerald-600" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-semibold text-gray-900 truncate">{cart.outletName}</p>
@@ -62,7 +62,7 @@ export function OrderSummary({
           <div className="flex items-center gap-2 pb-3 border-b border-gray-100">
             <Check className="h-4 w-4 text-green-600" />
             <span className="text-sm text-gray-700">
-              Delivering to <span className="font-semibold text-orange-900">{selectedAddressLabel}</span>
+              Delivering to <span className="font-semibold text-emerald-900">{selectedAddressLabel}</span>
             </span>
           </div>
         )}
@@ -78,7 +78,7 @@ export function OrderSummary({
               className="flex items-start gap-3"
             >
               {/* Item Image */}
-              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-orange-200 to-amber-200 flex-shrink-0 flex items-center justify-center">
+              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-emerald-200 to-teal-200 flex-shrink-0 flex items-center justify-center">
                 {item.imageUrl ? (
                   <img
                     src={item.imageUrl}
@@ -86,7 +86,7 @@ export function OrderSummary({
                     className="w-full h-full object-cover rounded-lg"
                   />
                 ) : (
-                  <ShoppingBag className="h-5 w-5 text-orange-400" />
+                  <ShoppingBag className="h-5 w-5 text-emerald-400" />
                 )}
               </div>
 
@@ -101,35 +101,35 @@ export function OrderSummary({
                         size="sm"
                         variant="outline"
                         onClick={() => onUpdateQuantity(item.tempId, item.quantity - 1)}
-                        className="h-7 w-7 p-0 rounded-full border-orange-300 text-orange-600 hover:bg-orange-100"
+                        className="h-7 w-7 p-0 rounded-full border-orange-300 text-emerald-600 hover:bg-emerald-100"
                         disabled={isPlacingOrder}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="font-semibold text-orange-900 w-6 text-center text-sm">
+                      <span className="font-semibold text-emerald-900 w-6 text-center text-sm">
                         {item.quantity}
                       </span>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => onUpdateQuantity(item.tempId, item.quantity + 1)}
-                        className="h-7 w-7 p-0 rounded-full border-orange-300 text-orange-600 hover:bg-orange-100"
+                        className="h-7 w-7 p-0 rounded-full border-orange-300 text-emerald-600 hover:bg-emerald-100"
                         disabled={isPlacingOrder}
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
-                    <span className="text-sm font-semibold text-orange-900 ml-auto">
+                    <span className="text-sm font-semibold text-emerald-900 ml-auto">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </span>
                   </div>
                 ) : (
                   // Show static quantity badge
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-xs bg-orange-100 text-orange-800 px-2 py-0.5 rounded-full">
+                    <span className="text-xs bg-emerald-100 text-orange-800 px-2 py-0.5 rounded-full">
                       Qty: {item.quantity}
                     </span>
-                    <span className="text-sm font-semibold text-orange-900">
+                    <span className="text-sm font-semibold text-emerald-900">
                       ₹{(item.price * item.quantity).toFixed(2)}
                     </span>
                   </div>
@@ -170,22 +170,22 @@ export function OrderSummary({
           </div>
 
           <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
-            <span className="text-orange-900">Total</span>
-            <span className="text-orange-900">₹{total.toFixed(2)}</span>
+            <span className="text-emerald-900">Total</span>
+            <span className="text-emerald-900">₹{total.toFixed(2)}</span>
           </div>
         </div>
 
         {/* Estimated Delivery Time */}
-        <div className="flex items-center gap-2 text-sm text-gray-600 bg-orange-50 p-3 rounded-lg">
-          <Clock className="h-4 w-4 text-orange-600" />
-          <span>Estimated delivery: <span className="font-semibold text-orange-900">30-45 mins</span></span>
+        <div className="flex items-center gap-2 text-sm text-gray-600 bg-emerald-50 p-3 rounded-lg">
+          <Clock className="h-4 w-4 text-emerald-600" />
+          <span>Estimated delivery: <span className="font-semibold text-emerald-900">30-45 mins</span></span>
         </div>
 
         {/* Place Order Button */}
         <Button
           onClick={onPlaceOrder}
           disabled={!canPlaceOrder || isPlacingOrder}
-          className="w-full bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 disabled:opacity-50"
+          className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 disabled:opacity-50"
           size="lg"
         >
           {isPlacingOrder ? (

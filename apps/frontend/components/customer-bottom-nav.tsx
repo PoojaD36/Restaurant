@@ -66,7 +66,7 @@ export function CustomerBottomNav() {
               onClick={() => handleClick(item)}
               className={cn(
                 'flex flex-col items-center justify-center flex-1 h-full transition-colors',
-                active ? 'text-orange-600' : 'text-gray-500 hover:text-gray-700'
+                active ? 'text-emerald-600' : 'text-gray-500 hover:text-gray-700'
               )}
             >
               <Icon className={cn('h-6 w-6', active && 'stroke-2')} />

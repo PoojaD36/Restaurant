@@ -100,7 +100,7 @@ export default function OrderDetailsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-orange-600 animate-spin" />
+        <Loader2 className="h-8 w-8 text-emerald-600 animate-spin" />
       </div>
     );
   }
@@ -129,7 +129,7 @@ export default function OrderDetailsPage() {
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-40 border-b border-orange-200/40 bg-white/60 backdrop-blur-xl shadow-sm"
+        className="sticky top-0 z-40 border-b border-emerald-200/40 bg-white/60 backdrop-blur-xl shadow-sm"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center gap-4">
@@ -137,13 +137,13 @@ export default function OrderDetailsPage() {
               variant="ghost"
               size="icon"
               onClick={() => router.back()}
-              className="hover:bg-orange-100"
+              className="hover:bg-emerald-100"
             >
-              <ArrowLeft className="h-5 w-5 text-orange-600" />
+              <ArrowLeft className="h-5 w-5 text-emerald-600" />
             </Button>
 
             <div className="flex-1">
-              <h1 className="text-lg font-bold text-orange-900">Order Details</h1>
+              <h1 className="text-lg font-bold text-emerald-900">Order Details</h1>
               <p className="text-sm text-gray-600">Order #{order.id}</p>
             </div>
 
@@ -168,7 +168,7 @@ export default function OrderDetailsPage() {
             >
               <Card className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="bg-gradient-to-br from-red-600 to-orange-500 p-3 rounded-lg">
+                  <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-3 rounded-lg">
                     <Utensils className="h-6 w-6 text-white" />
                   </div>
                   <div className="flex-1">
@@ -176,7 +176,7 @@ export default function OrderDetailsPage() {
                     <p className="text-gray-600">{order.outlet.addressLine1}</p>
                     <p className="text-gray-600">{order.outlet.city}</p>
                     {order.outlet.phone && (
-                      <div className="flex items-center gap-2 mt-2 text-sm text-orange-600">
+                      <div className="flex items-center gap-2 mt-2 text-sm text-emerald-600">
                         <Phone className="h-4 w-4" />
                         <span>{order.outlet.phone}</span>
                       </div>
@@ -194,7 +194,7 @@ export default function OrderDetailsPage() {
             >
               <Card className="p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Receipt className="h-5 w-5 text-orange-600" />
+                  <Receipt className="h-5 w-5 text-emerald-600" />
                   Order Items
                 </h3>
                 <div className="space-y-4">
@@ -236,7 +236,7 @@ export default function OrderDetailsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
               >
-                <Card className="p-6 bg-orange-50 border-orange-200">
+                <Card className="p-6 bg-emerald-50 border-emerald-200">
                   <h3 className="text-lg font-bold text-gray-900 mb-2">Special Instructions</h3>
                   <p className="text-gray-700">{order.specialInstructions}</p>
                 </Card>
@@ -254,7 +254,7 @@ export default function OrderDetailsPage() {
             >
               <Card className="p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-orange-600" />
+                  <Calendar className="h-5 w-5 text-emerald-600" />
                   Order Timeline
                 </h3>
                 <div className="space-y-4">
@@ -319,7 +319,7 @@ export default function OrderDetailsPage() {
             >
               <Card className="p-6">
                 <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-orange-600" />
+                  <MapPin className="h-5 w-5 text-emerald-600" />
                   Delivery Address
                 </h3>
                 <div className="space-y-2">
@@ -383,9 +383,9 @@ export default function OrderDetailsPage() {
                 <Card className="p-6">
                   <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
                     {order.payment.method === 'CASH' ? (
-                      <Banknote className="h-5 w-5 text-orange-600" />
+                      <Banknote className="h-5 w-5 text-emerald-600" />
                     ) : (
-                      <CreditCard className="h-5 w-5 text-orange-600" />
+                      <CreditCard className="h-5 w-5 text-emerald-600" />
                     )}
                     Payment Information
                   </h3>

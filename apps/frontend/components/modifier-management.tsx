@@ -117,7 +117,7 @@ export function ModifierManagement({
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
-              <Layers className="h-5 w-5 text-orange-500" />
+              <Layers className="h-5 w-5 text-emerald-500" />
               Manage Modifiers
             </DialogTitle>
             <DialogDescription>
@@ -233,7 +233,7 @@ export function ModifierManagement({
                               >
                                 <div className="flex items-center gap-2">
                                   {option.isDefault && (
-                                    <CheckCircle className="h-3 w-3 text-amber-500" />
+                                    <CheckCircle className="h-3 w-3 text-teal-500" />
                                   )}
                                   <div>
                                     <span className="text-sm font-medium">{option.name}</span>

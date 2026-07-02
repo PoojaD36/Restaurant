@@ -79,7 +79,7 @@ export function ChangePasswordModal({ open, onClose, userId, userName }: ChangeP
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Key className="h-5 w-5 text-orange-500" />
+            <Key className="h-5 w-5 text-emerald-500" />
             Change Password
           </DialogTitle>
           <DialogDescription>
@@ -174,7 +174,7 @@ export function ChangePasswordModal({ open, onClose, userId, userName }: ChangeP
             <Button
               type="submit"
               disabled={isLoading}
-              className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white"
+              className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white"
             >
               {isLoading ? 'Changing...' : 'Change Password'}
             </Button>

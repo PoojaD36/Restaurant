@@ -73,7 +73,7 @@ export default function DashboardPage() {
       case 'READY':
         return 'bg-indigo-100 text-indigo-800 border-indigo-200';
       case 'OUT_FOR_DELIVERY':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
+        return 'bg-emerald-100 text-orange-800 border-emerald-200';
       case 'DELIVERED':
         return 'bg-green-100 text-green-800 border-green-200';
       case 'CANCELLED':
@@ -96,7 +96,7 @@ export default function DashboardPage() {
       value: stats?.totalOrders || 0,
       icon: ShoppingBag,
       description: `${stats?.todayOrders || 0} today`,
-      color: 'from-orange-500 to-red-500',
+      color: 'from-emerald-500 to-teal-500',
       change: stats?.todayOrders ? '+Today' : '',
     },
     {
@@ -128,7 +128,7 @@ export default function DashboardPage() {
     { label: 'Confirmed', count: stats?.confirmedOrders || 0, color: 'bg-blue-500', icon: CheckCircle2 },
     { label: 'Preparing', count: stats?.preparingOrders || 0, color: 'bg-purple-500', icon: Utensils },
     { label: 'Ready', count: stats?.readyOrders || 0, color: 'bg-indigo-500', icon: CheckCircle2 },
-    { label: 'Out for Delivery', count: stats?.outForDeliveryOrders || 0, color: 'bg-orange-500', icon: ShoppingBag },
+    { label: 'Out for Delivery', count: stats?.outForDeliveryOrders || 0, color: 'bg-emerald-500', icon: ShoppingBag },
     { label: 'Delivered', count: stats?.deliveredOrders || 0, color: 'bg-green-500', icon: CheckCircle2 },
   ];
 
@@ -136,7 +136,7 @@ export default function DashboardPage() {
     <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'MANAGER']}>
       <div className="space-y-6">
         <div>
-          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
             Welcome back{user?.firstName ? `, ${user.firstName}` : ''}!
           </h2>
           <p className="text-slate-600">
@@ -146,7 +146,7 @@ export default function DashboardPage() {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
           </div>
         ) : error ? (
           <Card className="border-red-100 bg-red-50">
@@ -163,7 +163,7 @@ export default function DashboardPage() {
                 return (
                   <Card
                     key={stat.title}
-                    className="border-orange-100 hover:shadow-lg hover:shadow-orange-500/10 transition-all bg-white/80 backdrop-blur"
+                    className="border-emerald-100 hover:shadow-lg hover:shadow-emerald-500/10 transition-all bg-white/80 backdrop-blur"
                   >
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                       <CardTitle className="text-sm font-medium text-slate-600">
@@ -183,10 +183,10 @@ export default function DashboardPage() {
             </div>
 
             {/* Order Status Overview */}
-            <Card className="border-orange-100 bg-white/80 backdrop-blur">
+            <Card className="border-emerald-100 bg-white/80 backdrop-blur">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <ShoppingBag className="h-5 w-5 text-orange-500" />
+                  <ShoppingBag className="h-5 w-5 text-emerald-500" />
                   Order Status Overview
                 </CardTitle>
                 <CardDescription>
@@ -216,16 +216,16 @@ export default function DashboardPage() {
 
             <div className="grid gap-6 lg:grid-cols-2">
               {/* Recent Orders */}
-              <Card className="border-orange-100 bg-white/80 backdrop-blur">
+              <Card className="border-emerald-100 bg-white/80 backdrop-blur">
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <span className="flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-orange-500" />
+                      <Clock className="h-5 w-5 text-emerald-500" />
                       Recent Orders
                     </span>
                     <a
                       href="/dashboard/orders"
-                      className="text-sm text-orange-500 hover:text-orange-600 flex items-center"
+                      className="text-sm text-emerald-500 hover:text-emerald-600 flex items-center"
                     >
                       View All <ChevronRight className="h-4 w-4" />
                     </a>
@@ -272,10 +272,10 @@ export default function DashboardPage() {
               </Card>
 
               {/* Quick Stats */}
-              <Card className="border-orange-100 bg-white/80 backdrop-blur">
+              <Card className="border-emerald-100 bg-white/80 backdrop-blur">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-orange-500" />
+                    <TrendingUp className="h-5 w-5 text-emerald-500" />
                     Quick Stats
                   </CardTitle>
                   <CardDescription>Your business at a glance</CardDescription>
@@ -284,7 +284,7 @@ export default function DashboardPage() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center">
                           <Utensils className="h-5 w-5 text-white" />
                         </div>
                         <div>

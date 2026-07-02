@@ -30,11 +30,11 @@ export function AddressSelector({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-orange-900">Delivery Address</h2>
+        <h2 className="text-xl font-bold text-emerald-900">Delivery Address</h2>
         <Button
           onClick={onAddAddress}
           size="sm"
-          className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600"
+          className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600"
         >
           <Plus className="h-4 w-4 mr-2" />
           Add New
@@ -47,7 +47,7 @@ export function AddressSelector({
           <p className="text-gray-600 mb-4">No addresses saved yet</p>
           <Button
             onClick={onAddAddress}
-            className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600"
+            className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add Address
@@ -67,8 +67,8 @@ export function AddressSelector({
               <Card
                 className={`p-4 cursor-pointer transition-all border-2 ${
                   selectedAddressId === address.id
-                    ? 'border-orange-500 bg-orange-50'
-                    : 'border-gray-200 hover:border-orange-300'
+                    ? 'border-emerald-500 bg-emerald-50'
+                    : 'border-gray-200 hover:border-emerald-300'
                 }`}
                 onClick={() => onSelectAddress(address.id)}
               >
@@ -78,7 +78,7 @@ export function AddressSelector({
                     <div
                       className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                         selectedAddressId === address.id
-                          ? 'border-orange-500 bg-orange-500'
+                          ? 'border-emerald-500 bg-emerald-500'
                           : 'border-gray-300'
                       }`}
                     >
@@ -91,9 +91,9 @@ export function AddressSelector({
                   {/* Address Details */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-semibold text-orange-900">{address.label}</h3>
+                      <h3 className="font-semibold text-emerald-900">{address.label}</h3>
                       {address.isDefault && (
-                        <Badge variant="secondary" className="bg-orange-100 text-orange-800 text-xs">
+                        <Badge variant="secondary" className="bg-emerald-100 text-emerald-800 text-xs">
                           Default
                         </Badge>
                       )}
@@ -120,10 +120,10 @@ export function AddressSelector({
                       <Button
                         size="icon"
                         variant="ghost"
-                        className="h-8 w-8 hover:bg-orange-100"
+                        className="h-8 w-8 hover:bg-emerald-100"
                         onClick={() => onEditAddress(address)}
                       >
-                        <Edit className="h-4 w-4 text-orange-600" />
+                        <Edit className="h-4 w-4 text-emerald-600" />
                       </Button>
                     )}
                     {onDeleteAddress && !address.isDefault && (

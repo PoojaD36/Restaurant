@@ -34,7 +34,7 @@ import { CustomerBottomNav } from '@/components/customer-bottom-nav';
 const statusColors: Record<OrderStatus, string> = {
   PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   CONFIRMED: 'bg-blue-100 text-blue-800 border-blue-200',
-  PREPARING: 'bg-orange-100 text-orange-800 border-orange-200',
+  PREPARING: 'bg-emerald-100 text-orange-800 border-emerald-200',
   READY: 'bg-purple-100 text-purple-800 border-purple-200',
   OUT_FOR_DELIVERY: 'bg-indigo-100 text-indigo-800 border-indigo-200',
   DELIVERED: 'bg-green-100 text-green-800 border-green-200',
@@ -109,7 +109,7 @@ export default function CustomerOrdersPage() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
       </div>
     );
   }
@@ -122,7 +122,7 @@ export default function CustomerOrdersPage() {
       {/* Main Content */}
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Stats Bar */}
-        <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-xl p-4 mb-6 text-white">
+        <div className="bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl p-4 mb-6 text-white">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm opacity-90">Total Orders</p>
@@ -135,7 +135,7 @@ export default function CustomerOrdersPage() {
         {/* Orders List */}
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
           </div>
         ) : orders.length === 0 ? (
           <Card className="p-12 text-center">
@@ -146,7 +146,7 @@ export default function CustomerOrdersPage() {
             </p>
             <Button
               onClick={() => router.push('/customer')}
-              className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white"
+              className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white"
             >
               Browse Restaurants
             </Button>
@@ -237,7 +237,7 @@ export default function CustomerOrdersPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                            className="text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
                           >
                             View Details
                             <ChevronRight className="h-4 w-4 ml-1" />
