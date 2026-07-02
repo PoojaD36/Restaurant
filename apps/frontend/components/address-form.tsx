@@ -119,8 +119,8 @@ export function AddressForm({ isOpen, onClose, onSuccess, editAddress, token }: 
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-orange-900 flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-orange-600" />
+          <DialogTitle className="text-emerald-900 flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-emerald-600" />
             {editAddress ? 'Edit Address' : 'Add New Address'}
           </DialogTitle>
           <DialogDescription>
@@ -140,8 +140,8 @@ export function AddressForm({ isOpen, onClose, onSuccess, editAddress, token }: 
                   onClick={() => setFormData({ ...formData, label: option })}
                   className={`px-4 py-2 rounded-full border-2 transition-colors ${
                     formData.label === option
-                      ? 'border-orange-500 bg-orange-50 text-orange-900'
-                      : 'border-gray-200 text-gray-700 hover:border-orange-300'
+                      ? 'border-emerald-500 bg-orange-50 text-emerald-900'
+                      : 'border-gray-200 text-gray-700 hover:border-emerald-300'
                   }`}
                 >
                   {option}
@@ -261,7 +261,7 @@ export function AddressForm({ isOpen, onClose, onSuccess, editAddress, token }: 
               id="isDefault"
               checked={formData.isDefault}
               onChange={(e) => setFormData({ ...formData, isDefault: e.target.checked })}
-              className="w-4 h-4 text-orange-600"
+              className="w-4 h-4 text-emerald-600"
             />
             <Label htmlFor="isDefault" className="cursor-pointer">
               Set as default address
@@ -289,7 +289,7 @@ export function AddressForm({ isOpen, onClose, onSuccess, editAddress, token }: 
             <Button
               type="submit"
               disabled={isLoading}
-              className="flex-1 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600"
+              className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600"
             >
               {isLoading ? (
                 <>

@@ -34,11 +34,11 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-orange-50/30 to-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-slate-50 flex items-center justify-center p-4">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-orange-400/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-red-400/10 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-400/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-teal-400/10 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-md relative z-10">
@@ -47,11 +47,11 @@ export default function AdminLoginPage() {
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-orange-600 to-amber-500 rounded-2xl mb-4 shadow-lg shadow-orange-500/30"
+            className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-600 to-teal-500 rounded-2xl mb-4 shadow-lg shadow-emerald-500/30"
           >
             <Utensils className="h-8 w-8 text-white" />
           </motion.div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent mb-2">
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent mb-2">
             FoodHub Admin
           </h1>
           <p className="text-slate-600">
@@ -60,7 +60,7 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Login Card */}
-        <Card className="border-orange-100 shadow-xl bg-white/90 backdrop-blur">
+        <Card className="border-emerald-100 shadow-xl bg-white/90 backdrop-blur">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-semibold">Welcome back</CardTitle>
             <CardDescription>
@@ -73,7 +73,7 @@ export default function AdminLoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-gray-700">Email</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
                   <Input
                     id="email"
                     type="email"
@@ -81,7 +81,7 @@ export default function AdminLoginPage() {
                     onChange={(e) => setIdentifier(e.target.value)}
                     required
                     placeholder="admin@restaurant.com"
-                    className="pl-10 h-11 border-orange-200 focus:border-orange-500 focus:ring-orange-400/20"
+                    className="pl-10 h-11 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-400/20"
                   />
                 </div>
               </div>
@@ -89,7 +89,7 @@ export default function AdminLoginPage() {
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-gray-700">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
                   <Input
                     id="password"
                     type="password"
@@ -97,7 +97,7 @@ export default function AdminLoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     placeholder="••••••••"
-                    className="pl-10 h-11 border-orange-200 focus:border-orange-500 focus:ring-orange-400/20"
+                    className="pl-10 h-11 border-emerald-200 focus:border-emerald-500 focus:ring-emerald-400/20"
                   />
                 </div>
               </div>
@@ -113,7 +113,7 @@ export default function AdminLoginPage() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white shadow-lg shadow-orange-500/20"
+                className="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/20"
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
               </Button>
@@ -121,7 +121,7 @@ export default function AdminLoginPage() {
               <div className="flex items-center justify-center gap-4 text-sm">
                 <Link
                   href="/customer"
-                  className="text-slate-600 hover:text-orange-600 flex items-center gap-1"
+                  className="text-slate-600 hover:text-emerald-600 flex items-center gap-1"
                 >
                   <span>←</span> Customer Portal
                 </Link>

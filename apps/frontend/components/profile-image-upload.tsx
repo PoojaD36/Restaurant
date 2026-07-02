@@ -82,7 +82,7 @@ export function ProfileImageUpload({
         onClick={handleClick}
       >
         {/* Image Container */}
-        <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gradient-to-br from-orange-100 to-amber-100">
+        <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-full overflow-hidden border-4 border-white shadow-lg bg-gradient-to-br from-emerald-100 to-teal-100">
           {previewUrl ? (
             <img
               src={previewUrl}
@@ -91,7 +91,7 @@ export function ProfileImageUpload({
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <User className="h-16 w-16 text-orange-300" />
+              <User className="h-16 w-16 text-emerald-300" />
             </div>
           )}
 
@@ -111,7 +111,7 @@ export function ProfileImageUpload({
         {!disabled && (
           <motion.div
             whileHover={{ scale: 1.1 }}
-            className="absolute bottom-2 right-2 bg-gradient-to-r from-orange-600 to-amber-500 text-white p-2 rounded-full shadow-lg"
+            className="absolute bottom-2 right-2 bg-gradient-to-r from-emerald-600 to-teal-500 text-white p-2 rounded-full shadow-lg"
           >
             <Camera className="h-4 w-4" />
           </motion.div>

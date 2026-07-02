@@ -289,7 +289,7 @@ export default function CheckoutPage() {
         <motion.header
           initial={{ y: -100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="sticky top-0 z-40 border-b border-orange-200/40 bg-white/60 backdrop-blur-xl shadow-sm"
+          className="sticky top-0 z-40 border-b border-emerald-200/40 bg-white/60 backdrop-blur-xl shadow-sm"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center gap-4">
@@ -297,13 +297,13 @@ export default function CheckoutPage() {
                 variant="ghost"
                 size="icon"
                 onClick={() => router.back()}
-                className="hover:bg-orange-100"
+                className="hover:bg-emerald-100"
               >
-                <ArrowLeft className="h-5 w-5 text-orange-600" />
+                <ArrowLeft className="h-5 w-5 text-emerald-600" />
               </Button>
 
               <div className="flex-1">
-                <h1 className="text-lg font-bold text-orange-900">Checkout</h1>
+                <h1 className="text-lg font-bold text-emerald-900">Checkout</h1>
                 <p className="text-sm text-gray-600">Complete your order</p>
               </div>
             </div>
@@ -313,8 +313,8 @@ export default function CheckoutPage() {
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card className="p-8 max-w-md mx-auto text-center">
-            <ShoppingBag className="h-16 w-16 mx-auto text-orange-600 mb-4" />
-            <h2 className="text-xl font-bold text-orange-900 mb-2">Sign In to Continue</h2>
+            <ShoppingBag className="h-16 w-16 mx-auto text-emerald-600 mb-4" />
+            <h2 className="text-xl font-bold text-emerald-900 mb-2">Sign In to Continue</h2>
             <p className="text-gray-600 mb-6">
               Please sign in to your account to place your order
             </p>
@@ -340,12 +340,12 @@ export default function CheckoutPage() {
           <div className="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="h-12 w-12 text-green-600" />
           </div>
-          <h1 className="text-2xl font-bold text-orange-900 mb-2">Order Placed Successfully!</h1>
+          <h1 className="text-2xl font-bold text-emerald-900 mb-2">Order Placed Successfully!</h1>
           <p className="text-gray-600 mb-4">
             Your order ID is <span className="font-semibold">#{orderId}</span>
           </p>
           <p className="text-gray-500">Redirecting to order details...</p>
-          <Loader2 className="h-6 w-6 text-orange-600 animate-spin mx-auto mt-4" />
+          <Loader2 className="h-6 w-6 text-emerald-600 animate-spin mx-auto mt-4" />
         </motion.div>
       </div>
     );
@@ -357,7 +357,7 @@ export default function CheckoutPage() {
       <motion.header
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="sticky top-0 z-40 border-b border-orange-200/40 bg-white/60 backdrop-blur-xl shadow-sm"
+        className="sticky top-0 z-40 border-b border-emerald-200/40 bg-white/60 backdrop-blur-xl shadow-sm"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center gap-4">
@@ -365,13 +365,13 @@ export default function CheckoutPage() {
               variant="ghost"
               size="icon"
               onClick={() => router.back()}
-              className="hover:bg-orange-100"
+              className="hover:bg-emerald-100"
             >
-              <ArrowLeft className="h-5 w-5 text-orange-600" />
+              <ArrowLeft className="h-5 w-5 text-emerald-600" />
             </Button>
 
             <div className="flex-1">
-              <h1 className="text-lg font-bold text-orange-900">Checkout</h1>
+              <h1 className="text-lg font-bold text-emerald-900">Checkout</h1>
               <p className="text-sm text-gray-600">Complete your order</p>
             </div>
           </div>
@@ -397,7 +397,7 @@ export default function CheckoutPage() {
             {/* Address Selection */}
             {isLoadingAddresses ? (
               <Card className="p-8 flex items-center justify-center">
-                <Loader2 className="h-8 w-8 text-orange-600 animate-spin" />
+                <Loader2 className="h-8 w-8 text-emerald-600 animate-spin" />
               </Card>
             ) : (
               <AddressSelector

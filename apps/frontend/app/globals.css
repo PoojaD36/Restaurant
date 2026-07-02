@@ -1,26 +1,48 @@
 @import "tailwindcss";
 
 :root {
-  --background: 0 0% 100%;
-  --foreground: 0 0% 4%;
+  --background: 40 20% 98%;
+  --foreground: 20 10% 10%;
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 4%;
+  --card-foreground: 20 10% 10%;
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 4%;
-  --primary: 0 84% 60%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 25 95% 53%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 45%;
-  --accent: 25 95% 53%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 0 84% 60%;
+  --popover-foreground: 20 10% 10%;
+  --primary: 158 64% 52%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 36 88% 57%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 160 30% 90%;
+  --muted-foreground: 20 15% 35%;
+  --accent: 173 80% 40%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 51%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 158 20% 88%;
+  --input: 158 20% 88%;
+  --ring: 158 64% 52%;
   --radius: 0.5rem;
+}
+
+.dark {
+  --background: 160 60% 8%;
+  --foreground: 40 20% 98%;
+  --card: 160 50% 12%;
+  --card-foreground: 40 20% 98%;
+  --popover: 160 50% 12%;
+  --popover-foreground: 40 20% 98%;
+  --primary: 158 70% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 36 90% 50%;
+  --secondary-foreground: 0 0% 100%;
+  --muted: 160 25% 20%;
+  --muted-foreground: 40 15% 75%;
+  --accent: 173 75% 45%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 80% 55%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 158 30% 25%;
+  --input: 158 30% 25%;
+  --ring: 158 70% 45%;
 }
 
 @theme inline {
@@ -48,12 +70,16 @@
 }
 
 body {
-  background: #fffaf0;
-  background-image: radial-gradient(circle, rgba(249, 115, 22, 0.08) 0.8px, transparent 0.8px);
+  background: #fafaf9;
+  background-image: radial-gradient(circle, rgba(16, 185, 129, 0.06) 0.8px, transparent 0.8px);
   background-size: 20px 20px;
   color: hsl(var(--foreground));
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
   min-height: 100vh;
+}
+
+.dark body {
+  background: #064e3b;
 }
 
 * {

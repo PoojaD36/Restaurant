@@ -60,7 +60,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <NotificationProvider>
       <DeliveryNotificationProvider>
-        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 dark:from-emerald-950 dark:via-teal-950/40 dark:to-green-950">
           {/* Change Password Modal */}
           <ChangePasswordModal
             open={showChangePasswordModal}
@@ -76,22 +76,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
 
           {/* Mobile Header */}
-          <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm border-b border-orange-200 z-50">
+          <header className="md:hidden fixed top-0 left-0 right-0 h-16 bg-white/95 backdrop-blur-sm border-b border-emerald-200 dark:border-emerald-800 z-50">
             <div className="flex items-center justify-between px-4 h-full">
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                  className="text-slate-600 hover:text-orange-600"
+                  className="text-slate-600 hover:text-emerald-600"
                 >
                   {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                 </Button>
                 <Link href="/dashboard" className="flex items-center gap-2">
-                  <div className="bg-gradient-to-br from-red-600 to-orange-500 p-1.5 rounded-lg shadow-md">
+                  <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-1.5 rounded-lg shadow-md">
                     <Utensils className="h-4 w-4 text-white" />
                   </div>
-                  <span className="font-semibold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+                  <span className="font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
                     Restaurant Admin
                   </span>
                 </Link>
@@ -128,8 +128,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         variant={isActive ? 'default' : 'ghost'}
                     className={`w-full justify-start ${
                       isActive
-                        ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white'
-                        : 'text-slate-600 hover:text-orange-600 hover:bg-orange-50'
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white'
+                        : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                     }`}
                   >
                     <Icon className="h-5 w-5 mr-3" />
@@ -138,20 +138,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Link>
               );
             })}
-            <div className="border-t border-orange-200 pt-4 mt-4 space-y-2">
+            <div className="border-t border-emerald-200 dark:border-emerald-800 pt-4 mt-4 space-y-2">
               <Button
                 onClick={() => {
                   setShowChangePasswordModal(true);
                   setMobileMenuOpen(false);
                 }}
                 variant="ghost"
-                className="w-full justify-start text-slate-600 hover:text-orange-600 hover:bg-orange-50"
+                className="w-full justify-start text-slate-600 hover:text-emerald-600 hover:bg-emerald-50"
               >
                 <Key className="h-5 w-5 mr-3" />
                 Change Password
               </Button>
             </div>
-            <div className="border-t border-orange-200 pt-4 mt-4">
+            <div className="border-t border-emerald-200 dark:border-emerald-800 pt-4 mt-4">
               <div className="px-3 py-2 text-sm text-slate-600">
                 <p className="font-medium">{user?.firstName || user?.email}</p>
                 <p className="text-xs text-slate-500">{user?.role}</p>
@@ -163,25 +163,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Sidebar - Desktop */}
       <aside
-        className={`hidden md:flex fixed left-0 top-0 bottom-0 flex-col bg-white/95 backdrop-blur-sm border-r border-orange-200 transition-all duration-300 z-50 ${
+        className={`hidden md:flex fixed left-0 top-0 bottom-0 flex-col bg-white/95 backdrop-blur-sm border-r border-emerald-200 dark:border-emerald-800 transition-all duration-300 z-50 ${
           sidebarCollapsed ? 'w-16' : 'w-64'
         }`}
       >
         {/* Logo */}
-        <div className="h-16 flex items-center justify-between px-4 border-b border-orange-200">
+        <div className="h-16 flex items-center justify-between px-4 border-b border-emerald-200 dark:border-emerald-800">
           {!sidebarCollapsed && (
             <Link href="/dashboard" className="flex items-center gap-2">
-              <div className="bg-gradient-to-br from-red-600 to-orange-500 p-1.5 rounded-lg shadow-md">
+              <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-1.5 rounded-lg shadow-md">
                 <Utensils className="h-4 w-4 text-white" />
               </div>
-              <span className="font-semibold bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+              <span className="font-semibold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
                 Restaurant Admin
               </span>
             </Link>
           )}
           {sidebarCollapsed && (
             <div className="mx-auto">
-              <div className="bg-gradient-to-br from-red-600 to-orange-500 p-1.5 rounded-lg shadow-md">
+              <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-1.5 rounded-lg shadow-md">
                 <Utensils className="h-4 w-4 text-white" />
               </div>
             </div>
@@ -190,7 +190,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             variant="ghost"
             size="icon"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="text-slate-500 hover:text-orange-600 hover:bg-orange-50 hidden md:flex"
+            className="text-slate-500 hover:text-emerald-600 hover:bg-emerald-50 hidden md:flex"
           >
             {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
@@ -209,8 +209,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     sidebarCollapsed ? 'px-3' : 'px-4'
                   } ${
                     isActive
-                      ? 'bg-gradient-to-r from-red-600 to-orange-500 text-white hover:from-red-700 hover:to-orange-600'
-                      : 'text-slate-600 hover:text-orange-600 hover:bg-orange-50'
+                      ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white hover:from-red-700 hover:to-orange-600'
+                      : 'text-slate-600 hover:text-emerald-600 hover:bg-emerald-50'
                   }`}
                 >
                   <Icon className="h-5 w-5" />
@@ -222,11 +222,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* User Info & Actions */}
-        <div className="border-t border-orange-200 p-2 space-y-1">
+        <div className="border-t border-emerald-200 dark:border-emerald-800 p-2 space-y-1">
           {/* Notification Bell - Desktop */}
           {!sidebarCollapsed && (
             <div className="px-4 py-2">
-              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-orange-50 cursor-pointer transition-colors">
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-emerald-50 cursor-pointer transition-colors">
                 {user?.role === 'DELIVERY_AGENT' ? <DeliveryNotificationBell /> : <NotificationBell />}
                 <span className="text-sm font-medium text-slate-700">Notifications</span>
               </div>
@@ -241,7 +241,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <Button
             onClick={() => setShowChangePasswordModal(true)}
             variant="ghost"
-            className={`w-full justify-start text-slate-600 hover:text-orange-600 hover:bg-orange-50 ${
+            className={`w-full justify-start text-slate-600 hover:text-emerald-600 hover:bg-emerald-50 ${
               sidebarCollapsed ? 'px-3' : 'px-4'
             }`}
           >
@@ -250,7 +250,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Button>
 
           {!sidebarCollapsed && (
-            <div className="px-4 py-3 rounded-lg bg-orange-50/50">
+            <div className="px-4 py-3 rounded-lg bg-emerald-50/50">
               <p className="text-sm font-medium text-slate-700 truncate">
                 {user?.firstName || user?.email}
               </p>

@@ -107,21 +107,21 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[480px] rounded-2xl bg-gradient-to-b from-orange-50 to-white border-orange-200/50 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[480px] rounded-2xl bg-gradient-to-b from-emerald-50 to-white border-emerald-200/50 max-h-[90vh] overflow-y-auto">
         {/* Logo/Header */}
         <div className="flex justify-center mb-4">
           <motion.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', duration: 0.5 }}
-            className="bg-gradient-to-br from-orange-600 to-amber-500 p-3 rounded-2xl shadow-lg shadow-orange-500/30"
+            className="bg-gradient-to-br from-emerald-600 to-teal-500 p-3 rounded-2xl shadow-lg shadow-emerald-500/30"
           >
             <Utensils className="h-6 w-6 text-white" />
           </motion.div>
         </div>
 
         <DialogHeader className="text-center mb-2">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
             {mode === 'login' ? 'Welcome Back!' : 'Join Us Today!'}
           </DialogTitle>
           <DialogDescription className="text-base text-gray-600">
@@ -145,12 +145,12 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
               <div className="space-y-2">
                 <Label htmlFor="login-identifier" className="text-gray-700">Email or Phone</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-500" />
                   <Input
                     id="login-identifier"
                     type="text"
                     placeholder="Enter email or phone"
-                    className="pl-10 h-11 border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                    className="pl-10 h-11 border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                     value={loginData.identifier}
                     onChange={(e) => setLoginData({ ...loginData, identifier: e.target.value })}
                     required
@@ -161,12 +161,12 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
               <div className="space-y-2">
                 <Label htmlFor="login-password" className="text-gray-700">Password</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-orange-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-emerald-500" />
                   <Input
                     id="login-password"
                     type="password"
                     placeholder="Enter password"
-                    className="pl-10 h-11 border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                    className="pl-10 h-11 border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                     value={loginData.password}
                     onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                     required
@@ -186,7 +186,7 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-medium shadow-lg shadow-orange-500/20"
+                className="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium shadow-lg shadow-emerald-500/20"
                 disabled={isLoading}
               >
                 {isLoading ? 'Signing in...' : 'Sign In'}
@@ -197,7 +197,7 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
                 <button
                   type="button"
                   onClick={switchMode}
-                  className="text-orange-600 font-semibold hover:underline"
+                  className="text-emerald-600 font-semibold hover:underline"
                 >
                   Register
                 </button>
@@ -217,12 +217,12 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
                 <div className="space-y-2">
                   <Label htmlFor="register-firstname" className="text-gray-700">First Name *</Label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
                     <Input
                       id="register-firstname"
                       type="text"
                       placeholder="John"
-                      className="pl-9 h-11 border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                      className="pl-9 h-11 border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                       value={registerData.firstName}
                       onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
                     />
@@ -238,7 +238,7 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
                     id="register-lastname"
                     type="text"
                     placeholder="Doe"
-                    className="h-11 border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                    className="h-11 border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                     value={registerData.lastName || ''}
                     onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
                   />
@@ -248,12 +248,12 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
               <div className="space-y-2">
                 <Label htmlFor="register-phone" className="text-gray-700">Phone Number *</Label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
                   <Input
                     id="register-phone"
                     type="tel"
                     placeholder="1234567890"
-                    className="pl-9 h-11 border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                    className="pl-9 h-11 border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                     value={registerData.phone}
                     onChange={(e) => setRegisterData({ ...registerData, phone: e.target.value })}
                   />
@@ -266,12 +266,12 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
               <div className="space-y-2">
                 <Label htmlFor="register-email" className="text-gray-700">Email (Optional)</Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
                   <Input
                     id="register-email"
                     type="email"
                     placeholder="john@example.com"
-                    className="pl-9 h-11 border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                    className="pl-9 h-11 border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                     value={registerData.email || ''}
                     onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                   />
@@ -284,12 +284,12 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
               <div className="space-y-2">
                 <Label htmlFor="register-password" className="text-gray-700">Password *</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-orange-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-emerald-500" />
                   <Input
                     id="register-password"
                     type="password"
                     placeholder="Min. 8 characters"
-                    className="pl-9 h-11 border-orange-200 focus:border-orange-400 focus:ring-orange-400/20"
+                    className="pl-9 h-11 border-emerald-200 focus:border-emerald-400 focus:ring-emerald-400/20"
                     value={registerData.password}
                     onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                   />
@@ -311,7 +311,7 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
 
               <Button
                 type="submit"
-                className="w-full h-11 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700 text-white font-medium shadow-lg shadow-orange-500/20"
+                className="w-full h-11 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium shadow-lg shadow-emerald-500/20"
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating account...' : 'Create Account'}
@@ -322,7 +322,7 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
                 <button
                   type="button"
                   onClick={switchMode}
-                  className="text-orange-600 font-semibold hover:underline"
+                  className="text-emerald-600 font-semibold hover:underline"
                 >
                   Sign In
                 </button>
@@ -331,7 +331,7 @@ export function CustomerAuthSheet({ isOpen, onClose, defaultMode = 'login' }: Cu
           )}
         </AnimatePresence>
 
-        <div className="mt-6 pt-4 border-t border-orange-200/60">
+        <div className="mt-6 pt-4 border-t border-emerald-200/60">
           <p className="text-xs text-center text-gray-500">
             By continuing, you agree to our Terms of Service and Privacy Policy
           </p>

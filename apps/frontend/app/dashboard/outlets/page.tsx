@@ -141,7 +141,7 @@ export default function OutletsListPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
               {user?.role === 'RESTAURANT_ADMIN' ? 'My Outlets' : 'Manage Outlets'}
             </h2>
             <p className="text-slate-600">
@@ -153,7 +153,7 @@ export default function OutletsListPage() {
           {canCreate && (
             <Button
               onClick={() => setShowCreateModal(true)}
-              className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg shadow-red-500/30"
+              className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-red-700 hover:to-orange-600 text-white shadow-lg shadow-emerald-500/30"
             >
               <MapPin className="h-4 w-4 mr-2" />
               Create Outlet
@@ -161,11 +161,11 @@ export default function OutletsListPage() {
           )}
         </div>
 
-        <Card className="border-orange-100 shadow-xl bg-white/90 backdrop-blur">
+        <Card className="border-emerald-100 shadow-xl bg-white/90 backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-orange-500" />
+                <MapPin className="h-5 w-5 text-emerald-500" />
                 {user?.role === 'RESTAURANT_ADMIN' ? 'My Outlets' : 'All Outlets'}
               </div>
               {user?.role === 'SUPER_ADMIN' && restaurants.length > 0 && (
@@ -192,7 +192,7 @@ export default function OutletsListPage() {
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
               </div>
             ) : error ? (
               <div className="rounded-md bg-red-50 p-4 border border-red-200">
@@ -206,7 +206,7 @@ export default function OutletsListPage() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-orange-100">
+                    <TableRow className="border-emerald-100">
                       <TableHead className="font-semibold">Name</TableHead>
                       <TableHead className="font-semibold">Restaurant</TableHead>
                       <TableHead className="font-semibold">Location</TableHead>
@@ -218,7 +218,7 @@ export default function OutletsListPage() {
                   </TableHeader>
                   <TableBody>
                     {outlets.map((outlet) => (
-                      <TableRow key={outlet.id} className="border-orange-50">
+                      <TableRow key={outlet.id} className="border-emerald-50">
                         <TableCell className="font-medium">{outlet.name}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1 text-slate-600">
@@ -268,7 +268,7 @@ export default function OutletsListPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => handleOpenEditModal(outlet)}
-                                className="text-slate-600 hover:text-amber-600 hover:bg-amber-50"
+                                className="text-slate-600 hover:text-teal-600 hover:bg-teal-50"
                                 title="Edit Outlet"
                               >
                                 <Pencil className="h-4 w-4" />
@@ -305,7 +305,7 @@ export default function OutletsListPage() {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white/90 backdrop-blur p-4 rounded-lg border border-orange-100 shadow-lg">
+          <div className="flex items-center justify-between bg-white/90 backdrop-blur p-4 rounded-lg border border-emerald-100 shadow-lg">
             <div className="text-sm text-slate-600">
               Page {currentPage} of {totalPages} ({totalOutlets} total outlets)
             </div>
@@ -315,7 +315,7 @@ export default function OutletsListPage() {
                 size="sm"
                 onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
-                className="border-orange-200 text-slate-700 hover:bg-orange-50"
+                className="border-emerald-200 text-slate-700 hover:bg-emerald-50"
               >
                 Previous
               </Button>
@@ -324,7 +324,7 @@ export default function OutletsListPage() {
                 size="sm"
                 onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
-                className="border-orange-200 text-slate-700 hover:bg-orange-50"
+                className="border-emerald-200 text-slate-700 hover:bg-emerald-50"
               >
                 Next
               </Button>

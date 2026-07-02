@@ -69,7 +69,7 @@ export function ImageUploadComponent({ onImageUploaded, currentImage, onRemove }
         {/* Image preview or upload area */}
         <div className="flex items-start gap-4">
           {preview ? (
-            <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-orange-200 bg-white">
+            <div className="relative w-32 h-32 rounded-lg overflow-hidden border-2 border-emerald-200 bg-white">
               <img src={preview} alt="Preview" className="w-full h-full object-cover" />
               <button
                 type="button"
@@ -81,12 +81,12 @@ export function ImageUploadComponent({ onImageUploaded, currentImage, onRemove }
               </button>
             </div>
           ) : (
-            <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-orange-300 rounded-lg cursor-pointer hover:border-orange-500 transition-colors bg-white">
+            <label className="w-32 h-32 flex flex-col items-center justify-center border-2 border-dashed border-emerald-300 rounded-lg cursor-pointer hover:border-emerald-500 transition-colors bg-white">
               {isUploading ? (
-                <Loader2 className="h-8 w-8 text-orange-500 animate-spin" />
+                <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
               ) : (
                 <>
-                  <UploadCloud className="h-8 w-8 text-orange-400" />
+                  <UploadCloud className="h-8 w-8 text-emerald-400" />
                   <span className="text-xs text-slate-500 mt-1">Upload</span>
                 </>
               )}
@@ -105,15 +105,15 @@ export function ImageUploadComponent({ onImageUploaded, currentImage, onRemove }
             <button
               type="button"
               onClick={() => setShowMediaGallery(true)}
-              className="flex items-center gap-2 px-3 py-2 bg-white border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors text-sm"
+              className="flex items-center gap-2 px-3 py-2 bg-white border border-emerald-300 rounded-lg hover:bg-emerald-50 transition-colors text-sm"
               disabled={isUploading}
             >
-              <Images className="h-4 w-4 text-orange-500" />
+              <Images className="h-4 w-4 text-emerald-500" />
               Browse Media
             </button>
             {!preview && (
-              <label className="flex items-center gap-2 px-3 py-2 bg-white border border-orange-300 rounded-lg hover:bg-orange-50 transition-colors text-sm cursor-pointer">
-                <UploadCloud className="h-4 w-4 text-orange-500" />
+              <label className="flex items-center gap-2 px-3 py-2 bg-white border border-emerald-300 rounded-lg hover:bg-emerald-50 transition-colors text-sm cursor-pointer">
+                <UploadCloud className="h-4 w-4 text-emerald-500" />
                 Upload New
                 <input
                   type="file"

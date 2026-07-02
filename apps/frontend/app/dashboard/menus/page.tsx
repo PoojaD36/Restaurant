@@ -244,23 +244,23 @@ export default function MenusPage() {
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
               Manage Menus
             </h2>
             <p className="text-slate-600">Create and manage restaurant menus with categories and items.</p>
           </div>
           {canCreate && (
-            <Button onClick={() => setShowCreateModal(true)} className="bg-gradient-to-r from-red-600 to-orange-500">
+            <Button onClick={() => setShowCreateModal(true)} className="bg-gradient-to-r from-emerald-600 to-teal-500">
               <Plus className="h-4 w-4 mr-2" />
               Create Menu
             </Button>
           )}
         </div>
 
-        <Card className="border-orange-100 shadow-xl bg-white/90 backdrop-blur">
+        <Card className="border-emerald-100 shadow-xl bg-white/90 backdrop-blur">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <UtensilsCrossed className="h-5 w-5 text-orange-500" />
+              <UtensilsCrossed className="h-5 w-5 text-emerald-500" />
               All Menus
             </CardTitle>
             <CardDescription>Total menus: {totalItems}</CardDescription>
@@ -269,7 +269,7 @@ export default function MenusPage() {
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+                <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
               </div>
             ) : error ? (
               <div className="rounded-md bg-red-50 p-4 border border-red-200">
@@ -282,13 +282,13 @@ export default function MenusPage() {
             ) : (
               <div className="space-y-4">
                 {menus.map((menu) => (
-                  <div key={menu.id} className="border border-orange-100 rounded-lg overflow-hidden bg-white">
+                  <div key={menu.id} className="border border-emerald-100 rounded-lg overflow-hidden bg-white">
                     <div
-                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-orange-50 transition-colors"
+                      className="flex items-center justify-between p-4 cursor-pointer hover:bg-emerald-50 transition-colors"
                       onClick={() => toggleMenuExpansion(menu.id)}
                     >
                       <div className="flex items-center gap-4">
-                        <div className="bg-gradient-to-br from-red-600 to-orange-500 p-2 rounded-lg">
+                        <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-2 rounded-lg">
                           <UtensilsCrossed className="h-4 w-4 text-white" />
                         </div>
                         <div>
@@ -339,14 +339,14 @@ export default function MenusPage() {
                     </div>
 
                     {expandedMenus.has(menu.id) && selectedMenuDetail && (
-                      <div className="border-t border-orange-100 p-4 bg-orange-50/50">
+                      <div className="border-t border-emerald-100 p-4 bg-emerald-50/50">
                         {selectedMenuDetail.categories && selectedMenuDetail.categories.length > 0 ? (
                           <div className="space-y-4">
                             {selectedMenuDetail.categories.map((category: MenuCategory) => (
-                              <div key={category.id} className="bg-white rounded-lg p-4 border border-orange-100">
+                              <div key={category.id} className="bg-white rounded-lg p-4 border border-emerald-100">
                                 <div className="flex items-center justify-between mb-3">
                                   <div className="flex items-center gap-2">
-                                    <List className="h-4 w-4 text-orange-500" />
+                                    <List className="h-4 w-4 text-emerald-500" />
                                     <h4 className="font-semibold">{category.name}</h4>
                                     <Badge variant="outline">{category.items?.length || 0} items</Badge>
                                   </div>
@@ -395,7 +395,7 @@ export default function MenusPage() {
                                             </div>
                                           </div>
                                           {item.modifiers && item.modifiers.length > 0 && (
-                                            <p className="text-xs text-orange-500">{item.modifiers.length} modifier{item.modifiers.length > 1 ? 's' : ''}</p>
+                                            <p className="text-xs text-emerald-500">{item.modifiers.length} modifier{item.modifiers.length > 1 ? 's' : ''}</p>
                                           )}
                                         </div>
                                         <div className="flex flex-col gap-1">
@@ -454,7 +454,7 @@ export default function MenusPage() {
         </Card>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between bg-white/90 backdrop-blur p-4 rounded-lg border border-orange-100 shadow-lg">
+          <div className="flex items-center justify-between bg-white/90 backdrop-blur p-4 rounded-lg border border-emerald-100 shadow-lg">
             <div className="text-sm text-slate-600">
               Page {currentPage} of {totalPages} ({totalItems} total menus)
             </div>

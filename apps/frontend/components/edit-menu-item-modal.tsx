@@ -106,7 +106,7 @@ export function EditMenuItemModal({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <Beef className="h-5 w-5 text-orange-500" />
+            <Beef className="h-5 w-5 text-emerald-500" />
             Edit Menu Item
           </DialogTitle>
           <DialogDescription>
@@ -123,7 +123,7 @@ export function EditMenuItemModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="name">Item Name <span className="text-red-500">*</span></Label>
+              <Label htmlFor="name">Item Name <span className="text-emerald-500">*</span></Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -135,7 +135,7 @@ export function EditMenuItemModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Price ($) <span className="text-red-500">*</span></Label>
+              <Label htmlFor="price">Price ($) <span className="text-emerald-500">*</span></Label>
               <Input
                 id="price"
                 type="number"
@@ -156,7 +156,7 @@ export function EditMenuItemModal({
                 value={formData.status}
                 onChange={(e) => setFormData({ ...formData, status: e.target.value as 'AVAILABLE' | 'UNAVAILABLE' })}
                 disabled={isSubmitting}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <option value="AVAILABLE">Available</option>
                 <option value="UNAVAILABLE">Unavailable</option>
@@ -217,7 +217,7 @@ export function EditMenuItemModal({
                 checked={formData.isVegetarian}
                 onChange={(e) => setFormData({ ...formData, isVegetarian: e.target.checked })}
                 disabled={isSubmitting}
-                className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                className="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
               />
               <span className="text-sm">Vegetarian 🥬</span>
             </label>
@@ -228,7 +228,7 @@ export function EditMenuItemModal({
                 checked={formData.isSpicy}
                 onChange={(e) => setFormData({ ...formData, isSpicy: e.target.checked })}
                 disabled={isSubmitting}
-                className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                className="rounded border-gray-300 text-emerald-500 focus:ring-emerald-500"
               />
               <span className="text-sm">Spicy 🌶️</span>
             </label>
@@ -238,7 +238,7 @@ export function EditMenuItemModal({
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-red-600 to-orange-500">
+            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-emerald-600 to-teal-500">
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />

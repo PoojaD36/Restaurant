@@ -177,7 +177,7 @@ export function EditOutletModal({
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-orange-500" />
+            <MapPin className="h-5 w-5 text-emerald-500" />
             Edit Outlet
           </DialogTitle>
           <DialogDescription>
@@ -187,7 +187,7 @@ export function EditOutletModal({
 
         {isLoadingOutlet ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+            <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
@@ -216,7 +216,7 @@ export function EditOutletModal({
 
             <div className="space-y-2">
               <Label htmlFor="name">
-                Outlet Name <span className="text-red-500">*</span>
+                Outlet Name <span className="text-emerald-500">*</span>
               </Label>
               <Input
                 id="name"
@@ -254,7 +254,7 @@ export function EditOutletModal({
 
             <div className="space-y-2">
               <Label htmlFor="addressLine1">
-                Address Line 1 <span className="text-red-500">*</span>
+                Address Line 1 <span className="text-emerald-500">*</span>
               </Label>
               <Input
                 id="addressLine1"
@@ -280,7 +280,7 @@ export function EditOutletModal({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="city">
-                  City <span className="text-red-500">*</span>
+                  City <span className="text-emerald-500">*</span>
                 </Label>
                 <Input
                   id="city"
@@ -293,7 +293,7 @@ export function EditOutletModal({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="state">
-                  State <span className="text-red-500">*</span>
+                  State <span className="text-emerald-500">*</span>
                 </Label>
                 <Input
                   id="state"
@@ -309,7 +309,7 @@ export function EditOutletModal({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="country">
-                  Country <span className="text-red-500">*</span>
+                  Country <span className="text-emerald-500">*</span>
                 </Label>
                 <Input
                   id="country"
@@ -322,7 +322,7 @@ export function EditOutletModal({
               </div>
               <div className="space-y-2">
                 <Label htmlFor="postalCode">
-                  Postal Code <span className="text-red-500">*</span>
+                  Postal Code <span className="text-emerald-500">*</span>
                 </Label>
                 <Input
                   id="postalCode"
@@ -395,7 +395,7 @@ export function EditOutletModal({
               <Button
                 type="submit"
                 disabled={isSubmitting}
-                className="bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600"
+                className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600"
               >
                 {isSubmitting ? (
                   <>

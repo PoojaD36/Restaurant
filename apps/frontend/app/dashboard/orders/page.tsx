@@ -66,7 +66,7 @@ const getPaymentConfig = (payment: { method: string; status: string } | undefine
   if (payment.method === 'CASH') {
     return {
       label: 'Cash on Delivery',
-      color: 'bg-orange-100 text-orange-800 border-orange-300',
+      color: 'bg-emerald-100 text-orange-800 border-emerald-300',
       icon: <DollarSign className="h-3 w-3" />,
     };
   }
@@ -258,7 +258,7 @@ export default function OrdersManagementPage() {
   if (isLoading && outlets.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 text-orange-600 animate-spin" />
+        <Loader2 className="h-8 w-8 text-emerald-600 animate-spin" />
       </div>
     );
   }
@@ -340,7 +340,7 @@ export default function OrdersManagementPage() {
       {/* Orders List */}
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-8 w-8 text-orange-600 animate-spin" />
+          <Loader2 className="h-8 w-8 text-emerald-600 animate-spin" />
         </div>
       ) : filteredOrders.length === 0 ? (
         <Card className="p-12 text-center">
@@ -374,7 +374,7 @@ export default function OrdersManagementPage() {
                           <span className="ml-1">{statusInfo.label}</span>
                         </Badge>
                         {order.chef && order.status === OrderStatus.PREPARING && (
-                          <Badge className="bg-orange-100 text-orange-800 border-orange-300">
+                          <Badge className="bg-emerald-100 text-orange-800 border-emerald-300">
                             <User className="h-3 w-3" />
                             <span className="ml-1">{order.chef.name}</span>
                           </Badge>
@@ -441,7 +441,7 @@ export default function OrdersManagementPage() {
                           </Select>
                         ) : (
                           order.status === OrderStatus.READY && !order.deliveryAgent ? (
-                            <div className="w-40 text-sm text-orange-600 font-medium bg-orange-50 px-3 py-2 rounded border border-orange-200">
+                            <div className="w-40 text-sm text-emerald-600 font-medium bg-emerald-50 px-3 py-2 rounded border border-emerald-200">
                               Assign Agent First
                             </div>
                           ) : null
@@ -531,7 +531,7 @@ export default function OrdersManagementPage() {
                                 {(order.status === OrderStatus.READY || order.status === OrderStatus.OUT_FOR_DELIVERY) && (
                                   <>
                                     {order.status === OrderStatus.READY && (
-                                      <div className="bg-orange-50 border border-orange-200 p-3 rounded-lg mb-3">
+                                      <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-lg mb-3">
                                         <p className="text-sm font-medium text-orange-800 flex items-center gap-2">
                                           <Truck className="h-4 w-4" />
                                           Required: Assign a delivery agent to mark this order as "Out for Delivery"
@@ -565,7 +565,7 @@ export default function OrdersManagementPage() {
                                         </SelectContent>
                                       </Select>
                                       {isAssigningAgent === order.id && (
-                                        <Loader2 className="h-5 w-5 animate-spin text-orange-600" />
+                                        <Loader2 className="h-5 w-5 animate-spin text-emerald-600" />
                                       )}
                                     </div>
                                   </>

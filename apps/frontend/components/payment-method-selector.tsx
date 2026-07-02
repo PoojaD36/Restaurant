@@ -22,14 +22,14 @@ export function PaymentMethodSelector({
           onClick={() => onMethodChange('online')}
           className={`w-full flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
             selectedMethod === 'online'
-              ? 'border-orange-500 bg-orange-50'
-              : 'border-gray-200 bg-white hover:border-orange-300'
+              ? 'border-emerald-500 bg-emerald-50'
+              : 'border-gray-200 bg-white hover:border-emerald-300'
           }`}
         >
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center ${
               selectedMethod === 'online'
-                ? 'bg-orange-500 text-white'
+                ? 'bg-emerald-500 text-white'
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
@@ -42,7 +42,7 @@ export function PaymentMethodSelector({
             </div>
           </div>
           {selectedMethod === 'online' && (
-            <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
               <svg
                 className="w-4 h-4 text-white"
                 fill="none"
@@ -64,14 +64,14 @@ export function PaymentMethodSelector({
           onClick={() => onMethodChange('cod')}
           className={`w-full flex items-center gap-4 p-4 rounded-lg border-2 transition-all ${
             selectedMethod === 'cod'
-              ? 'border-orange-500 bg-orange-50'
-              : 'border-gray-200 bg-white hover:border-orange-300'
+              ? 'border-emerald-500 bg-emerald-50'
+              : 'border-gray-200 bg-white hover:border-emerald-300'
           }`}
         >
           <div
             className={`w-12 h-12 rounded-full flex items-center justify-center ${
               selectedMethod === 'cod'
-                ? 'bg-orange-500 text-white'
+                ? 'bg-emerald-500 text-white'
                 : 'bg-gray-100 text-gray-600'
             }`}
           >
@@ -82,7 +82,7 @@ export function PaymentMethodSelector({
             <div className="text-sm text-gray-500">Pay cash at delivery</div>
           </div>
           {selectedMethod === 'cod' && (
-            <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center">
+            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center">
               <svg
                 className="w-4 h-4 text-white"
                 fill="none"

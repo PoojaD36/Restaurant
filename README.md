@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-07-01 (Mobile Navigation Enhancement - Customer Bottom Nav & Responsive Header)
+> **Last Updated:** 2026-07-02 (Emerald Fresh Color Theme - Complete Implementation)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -237,7 +237,7 @@ d:\restaurant/
 | Location Context | ✅ Complete | Customer location state management with useLocation hook |
 | Protected Routes | ✅ Complete | ProtectedRoute component with role check and multiple role support |
 | UI Components | ✅ Complete | shadcn/ui components installed (Button, Card, Input, Sheet, Dialog, Badge, etc.) |
-| Theme System | ✅ Complete | Orange/Amber theme (light mode only) |
+| Theme System | ✅ Complete (In Progress) | Emerald Fresh theme with global CSS variables (light + dark mode support) |
 | Address Selector | ✅ Complete | Component for selecting/managing delivery addresses |
 | Address Form | ✅ Complete | Modal for adding/editing customer addresses |
 | Order Summary | ✅ Complete | Component displaying cart items, subtotal, delivery fee, total |
@@ -329,10 +329,19 @@ Each restaurant card features:
 - **Interactive Chips**: Hover effects with orange accent color
 
 ### Theme System
-- **Color Palette**: Orange/amber primary colors, white/gray background
-- **Consistent Branding**: FoodHub logo and gradient accents
-- **Professional Typography**: Clear hierarchy with appropriate sizing
-- **Responsive Spacing**: Adaptive padding for mobile/tablet/desktop
+- **Color Palette**: Emerald Fresh - A fresh, organic palette conveying quality and freshness
+  - **Primary:** Emerald Green (#10b981 / hsl(158, 64%, 52%))
+  - **Secondary:** Warm Amber (#f59e0b / hsl(36, 88%, 57%))
+  - **Accent:** Teal (#14b8a6 / hsl(173, 80%, 40%))
+  - **Light Background:** Cream (#fafaf9 / hsl(40, 20%, 98%))
+  - **Dark Background:** Deep Forest (#064e3b / hsl(160, 60%, 8%))
+- **Global CSS Variables:** All colors defined in [`app/globals.css`](apps/frontend/app/globals.css) with HSL format
+- **Dynamic Theming:** Change `globals.css` HSL values → entire app updates automatically
+- **Light & Dark Mode:** Full dark mode support with deep forest background
+- **Tailwind Integration:** Uses Tailwind CSS v4 with `@theme inline` for color mapping
+- **Shadcn/ui Components:** All UI components use CSS variables (auto-update with theme changes)
+- **Professional Typography:** Clear hierarchy with appropriate sizing
+- **Responsive Spacing:** Adaptive padding for mobile/tablet/desktop
 
 ### Location Features
 - **GPS Detection**: "Detect current location" button in header
@@ -1378,6 +1387,31 @@ npx shadcn@latest add dialog -y
   - Profile image now centered horizontally on mobile (< 640px) as per design
   - Desktop layout (≥ 640px) remains unchanged with side-by-side alignment
   - Verified shadcn/ui components are used consistently across the project
+- ✅ **Emerald Fresh Color Theme - Complete Implementation** - Full Emerald Fresh palette applied across entire app - 2026-07-02
+  - **Global CSS Variables** ([`app/globals.css`](apps/frontend/app/globals.css)):
+    - Primary: Emerald (#10b981) - Was red-orange (#e73c2e)
+    - Secondary: Warm Amber (#f59e0b) - Kept same
+    - Accent: Teal (#14b8a6) - Was amber
+    - Light Background: Cream (#fafaf9) - Was warm cream (#fffaf0)
+    - Dark Background: Deep Forest (#064e3b) - New dark mode support
+  - **Updated Components** (All modals, forms, and UI components):
+    - Modals: [`create-user-modal.tsx`](apps/frontend/components/create-user-modal.tsx), [`create-restaurant-modal.tsx`](apps/frontend/components/create-restaurant-modal.tsx), [`create-outlet-modal.tsx`](apps/frontend/components/create-outlet-modal.tsx), [`create-category-modal.tsx`](apps/frontend/components/create-category-modal.tsx), [`create-menu-item-modal.tsx`](apps/frontend/components/create-menu-item-modal.tsx), [`create-menu-modal.tsx`](apps/frontend/components/create-menu-modal.tsx), [`edit-restaurant-modal.tsx`](apps/frontend/components/edit-restaurant-modal.tsx), [`edit-outlet-modal.tsx`](apps/frontend/components/edit-outlet-modal.tsx), [`edit-menu-modal.tsx`](apps/frontend/components/edit-menu-modal.tsx), [`edit-category-modal.tsx`](apps/frontend/components/edit-category-modal.tsx), [`edit-menu-item-modal.tsx`](apps/frontend/components/edit-menu-item-modal.tsx), [`profile-form-modal.tsx`](apps/frontend/components/profile-form-modal.tsx), [`address-form.tsx`](apps/frontend/components/address-form.tsx), [`address-selector.tsx`](apps/frontend/components/address-selector.tsx), [`order-summary.tsx`](apps/frontend/components/order-summary.tsx), [`customer-auth-sheet.tsx`](apps/frontend/components/customer-auth-sheet.tsx), [`add-restaurant-user-modal.tsx`](apps/frontend/components/add-restaurant-user-modal.tsx), [`add-outlet-user-modal.tsx`](apps/frontend/components/add-outlet-user-modal.tsx), [`collect-payment-modal.tsx`](apps/frontend/components/collect-payment-modal.tsx), [`payment-method-selector.tsx`](apps/frontend/components/payment-method-selector.tsx), [`modifier-management.tsx`](apps/frontend/components/modifier-management.tsx)
+    - Image/Profile: [`image-upload-component.tsx`](apps/frontend/components/image-upload-component.tsx), [`profile-image-upload.tsx`](apps/frontend/components/profile-image-upload.tsx), [`media-gallery-modal.tsx`](apps/frontend/components/media-gallery-modal.tsx)
+    - Other: [`edit-user-modal.tsx`](apps/frontend/components/edit-user-modal.tsx), [`change-password-modal.tsx`](apps/frontend/components/change-password-modal.tsx)
+  - **Updated Pages** (All dashboard and customer pages):
+    - Dashboard: [`chef/page.tsx`](apps/frontend/app/dashboard/chef/page.tsx), [`create-user/page.tsx`](apps/frontend/app/dashboard/create-user/page.tsx), [`delivery/page.tsx`](apps/frontend/app/dashboard/delivery/page.tsx), [`layout.tsx`](apps/frontend/app/dashboard/layout.tsx), [`menus/page.tsx`](apps/frontend/app/dashboard/menus/page.tsx), [`orders/page.tsx`](apps/frontend/app/dashboard/orders/page.tsx), [`outlets/page.tsx`](apps/frontend/app/dashboard/outlets/page.tsx), [`page.tsx`](apps/frontend/app/dashboard/page.tsx), [`restaurants/page.tsx`](apps/frontend/app/dashboard/restaurants/page.tsx), [`users/page.tsx`](apps/frontend/app/dashboard/users/page.tsx)
+    - Customer: [`checkout/page.tsx`](apps/frontend/app/customer/checkout/page.tsx), [`menu/[outletId]/page.tsx`](apps/frontend/app/customer/menu/[outletId]/page.tsx), [`orders/page.tsx`](apps/frontend/app/customer/orders/page.tsx), [`orders/[orderId]/page.tsx`](apps/frontend/app/customer/orders/[orderId]/page.tsx), [`profile/page.tsx`](apps/frontend/app/customer/profile/page.tsx), [`page.tsx`](apps/frontend/app/page.tsx)
+  - **Color Replacements Applied**:
+    - `from-red-600 to-orange-500` → `from-emerald-600 to-teal-500`
+    - `text-orange-*` → `text-emerald-*`
+    - `text-amber-*` → `text-teal-*`
+    - `bg-orange-*` → `bg-emerald-*`
+    - `bg-amber-*` → `bg-teal-*`
+    - `border-orange-*` → `border-emerald-*`
+    - `hover:text-orange-*` → `hover:text-emerald-*`
+    - `hover:bg-orange-*` → `hover:bg-emerald-*`
+    - `shadow-orange-*` → `shadow-emerald-*`
+    - `shadow-red-*` → `shadow-emerald-*`
 
 ### In Progress
 - No tasks currently in progress

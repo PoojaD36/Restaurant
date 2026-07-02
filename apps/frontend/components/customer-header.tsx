@@ -34,7 +34,7 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
                 variant="ghost"
                 size="icon"
                 onClick={onBackClick}
-                className="text-gray-700 hover:text-orange-600"
+                className="text-gray-700 hover:text-emerald-600"
               >
                 <Navigation className="h-5 w-5 rotate-180" />
               </Button>
@@ -43,7 +43,7 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => router.push('/customer')}
               >
-                <div className="bg-gradient-to-br from-orange-600 to-amber-500 p-2 rounded-lg">
+                <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-2 rounded-lg">
                   <Utensils className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-xl font-bold text-gray-900">
@@ -63,7 +63,7 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
               variant="ghost"
               size="icon"
               onClick={() => requestLocation()}
-              className="text-gray-700 hover:text-orange-600"
+              className="text-gray-700 hover:text-emerald-600"
               title={location ? 'Location detected' : 'Detect location'}
             >
               <Navigation className="h-5 w-5" />
@@ -77,7 +77,7 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
                   variant="ghost"
                   size="icon"
                   onClick={() => router.push('/customer/profile')}
-                  className="text-gray-700 hover:text-orange-600 hidden sm:flex"
+                  className="text-gray-700 hover:text-emerald-600 hidden sm:flex"
                   title="My Profile"
                 >
                   <User className="h-5 w-5" />
@@ -88,7 +88,7 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
                   variant="ghost"
                   size="icon"
                   onClick={() => router.push('/customer/orders')}
-                  className="text-gray-700 hover:text-orange-600 hidden sm:flex"
+                  className="text-gray-700 hover:text-emerald-600 hidden sm:flex"
                   title="My Orders"
                 >
                   <Package className="h-5 w-5" />
@@ -109,7 +109,7 @@ export function CustomerHeader({ title, showBackButton = false, onBackClick }: C
                   variant="ghost"
                   size="icon"
                   onClick={handleLogout}
-                  className="text-gray-700 hover:text-orange-600"
+                  className="text-gray-700 hover:text-emerald-600"
                   title="Logout"
                 >
                   <LogOut className="h-5 w-5" />

@@ -169,7 +169,7 @@ export default function DeliveryDashboardPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 text-orange-600 animate-spin" />
+        <Loader2 className="h-8 w-8 text-emerald-600 animate-spin" />
       </div>
     );
   }
@@ -188,9 +188,9 @@ export default function DeliveryDashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-600">Active Deliveries</p>
-              <p className="text-3xl font-bold text-orange-600">{activeOrders.length}</p>
+              <p className="text-3xl font-bold text-emerald-600">{activeOrders.length}</p>
             </div>
-            <Truck className="h-8 w-8 text-orange-600" />
+            <Truck className="h-8 w-8 text-emerald-600" />
           </div>
         </Card>
         <Card className="p-6">
@@ -227,7 +227,7 @@ export default function DeliveryDashboardPage() {
               const isUpdatingThis = isUpdatingLocation === order.id;
 
               return (
-                <Card key={order.id} className="overflow-hidden border-2 border-orange-200">
+                <Card key={order.id} className="overflow-hidden border-2 border-emerald-200">
                   <div className="p-6">
                     <div className="flex items-start justify-between gap-4">
                       {/* Order Info */}
@@ -342,9 +342,9 @@ export default function DeliveryDashboardPage() {
                             {/* Delivery Address */}
                             <div>
                               <h4 className="font-semibold text-gray-900 mb-3">Delivery Address</h4>
-                              <div className="bg-orange-50 p-4 rounded-lg space-y-2">
+                              <div className="bg-emerald-50 p-4 rounded-lg space-y-2">
                                 <div className="flex items-start gap-2 text-sm">
-                                  <MapPin className="h-4 w-4 text-orange-600 mt-0.5" />
+                                  <MapPin className="h-4 w-4 text-emerald-600 mt-0.5" />
                                   <div className="flex-1">
                                     <p className="font-medium text-gray-900">{order.deliveryName}</p>
                                     <p className="text-gray-600">{order.deliveryAddressLine1}</p>
@@ -355,10 +355,10 @@ export default function DeliveryDashboardPage() {
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-2 text-sm">
-                                  <Phone className="h-4 w-4 text-orange-600" />
+                                  <Phone className="h-4 w-4 text-emerald-600" />
                                   <a
                                     href={`tel:${order.deliveryPhone}`}
-                                    className="text-orange-600 hover:underline font-medium"
+                                    className="text-emerald-600 hover:underline font-medium"
                                   >
                                     {order.deliveryPhone}
                                   </a>

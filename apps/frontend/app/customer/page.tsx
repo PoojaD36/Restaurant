@@ -131,7 +131,7 @@ export default function CustomerPage() {
         {/* Restaurant List - Grid Layout for PC, Horizontal for Mobile */}
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+            <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
           </div>
         ) : (
           <>
@@ -151,7 +151,7 @@ export default function CustomerPage() {
                       onClick={() => handleOutletClick(outlet.id)}
                     >
                       {/* Image Section */}
-                      <div className="relative h-40 bg-gradient-to-br from-orange-400 to-amber-400">
+                      <div className="relative h-40 bg-gradient-to-br from-emerald-400 to-teal-400">
                         {outlet.restaurant.logo ? (
                           <img
                             src={outlet.restaurant.logo}
@@ -164,7 +164,7 @@ export default function CustomerPage() {
                           </div>
                         )}
                         {outlet.distance !== undefined && outlet.distance < 2 && (
-                          <Badge className="absolute top-3 left-3 bg-white text-orange-600 border-0">
+                          <Badge className="absolute top-3 left-3 bg-white text-emerald-600 border-0">
                             {formatDistance(outlet.distance)}
                           </Badge>
                         )}
@@ -192,7 +192,7 @@ export default function CustomerPage() {
                         <div className="mt-auto pt-3 border-t border-gray-100">
                           <Button
                             size="sm"
-                            className="w-full bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white"
+                            className="w-full bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white"
                             onClick={(e) => {
                               e.stopPropagation();
                               handleOutletClick(outlet.id);
@@ -225,7 +225,7 @@ export default function CustomerPage() {
                     >
                       <div className="flex">
                         {/* Image Section */}
-                        <div className="relative w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-orange-400 to-amber-400 shrink-0">
+                        <div className="relative w-32 h-32 sm:w-40 sm:h-40 bg-gradient-to-br from-emerald-400 to-teal-400 shrink-0">
                           {outlet.restaurant.logo ? (
                             <img
                               src={outlet.restaurant.logo}
@@ -238,7 +238,7 @@ export default function CustomerPage() {
                             </div>
                           )}
                           {outlet.distance !== undefined && outlet.distance < 2 && (
-                            <Badge className="absolute top-2 left-2 bg-white text-orange-600 border-0 text-xs">
+                            <Badge className="absolute top-2 left-2 bg-white text-emerald-600 border-0 text-xs">
                               {formatDistance(outlet.distance)}
                             </Badge>
                           )}
@@ -263,7 +263,7 @@ export default function CustomerPage() {
                           <div className="flex items-center justify-between mt-2">
                             <Button
                               size="sm"
-                              className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white text-xs px-3 py-1 h-7"
+                              className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white text-xs px-3 py-1 h-7"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleOutletClick(outlet.id);
@@ -306,7 +306,7 @@ export default function CustomerPage() {
               className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6"
             >
               <div className="text-center">
-                <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Navigation className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -325,7 +325,7 @@ export default function CustomerPage() {
                   </Button>
                   <Button
                     onClick={handleAllowLocation}
-                    className="flex-1 bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600 text-white"
+                    className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600 text-white"
                   >
                     Detect current location
                   </Button>

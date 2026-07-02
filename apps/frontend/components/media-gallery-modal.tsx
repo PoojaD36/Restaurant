@@ -96,7 +96,7 @@ export function MediaGalleryModal({ open, onClose, onSelectImage, currentImage }
       <DialogContent className="sm:max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <ImageIcon className="h-5 w-5 text-orange-500" />
+            <ImageIcon className="h-5 w-5 text-emerald-500" />
             Media Gallery
           </DialogTitle>
           <DialogDescription>
@@ -113,7 +113,7 @@ export function MediaGalleryModal({ open, onClose, onSelectImage, currentImage }
         <div className="flex-1 overflow-y-auto">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+              <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
             </div>
           ) : images.length === 0 ? (
             <div className="text-center py-12 text-slate-500">
@@ -128,9 +128,9 @@ export function MediaGalleryModal({ open, onClose, onSelectImage, currentImage }
                   key={image.url}
                   className={`relative group rounded-lg overflow-hidden border-2 cursor-pointer transition-all ${
                     selectedImage === image.url
-                      ? 'border-orange-500 ring-2 ring-orange-200'
-                      : 'border-slate-200 hover:border-orange-300'
-                  } ${currentImage === image.url ? 'bg-orange-50' : ''}`}
+                      ? 'border-emerald-500 ring-2 ring-emerald-200'
+                      : 'border-slate-200 hover:border-emerald-300'
+                  } ${currentImage === image.url ? 'bg-emerald-50' : ''}`}
                   onClick={() => handleSelectImage(image.url)}
                 >
                   <img
@@ -142,7 +142,7 @@ export function MediaGalleryModal({ open, onClose, onSelectImage, currentImage }
 
                   {/* Selected indicator */}
                   {selectedImage === image.url && (
-                    <div className="absolute top-2 left-2 bg-orange-500 rounded-full p-1">
+                    <div className="absolute top-2 left-2 bg-emerald-500 rounded-full p-1">
                       <Check className="h-3 w-3 text-white" />
                     </div>
                   )}
@@ -189,7 +189,7 @@ export function MediaGalleryModal({ open, onClose, onSelectImage, currentImage }
             <Button
               onClick={handleConfirmSelection}
               disabled={!selectedImage}
-              className="bg-gradient-to-r from-red-600 to-orange-500"
+              className="bg-gradient-to-r from-emerald-600 to-teal-500"
             >
               Select Image
             </Button>

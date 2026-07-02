@@ -119,8 +119,8 @@ export default function CustomerProfilePage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-orange-600" />
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
       </div>
     );
   }
@@ -132,7 +132,7 @@ export default function CustomerProfilePage() {
   const displayName = `${customer.firstName}${customer.lastName ? ' ' + customer.lastName : ''}`;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 via-amber-50 to-rose-50 pb-16 lg:pb-0">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-teal-50 to-green-50 pb-16 lg:pb-0">
       {/* Header */}
       <CustomerHeader title="My Profile" showBackButton onBackClick={() => router.push('/customer')} />
 
@@ -159,7 +159,7 @@ export default function CustomerProfilePage() {
                 <div className="flex-1 space-y-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <h2 className="text-2xl font-bold text-orange-900">{displayName}</h2>
+                      <h2 className="text-2xl font-bold text-emerald-900">{displayName}</h2>
                       <p className="text-sm text-gray-500 mt-1">
                         {customer.status === 'ACTIVE' ? (
                           <span className="flex items-center gap-1 text-green-600">
@@ -185,7 +185,7 @@ export default function CustomerProfilePage() {
                   {/* Contact Information */}
                   <div className="space-y-3 mt-4">
                     <div className="flex items-center gap-3 text-sm">
-                      <Phone className="h-4 w-4 text-orange-600" />
+                      <Phone className="h-4 w-4 text-emerald-600" />
                       <span className="text-gray-700">{customer.phone}</span>
                       <Badge variant="outline" className="text-xs">
                         Primary
@@ -193,7 +193,7 @@ export default function CustomerProfilePage() {
                     </div>
                     {customer.email && (
                       <div className="flex items-center gap-3 text-sm">
-                        <Mail className="h-4 w-4 text-orange-600" />
+                        <Mail className="h-4 w-4 text-emerald-600" />
                         <span className="text-gray-700">{customer.email}</span>
                       </div>
                     )}
@@ -217,11 +217,11 @@ export default function CustomerProfilePage() {
                 onClick={() => router.push('/customer/orders')}
               >
                 <div className="flex items-center gap-4">
-                  <div className="bg-gradient-to-br from-orange-500 to-amber-500 p-3 rounded-full">
+                  <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-3 rounded-full">
                     <Package className="h-5 w-5 text-white" />
                   </div>
                   <div className="text-left">
-                    <p className="font-semibold text-orange-900">My Orders</p>
+                    <p className="font-semibold text-emerald-900">My Orders</p>
                     <p className="text-sm text-gray-500">View order history</p>
                   </div>
                 </div>
@@ -230,11 +230,11 @@ export default function CustomerProfilePage() {
 
             <Card className="p-4 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-4">
-                <div className="bg-gradient-to-br from-orange-500 to-amber-500 p-3 rounded-full">
+                <div className="bg-gradient-to-br from-emerald-500 to-teal-500 p-3 rounded-full">
                   <MapPin className="h-5 w-5 text-white" />
                 </div>
                 <div className="text-left">
-                  <p className="font-semibold text-orange-900">Saved Addresses</p>
+                  <p className="font-semibold text-emerald-900">Saved Addresses</p>
                   <p className="text-sm text-gray-500">
                     {customer.addresses?.length || 0} address{customer.addresses?.length !== 1 ? 'es' : ''} saved
                   </p>
@@ -251,14 +251,14 @@ export default function CustomerProfilePage() {
           >
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-orange-900 flex items-center gap-2">
-                  <MapPin className="h-5 w-5 text-orange-600" />
+                <h3 className="text-lg font-bold text-emerald-900 flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-emerald-600" />
                   Saved Addresses
                 </h3>
                 <Button
                   onClick={handleAddAddress}
                   size="sm"
-                  className="bg-gradient-to-r from-orange-600 to-amber-500 hover:from-orange-700 hover:to-amber-600"
+                  className="bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-700 hover:to-teal-600"
                   disabled={isUpdating}
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -293,17 +293,17 @@ export default function CustomerProfilePage() {
                         <Card
                           className={`p-4 border-2 transition-all ${
                             address.isDefault
-                              ? 'border-orange-500 bg-orange-50'
-                              : 'border-gray-200 hover:border-orange-300'
+                              ? 'border-emerald-500 bg-emerald-50'
+                              : 'border-gray-200 hover:border-emerald-300'
                           }`}
                         >
                           <div className="flex items-start justify-between gap-4">
                             {/* Address Details */}
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
-                                <h4 className="font-semibold text-orange-900">{address.label}</h4>
+                                <h4 className="font-semibold text-emerald-900">{address.label}</h4>
                                 {address.isDefault && (
-                                  <Badge className="bg-orange-100 text-orange-800 text-xs">
+                                  <Badge className="bg-emerald-100 text-emerald-800 text-xs">
                                     Default
                                   </Badge>
                                 )}
@@ -325,11 +325,11 @@ export default function CustomerProfilePage() {
                                 <Button
                                   size="icon"
                                   variant="ghost"
-                                  className="h-8 w-8 hover:bg-orange-100"
+                                  className="h-8 w-8 hover:bg-emerald-100"
                                   onClick={() => handleEditAddress(address)}
                                   disabled={isUpdating}
                                 >
-                                  <Edit className="h-4 w-4 text-orange-600" />
+                                  <Edit className="h-4 w-4 text-emerald-600" />
                                 </Button>
                                 {!address.isDefault && (
                                   <Button

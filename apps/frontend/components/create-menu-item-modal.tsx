@@ -94,7 +94,7 @@ export function CreateMenuItemModal({ open, onClose, onSuccess, menuId, category
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-xl">
-            <Beef className="h-5 w-5 text-orange-500" />
+            <Beef className="h-5 w-5 text-emerald-500" />
             Add Menu Item
           </DialogTitle>
           <DialogDescription>
@@ -111,7 +111,7 @@ export function CreateMenuItemModal({ open, onClose, onSuccess, menuId, category
 
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2 space-y-2">
-              <Label htmlFor="name">Item Name <span className="text-red-500">*</span></Label>
+              <Label htmlFor="name">Item Name <span className="text-emerald-500">*</span></Label>
               <Input
                 id="name"
                 value={formData.name}
@@ -123,7 +123,7 @@ export function CreateMenuItemModal({ open, onClose, onSuccess, menuId, category
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="price">Price ($) <span className="text-red-500">*</span></Label>
+              <Label htmlFor="price">Price ($) <span className="text-emerald-500">*</span></Label>
               <Input
                 id="price"
                 type="number"
@@ -191,7 +191,7 @@ export function CreateMenuItemModal({ open, onClose, onSuccess, menuId, category
                 checked={formData.isVegetarian}
                 onChange={(e) => setFormData({ ...formData, isVegetarian: e.target.checked })}
                 disabled={isSubmitting}
-                className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                className="rounded border-gray-300 text-emerald-500 focus:ring-orange-500"
               />
               <span className="text-sm">Vegetarian 🥬</span>
             </label>
@@ -202,7 +202,7 @@ export function CreateMenuItemModal({ open, onClose, onSuccess, menuId, category
                 checked={formData.isSpicy}
                 onChange={(e) => setFormData({ ...formData, isSpicy: e.target.checked })}
                 disabled={isSubmitting}
-                className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                className="rounded border-gray-300 text-emerald-500 focus:ring-orange-500"
               />
               <span className="text-sm">Spicy 🌶️</span>
             </label>
@@ -212,7 +212,7 @@ export function CreateMenuItemModal({ open, onClose, onSuccess, menuId, category
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-red-600 to-orange-500">
+            <Button type="submit" disabled={isSubmitting} className="bg-gradient-to-r from-emerald-600 to-teal-500">
               {isSubmitting ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
