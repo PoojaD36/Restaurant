@@ -117,3 +117,28 @@ export type OrderItem = Prisma.OrderItemModel
  * 
  */
 export type Payment = Prisma.PaymentModel
+/**
+ * Model Offer
+ * 
+ */
+export type Offer = Prisma.OfferModel
+/**
+ * Model OfferOutlet
+ * 
+ */
+export type OfferOutlet = Prisma.OfferOutletModel
+/**
+ * Model OfferCategory
+ * 
+ */
+export type OfferCategory = Prisma.OfferCategoryModel
+/**
+ * Model OfferMenuItem
+ * 
+ */
+export type OfferMenuItem = Prisma.OfferMenuItemModel
+/**
+ * Model OfferUsage
+ * 
+ */
+export type OfferUsage = Prisma.OfferUsageModel

@@ -110,3 +110,42 @@ export const PaymentStatus = {
 } as const
 
 export type PaymentStatus = (typeof PaymentStatus)[keyof typeof PaymentStatus]
+
+
+export const OfferType = {
+  PERCENTAGE: 'PERCENTAGE',
+  FIXED: 'FIXED',
+  FREE_DELIVERY: 'FREE_DELIVERY',
+  BUY_ONE_GET_ONE: 'BUY_ONE_GET_ONE'
+} as const
+
+export type OfferType = (typeof OfferType)[keyof typeof OfferType]
+
+
+export const OfferStatus = {
+  DRAFT: 'DRAFT',
+  ACTIVE: 'ACTIVE',
+  PAUSED: 'PAUSED',
+  EXPIRED: 'EXPIRED',
+  SCHEDULED: 'SCHEDULED'
+} as const
+
+export type OfferStatus = (typeof OfferStatus)[keyof typeof OfferStatus]
+
+
+export const OfferScope = {
+  PUBLIC: 'PUBLIC',
+  RESTAURANT: 'RESTAURANT',
+  OUTLET: 'OUTLET'
+} as const
+
+export type OfferScope = (typeof OfferScope)[keyof typeof OfferScope]
+
+
+export const OfferCombinationType = {
+  EXCLUSIVE: 'EXCLUSIVE',
+  STACKABLE: 'STACKABLE',
+  BEST_DEAL: 'BEST_DEAL'
+} as const
+
+export type OfferCombinationType = (typeof OfferCombinationType)[keyof typeof OfferCombinationType]
