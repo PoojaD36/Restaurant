@@ -335,6 +335,7 @@ export type OutletWhereInput = {
   restaurant?: Prisma.XOR<Prisma.RestaurantScalarRelationFilter, Prisma.RestaurantWhereInput>
   users?: Prisma.OutletUserListRelationFilter
   orders?: Prisma.OrderListRelationFilter
+  offerOutlets?: Prisma.OfferOutletListRelationFilter
 }
 
 export type OutletOrderByWithRelationInput = {
@@ -359,6 +360,7 @@ export type OutletOrderByWithRelationInput = {
   restaurant?: Prisma.RestaurantOrderByWithRelationInput
   users?: Prisma.OutletUserOrderByRelationAggregateInput
   orders?: Prisma.OrderOrderByRelationAggregateInput
+  offerOutlets?: Prisma.OfferOutletOrderByRelationAggregateInput
 }
 
 export type OutletWhereUniqueInput = Prisma.AtLeast<{
@@ -386,6 +388,7 @@ export type OutletWhereUniqueInput = Prisma.AtLeast<{
   restaurant?: Prisma.XOR<Prisma.RestaurantScalarRelationFilter, Prisma.RestaurantWhereInput>
   users?: Prisma.OutletUserListRelationFilter
   orders?: Prisma.OrderListRelationFilter
+  offerOutlets?: Prisma.OfferOutletListRelationFilter
 }, "id">
 
 export type OutletOrderByWithAggregationInput = {
@@ -458,6 +461,7 @@ export type OutletCreateInput = {
   restaurant: Prisma.RestaurantCreateNestedOneWithoutOutletsInput
   users?: Prisma.OutletUserCreateNestedManyWithoutOutletInput
   orders?: Prisma.OrderCreateNestedManyWithoutOutletInput
+  offerOutlets?: Prisma.OfferOutletCreateNestedManyWithoutOutletInput
 }
 
 export type OutletUncheckedCreateInput = {
@@ -481,6 +485,7 @@ export type OutletUncheckedCreateInput = {
   updatedAt?: Date | string
   users?: Prisma.OutletUserUncheckedCreateNestedManyWithoutOutletInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOutletInput
+  offerOutlets?: Prisma.OfferOutletUncheckedCreateNestedManyWithoutOutletInput
 }
 
 export type OutletUpdateInput = {
@@ -503,6 +508,7 @@ export type OutletUpdateInput = {
   restaurant?: Prisma.RestaurantUpdateOneRequiredWithoutOutletsNestedInput
   users?: Prisma.OutletUserUpdateManyWithoutOutletNestedInput
   orders?: Prisma.OrderUpdateManyWithoutOutletNestedInput
+  offerOutlets?: Prisma.OfferOutletUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletUncheckedUpdateInput = {
@@ -526,6 +532,7 @@ export type OutletUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.OutletUserUncheckedUpdateManyWithoutOutletNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOutletNestedInput
+  offerOutlets?: Prisma.OfferOutletUncheckedUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletCreateManyInput = {
@@ -763,6 +770,20 @@ export type OutletUpdateOneRequiredWithoutOrdersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OutletUpdateToOneWithWhereWithoutOrdersInput, Prisma.OutletUpdateWithoutOrdersInput>, Prisma.OutletUncheckedUpdateWithoutOrdersInput>
 }
 
+export type OutletCreateNestedOneWithoutOfferOutletsInput = {
+  create?: Prisma.XOR<Prisma.OutletCreateWithoutOfferOutletsInput, Prisma.OutletUncheckedCreateWithoutOfferOutletsInput>
+  connectOrCreate?: Prisma.OutletCreateOrConnectWithoutOfferOutletsInput
+  connect?: Prisma.OutletWhereUniqueInput
+}
+
+export type OutletUpdateOneRequiredWithoutOfferOutletsNestedInput = {
+  create?: Prisma.XOR<Prisma.OutletCreateWithoutOfferOutletsInput, Prisma.OutletUncheckedCreateWithoutOfferOutletsInput>
+  connectOrCreate?: Prisma.OutletCreateOrConnectWithoutOfferOutletsInput
+  upsert?: Prisma.OutletUpsertWithoutOfferOutletsInput
+  connect?: Prisma.OutletWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OutletUpdateToOneWithWhereWithoutOfferOutletsInput, Prisma.OutletUpdateWithoutOfferOutletsInput>, Prisma.OutletUncheckedUpdateWithoutOfferOutletsInput>
+}
+
 export type OutletCreateWithoutRestaurantInput = {
   name: string
   phone?: string | null
@@ -782,6 +803,7 @@ export type OutletCreateWithoutRestaurantInput = {
   updatedAt?: Date | string
   users?: Prisma.OutletUserCreateNestedManyWithoutOutletInput
   orders?: Prisma.OrderCreateNestedManyWithoutOutletInput
+  offerOutlets?: Prisma.OfferOutletCreateNestedManyWithoutOutletInput
 }
 
 export type OutletUncheckedCreateWithoutRestaurantInput = {
@@ -804,6 +826,7 @@ export type OutletUncheckedCreateWithoutRestaurantInput = {
   updatedAt?: Date | string
   users?: Prisma.OutletUserUncheckedCreateNestedManyWithoutOutletInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOutletInput
+  offerOutlets?: Prisma.OfferOutletUncheckedCreateNestedManyWithoutOutletInput
 }
 
 export type OutletCreateOrConnectWithoutRestaurantInput = {
@@ -875,6 +898,7 @@ export type OutletCreateWithoutUsersInput = {
   updatedAt?: Date | string
   restaurant: Prisma.RestaurantCreateNestedOneWithoutOutletsInput
   orders?: Prisma.OrderCreateNestedManyWithoutOutletInput
+  offerOutlets?: Prisma.OfferOutletCreateNestedManyWithoutOutletInput
 }
 
 export type OutletUncheckedCreateWithoutUsersInput = {
@@ -897,6 +921,7 @@ export type OutletUncheckedCreateWithoutUsersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOutletInput
+  offerOutlets?: Prisma.OfferOutletUncheckedCreateNestedManyWithoutOutletInput
 }
 
 export type OutletCreateOrConnectWithoutUsersInput = {
@@ -934,6 +959,7 @@ export type OutletUpdateWithoutUsersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   restaurant?: Prisma.RestaurantUpdateOneRequiredWithoutOutletsNestedInput
   orders?: Prisma.OrderUpdateManyWithoutOutletNestedInput
+  offerOutlets?: Prisma.OfferOutletUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletUncheckedUpdateWithoutUsersInput = {
@@ -956,6 +982,7 @@ export type OutletUncheckedUpdateWithoutUsersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOutletNestedInput
+  offerOutlets?: Prisma.OfferOutletUncheckedUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletCreateWithoutOrdersInput = {
@@ -977,6 +1004,7 @@ export type OutletCreateWithoutOrdersInput = {
   updatedAt?: Date | string
   restaurant: Prisma.RestaurantCreateNestedOneWithoutOutletsInput
   users?: Prisma.OutletUserCreateNestedManyWithoutOutletInput
+  offerOutlets?: Prisma.OfferOutletCreateNestedManyWithoutOutletInput
 }
 
 export type OutletUncheckedCreateWithoutOrdersInput = {
@@ -999,6 +1027,7 @@ export type OutletUncheckedCreateWithoutOrdersInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   users?: Prisma.OutletUserUncheckedCreateNestedManyWithoutOutletInput
+  offerOutlets?: Prisma.OfferOutletUncheckedCreateNestedManyWithoutOutletInput
 }
 
 export type OutletCreateOrConnectWithoutOrdersInput = {
@@ -1036,6 +1065,7 @@ export type OutletUpdateWithoutOrdersInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   restaurant?: Prisma.RestaurantUpdateOneRequiredWithoutOutletsNestedInput
   users?: Prisma.OutletUserUpdateManyWithoutOutletNestedInput
+  offerOutlets?: Prisma.OfferOutletUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletUncheckedUpdateWithoutOrdersInput = {
@@ -1058,6 +1088,113 @@ export type OutletUncheckedUpdateWithoutOrdersInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.OutletUserUncheckedUpdateManyWithoutOutletNestedInput
+  offerOutlets?: Prisma.OfferOutletUncheckedUpdateManyWithoutOutletNestedInput
+}
+
+export type OutletCreateWithoutOfferOutletsInput = {
+  name: string
+  phone?: string | null
+  email?: string | null
+  addressLine1: string
+  addressLine2?: string | null
+  city: string
+  state: string
+  country: string
+  postalCode: string
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  openingTime?: string | null
+  closingTime?: string | null
+  status?: $Enums.OutletStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  restaurant: Prisma.RestaurantCreateNestedOneWithoutOutletsInput
+  users?: Prisma.OutletUserCreateNestedManyWithoutOutletInput
+  orders?: Prisma.OrderCreateNestedManyWithoutOutletInput
+}
+
+export type OutletUncheckedCreateWithoutOfferOutletsInput = {
+  id?: number
+  restaurantId: number
+  name: string
+  phone?: string | null
+  email?: string | null
+  addressLine1: string
+  addressLine2?: string | null
+  city: string
+  state: string
+  country: string
+  postalCode: string
+  latitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude: runtime.Decimal | runtime.DecimalJsLike | number | string
+  openingTime?: string | null
+  closingTime?: string | null
+  status?: $Enums.OutletStatus
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  users?: Prisma.OutletUserUncheckedCreateNestedManyWithoutOutletInput
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutOutletInput
+}
+
+export type OutletCreateOrConnectWithoutOfferOutletsInput = {
+  where: Prisma.OutletWhereUniqueInput
+  create: Prisma.XOR<Prisma.OutletCreateWithoutOfferOutletsInput, Prisma.OutletUncheckedCreateWithoutOfferOutletsInput>
+}
+
+export type OutletUpsertWithoutOfferOutletsInput = {
+  update: Prisma.XOR<Prisma.OutletUpdateWithoutOfferOutletsInput, Prisma.OutletUncheckedUpdateWithoutOfferOutletsInput>
+  create: Prisma.XOR<Prisma.OutletCreateWithoutOfferOutletsInput, Prisma.OutletUncheckedCreateWithoutOfferOutletsInput>
+  where?: Prisma.OutletWhereInput
+}
+
+export type OutletUpdateToOneWithWhereWithoutOfferOutletsInput = {
+  where?: Prisma.OutletWhereInput
+  data: Prisma.XOR<Prisma.OutletUpdateWithoutOfferOutletsInput, Prisma.OutletUncheckedUpdateWithoutOfferOutletsInput>
+}
+
+export type OutletUpdateWithoutOfferOutletsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine1?: Prisma.StringFieldUpdateOperationsInput | string
+  addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  country?: Prisma.StringFieldUpdateOperationsInput | string
+  postalCode?: Prisma.StringFieldUpdateOperationsInput | string
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  restaurant?: Prisma.RestaurantUpdateOneRequiredWithoutOutletsNestedInput
+  users?: Prisma.OutletUserUpdateManyWithoutOutletNestedInput
+  orders?: Prisma.OrderUpdateManyWithoutOutletNestedInput
+}
+
+export type OutletUncheckedUpdateWithoutOfferOutletsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  restaurantId?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  addressLine1?: Prisma.StringFieldUpdateOperationsInput | string
+  addressLine2?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  city?: Prisma.StringFieldUpdateOperationsInput | string
+  state?: Prisma.StringFieldUpdateOperationsInput | string
+  country?: Prisma.StringFieldUpdateOperationsInput | string
+  postalCode?: Prisma.StringFieldUpdateOperationsInput | string
+  latitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  longitude?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  openingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  closingTime?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumOutletStatusFieldUpdateOperationsInput | $Enums.OutletStatus
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  users?: Prisma.OutletUserUncheckedUpdateManyWithoutOutletNestedInput
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletCreateManyRestaurantInput = {
@@ -1099,6 +1236,7 @@ export type OutletUpdateWithoutRestaurantInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.OutletUserUpdateManyWithoutOutletNestedInput
   orders?: Prisma.OrderUpdateManyWithoutOutletNestedInput
+  offerOutlets?: Prisma.OfferOutletUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletUncheckedUpdateWithoutRestaurantInput = {
@@ -1121,6 +1259,7 @@ export type OutletUncheckedUpdateWithoutRestaurantInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   users?: Prisma.OutletUserUncheckedUpdateManyWithoutOutletNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutOutletNestedInput
+  offerOutlets?: Prisma.OfferOutletUncheckedUpdateManyWithoutOutletNestedInput
 }
 
 export type OutletUncheckedUpdateManyWithoutRestaurantInput = {
@@ -1151,11 +1290,13 @@ export type OutletUncheckedUpdateManyWithoutRestaurantInput = {
 export type OutletCountOutputType = {
   users: number
   orders: number
+  offerOutlets: number
 }
 
 export type OutletCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   users?: boolean | OutletCountOutputTypeCountUsersArgs
   orders?: boolean | OutletCountOutputTypeCountOrdersArgs
+  offerOutlets?: boolean | OutletCountOutputTypeCountOfferOutletsArgs
 }
 
 /**
@@ -1182,6 +1323,13 @@ export type OutletCountOutputTypeCountOrdersArgs<ExtArgs extends runtime.Types.E
   where?: Prisma.OrderWhereInput
 }
 
+/**
+ * OutletCountOutputType without action
+ */
+export type OutletCountOutputTypeCountOfferOutletsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.OfferOutletWhereInput
+}
+
 
 export type OutletSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1205,6 +1353,7 @@ export type OutletSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
   users?: boolean | Prisma.Outlet$usersArgs<ExtArgs>
   orders?: boolean | Prisma.Outlet$ordersArgs<ExtArgs>
+  offerOutlets?: boolean | Prisma.Outlet$offerOutletsArgs<ExtArgs>
   _count?: boolean | Prisma.OutletCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["outlet"]>
 
@@ -1278,6 +1427,7 @@ export type OutletInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   restaurant?: boolean | Prisma.RestaurantDefaultArgs<ExtArgs>
   users?: boolean | Prisma.Outlet$usersArgs<ExtArgs>
   orders?: boolean | Prisma.Outlet$ordersArgs<ExtArgs>
+  offerOutlets?: boolean | Prisma.Outlet$offerOutletsArgs<ExtArgs>
   _count?: boolean | Prisma.OutletCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OutletIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1293,6 +1443,7 @@ export type $OutletPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     restaurant: Prisma.$RestaurantPayload<ExtArgs>
     users: Prisma.$OutletUserPayload<ExtArgs>[]
     orders: Prisma.$OrderPayload<ExtArgs>[]
+    offerOutlets: Prisma.$OfferOutletPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1710,6 +1861,7 @@ export interface Prisma__OutletClient<T, Null = never, ExtArgs extends runtime.T
   restaurant<T extends Prisma.RestaurantDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RestaurantDefaultArgs<ExtArgs>>): Prisma.Prisma__RestaurantClient<runtime.Types.Result.GetResult<Prisma.$RestaurantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   users<T extends Prisma.Outlet$usersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Outlet$usersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OutletUserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   orders<T extends Prisma.Outlet$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Outlet$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  offerOutlets<T extends Prisma.Outlet$offerOutletsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Outlet$offerOutletsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OfferOutletPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2203,6 +2355,30 @@ export type Outlet$ordersArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.OrderScalarFieldEnum | Prisma.OrderScalarFieldEnum[]
+}
+
+/**
+ * Outlet.offerOutlets
+ */
+export type Outlet$offerOutletsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the OfferOutlet
+   */
+  select?: Prisma.OfferOutletSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the OfferOutlet
+   */
+  omit?: Prisma.OfferOutletOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OfferOutletInclude<ExtArgs> | null
+  where?: Prisma.OfferOutletWhereInput
+  orderBy?: Prisma.OfferOutletOrderByWithRelationInput | Prisma.OfferOutletOrderByWithRelationInput[]
+  cursor?: Prisma.OfferOutletWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.OfferOutletScalarFieldEnum | Prisma.OfferOutletScalarFieldEnum[]
 }
 
 /**

@@ -100,6 +100,7 @@ model Restaurant {
   outlets Outlet[]
   users   RestaurantUser[]
   menus   Menu[]
+  offers Offer[]
 
   @@map("restaurants")
 }
@@ -164,6 +165,7 @@ model Outlet {
 
   @@index([restaurantId])
   @@map("outlets")
+  offerOutlets OfferOutlet[]
 }
 
 model OutletUser {
@@ -212,6 +214,7 @@ model Customer {
   carts     CustomerCart[]
 
   @@map("customers")
+  offerUsages OfferUsage[]
 }
 
 model CustomerPassword {
@@ -340,6 +343,7 @@ model MenuCategory {
 
   @@index([menuId])
   @@map("menu_categories")
+  offerCategories OfferCategory[]
 }
 
 model MenuItem {
@@ -359,6 +363,7 @@ model MenuItem {
   category       MenuCategory     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   modifiers      ModifierGroup[]
   outletPricing  MenuItemOutletPricing[]
+  offerMenuItems OfferMenuItem[]
 
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
@@ -527,6 +532,12 @@ model Order {
   @@index([outletId])
   @@index([status])
   @@map("orders")
+
+  appliedOfferId Int?
+  appliedOfferDiscount Decimal @default(0) @db.Decimal(10,2)
+  appliedOfferCode String?
+
+  offerUsage OfferUsage[]
 }
 
 model OrderItem {
@@ -565,4 +576,176 @@ model Payment {
   updatedAt DateTime @updatedAt
 
   @@map("payments")
+}
+
+enum OfferType {
+  PERCENTAGE
+  FIXED
+  FREE_DELIVERY
+  BUY_ONE_GET_ONE
+}
+
+enum OfferStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+  SCHEDULED
+}
+
+enum OfferScope {
+  PUBLIC
+  RESTAURANT
+  OUTLET
+}
+
+enum OfferCombinationType {
+  EXCLUSIVE
+  STACKABLE
+  BEST_DEAL
+}
+
+model Offer {
+  id Int @id @default(autoincrement())
+
+  // Basic Details
+  name String
+  description String?
+  code String @unique
+
+  type OfferType
+  status OfferStatus @default(DRAFT)
+
+  scope OfferScope @default(PUBLIC)
+
+  restaurantId Int?
+
+  restaurant Restaurant? @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  // Discount Configuration
+  percentageValue Decimal? @db.Decimal(5,2)
+  fixedAmountValue Decimal? @db.Decimal(10,2)
+  maxDiscountAmount Decimal? @db.Decimal(10,2)
+
+  // Minimum Requirements
+  minOrderAmount Decimal? @db.Decimal(10,2)
+
+  // Visibility
+  requireCode Boolean @default(true)
+  isVisible Boolean @default(true)
+
+  // Usage Limits
+  maxUses Int?
+  maxUsesPerCustomer Int @default(1)
+  currentUses Int @default(0)
+
+  // Offer Priority
+  priority Int @default(0)
+
+  // Validity
+  startDate DateTime
+  endDate DateTime
+
+  validDays Json?
+  validTimeStart String?
+  validTimeEnd String?
+
+  // Customer Rules
+  firstOrderOnly Boolean @default(false)
+
+  // Combination
+  combinationType OfferCombinationType @default(EXCLUSIVE)
+
+  // Soft Delete
+  deletedAt DateTime?
+
+  // Relations
+  outlets OfferOutlet[]
+  categories OfferCategory[]
+  menuItems OfferMenuItem[]
+  usages OfferUsage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([status])
+  @@index([restaurantId])
+  @@index([deletedAt])
+  @@map("offers")
+}
+
+model OfferOutlet {
+  id Int @id @default(autoincrement())
+
+  offerId Int
+  outletId Int
+
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  outlet Outlet @relation(fields: [outletId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, outletId])
+
+  @@index([offerId])
+  @@index([outletId])
+
+  @@map("offer_outlets")
+}
+
+model OfferCategory {
+  id Int @id @default(autoincrement())
+
+  offerId Int
+  categoryId Int
+
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  category MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, categoryId])
+
+  @@index([offerId])
+  @@index([categoryId])
+
+  @@map("offer_categories")
+}
+
+model OfferMenuItem {
+  id Int @id @default(autoincrement())
+
+  offerId Int
+  menuItemId Int
+
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, menuItemId])
+
+  @@index([offerId])
+  @@index([menuItemId])
+
+  @@map("offer_menu_items")
+}
+
+model OfferUsage {
+  id Int @id @default(autoincrement())
+
+  offerId Int
+  customerId Int
+  orderId Int
+
+  discountAmount Decimal @db.Decimal(10,2)
+
+  createdAt DateTime @default(now())
+
+  offer Offer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([offerId, customerId, orderId])
+
+  @@index([offerId])
+  @@index([customerId])
+  @@index([orderId])
+
+  @@map("offer_usages")
 }

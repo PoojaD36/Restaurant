@@ -70,7 +70,12 @@ export const ModelName = {
   ModifierOption: 'ModifierOption',
   Order: 'Order',
   OrderItem: 'OrderItem',
-  Payment: 'Payment'
+  Payment: 'Payment',
+  Offer: 'Offer',
+  OfferOutlet: 'OfferOutlet',
+  OfferCategory: 'OfferCategory',
+  OfferMenuItem: 'OfferMenuItem',
+  OfferUsage: 'OfferUsage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -377,7 +382,10 @@ export const OrderScalarFieldEnum = {
   startedAt: 'startedAt',
   completedAt: 'completedAt',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  appliedOfferId: 'appliedOfferId',
+  appliedOfferDiscount: 'appliedOfferDiscount',
+  appliedOfferCode: 'appliedOfferCode'
 } as const
 
 export type OrderScalarFieldEnum = (typeof OrderScalarFieldEnum)[keyof typeof OrderScalarFieldEnum]
@@ -409,6 +417,79 @@ export const PaymentScalarFieldEnum = {
 } as const
 
 export type PaymentScalarFieldEnum = (typeof PaymentScalarFieldEnum)[keyof typeof PaymentScalarFieldEnum]
+
+
+export const OfferScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  code: 'code',
+  type: 'type',
+  status: 'status',
+  scope: 'scope',
+  restaurantId: 'restaurantId',
+  percentageValue: 'percentageValue',
+  fixedAmountValue: 'fixedAmountValue',
+  maxDiscountAmount: 'maxDiscountAmount',
+  minOrderAmount: 'minOrderAmount',
+  requireCode: 'requireCode',
+  isVisible: 'isVisible',
+  maxUses: 'maxUses',
+  maxUsesPerCustomer: 'maxUsesPerCustomer',
+  currentUses: 'currentUses',
+  priority: 'priority',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  validDays: 'validDays',
+  validTimeStart: 'validTimeStart',
+  validTimeEnd: 'validTimeEnd',
+  firstOrderOnly: 'firstOrderOnly',
+  combinationType: 'combinationType',
+  deletedAt: 'deletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OfferScalarFieldEnum = (typeof OfferScalarFieldEnum)[keyof typeof OfferScalarFieldEnum]
+
+
+export const OfferOutletScalarFieldEnum = {
+  id: 'id',
+  offerId: 'offerId',
+  outletId: 'outletId'
+} as const
+
+export type OfferOutletScalarFieldEnum = (typeof OfferOutletScalarFieldEnum)[keyof typeof OfferOutletScalarFieldEnum]
+
+
+export const OfferCategoryScalarFieldEnum = {
+  id: 'id',
+  offerId: 'offerId',
+  categoryId: 'categoryId'
+} as const
+
+export type OfferCategoryScalarFieldEnum = (typeof OfferCategoryScalarFieldEnum)[keyof typeof OfferCategoryScalarFieldEnum]
+
+
+export const OfferMenuItemScalarFieldEnum = {
+  id: 'id',
+  offerId: 'offerId',
+  menuItemId: 'menuItemId'
+} as const
+
+export type OfferMenuItemScalarFieldEnum = (typeof OfferMenuItemScalarFieldEnum)[keyof typeof OfferMenuItemScalarFieldEnum]
+
+
+export const OfferUsageScalarFieldEnum = {
+  id: 'id',
+  offerId: 'offerId',
+  customerId: 'customerId',
+  orderId: 'orderId',
+  discountAmount: 'discountAmount',
+  createdAt: 'createdAt'
+} as const
+
+export type OfferUsageScalarFieldEnum = (typeof OfferUsageScalarFieldEnum)[keyof typeof OfferUsageScalarFieldEnum]
 
 
 export const SortOrder = {
