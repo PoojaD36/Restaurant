@@ -15,9 +15,11 @@ import { AddressSelector } from '../../../components/address-selector';
 import { AddressForm } from '../../../components/address-form';
 import { OrderSummary } from '../../../components/order-summary';
 import { PaymentMethodSelector } from '../../../components/payment-method-selector';
+import OfferCodeInput from '../../../components/offer-code-input';
 import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { CustomerAuthSheet } from '../../../components/customer-auth-sheet';
+import { DiscountResult } from '../../../lib/offer-types';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -35,6 +37,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoadingAddresses, setIsLoadingAddresses] = useState(true);
   const [paymentMethod, setPaymentMethod] = useState<string>('cod'); // 'cod' or 'online'
+  const [appliedOffer, setAppliedOffer] = useState<any>(null);
+  const [discount, setDiscount] = useState<DiscountResult | null>(null);
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -118,6 +122,16 @@ export default function CheckoutPage() {
     setIsAddressFormOpen(false);
   };
 
+  const handleOfferApplied = (offer: any, discountResult: DiscountResult) => {
+    setAppliedOffer(offer);
+    setDiscount(discountResult);
+  };
+
+  const handleOfferRemoved = () => {
+    setAppliedOffer(null);
+    setDiscount(null);
+  };
+
   const handlePlaceOrder = async () => {
     if (!isAuthenticated || !cart || !selectedAddressId) {
       setError('Please select a delivery address');
@@ -157,8 +171,9 @@ export default function CheckoutPage() {
         (sum, item) => sum + item.price * item.quantity,
         0
       );
-      const deliveryFee = 30; // Flat delivery fee
-      const total = subtotal + deliveryFee;
+      const deliveryFee = discount?.deliveryFeeWaived ? 0 : 30; // Flat delivery fee, waived if offer applies
+      const discountAmount = discount?.discountAmount || 0;
+      const total = subtotal - discountAmount + deliveryFee;
 
       // Handle COD (Cash on Delivery)
       if (paymentMethod === 'cod') {
@@ -167,6 +182,7 @@ export default function CheckoutPage() {
           addressId: selectedAddressId,
           items: orderItems,
           paymentMethod: 'CASH' as const,
+          appliedOfferId: appliedOffer?.id,
         };
 
         const response = await createOrder(token, orderData);
@@ -227,6 +243,7 @@ export default function CheckoutPage() {
                       items: orderItems,
                       paymentMethod: 'UPI' as const, // Will be updated based on actual method
                       razorpayPaymentId: response.razorpay_payment_id,
+                      appliedOfferId: appliedOffer?.id,
                     };
 
                     const orderResponse = await createOrder(token, orderData);
@@ -417,6 +434,16 @@ export default function CheckoutPage() {
                 onMethodChange={setPaymentMethod}
               />
             </Card>
+
+            {/* Offer Code Input */}
+            <Card className="p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">Apply Offer Code</h3>
+              <OfferCodeInput
+                outletId={cart?.outletId}
+                onOfferApplied={handleOfferApplied}
+                onOfferRemoved={handleOfferRemoved}
+              />
+            </Card>
           </div>
 
           {/* Right Column - Order Summary */}
@@ -431,6 +458,8 @@ export default function CheckoutPage() {
                   selectedAddressLabel={selectedAddress?.label}
                   onUpdateQuantity={updateQuantity}
                   onRemoveItem={removeFromCart}
+                  discount={discount}
+                  appliedOffer={appliedOffer}
                 />
               )}
             </div>

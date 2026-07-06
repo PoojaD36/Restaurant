@@ -38,32 +38,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   /**
-   * Sync entire local cart to server
-   * Used after login when local cart exists
-   */
-  const syncLocalCartToServer = useCallback(async (token: string, outletId: number, currentCart: CartState | null) => {
-    if (!currentCart || currentCart.items.length === 0) return;
-
-    setIsServerSyncing(true);
-    try {
-      for (const item of currentCart.items) {
-        const request = localCartItemToServerRequest(
-          item,
-          outletId,
-          currentCart.outletName,
-          currentCart.outletAddress
-        );
-        await addCartItem(token, request);
-      }
-      console.log('Local cart synced to server');
-    } catch (error) {
-      console.error('Failed to sync cart to server:', error);
-    } finally {
-      setIsServerSyncing(false);
-    }
-  }, []);
-
-  /**
    * Sync cart from server
    * Called when customer logs in or switches outlets
    */

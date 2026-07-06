@@ -27,6 +27,17 @@ export interface CartState {
   outletId: number;
   outletName: string;
   outletAddress?: string;
+  // Offer/Discount fields
+  appliedOffer?: {
+    id: number;
+    name: string;
+    code: string;
+    type: string;
+    discountAmount: number;
+  };
+  discount?: number;
+  deliveryFee?: number;
+  total?: number;
 }
 
 export interface CartContextType {

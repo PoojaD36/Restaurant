@@ -200,10 +200,13 @@ export class CreateOfferDto {
       throw new Error('fixedAmountValue is required for FIXED type');
     }
 
-    // BUY_ONE_GET_ONE requires at least 2 menu items (buy and get)
-    if (this.type === OfferType.BUY_ONE_GET_ONE) {
-      if (!this.menuItemIds || this.menuItemIds.length < 2) {
-        throw new Error('BUY_ONE_GET_ONE requires at least 2 menu items');
+    // BUY_ONE_GET_ONE can be configured in two ways:
+    // 1. Specific menu items (restrict BOGO to certain items)
+    // 2. General BOGO (applies to all items in cart)
+    // If menuItemIds is provided, at least 1 item is required
+    if (this.type === OfferType.BUY_ONE_GET_ONE && this.menuItemIds && this.menuItemIds.length > 0) {
+      if (this.menuItemIds.length < 1) {
+        throw new Error('BUY_ONE_GET_ONE requires at least 1 menu item when restricted to specific items');
       }
     }
 
