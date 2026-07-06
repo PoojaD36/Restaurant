@@ -1,11 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ShoppingBag, MapPin, Clock, Check, Loader2, Plus, Minus } from 'lucide-react';
+import { ShoppingBag, MapPin, Clock, Check, Loader2, Plus, Minus, Tag } from 'lucide-react';
 import { Card, CardHeader, CardContent } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { CartState } from '../lib/cart-types';
+import { DiscountResult } from '../lib/offer-types';
 
 interface OrderSummaryProps {
   cart: CartState;
@@ -15,6 +16,8 @@ interface OrderSummaryProps {
   selectedAddressLabel?: string;
   onUpdateQuantity?: (tempId: string, quantity: number) => void;
   onRemoveItem?: (tempId: string) => void;
+  discount?: DiscountResult | null;
+  appliedOffer?: any;
 }
 
 const DELIVERY_FEE = 30;
@@ -27,10 +30,13 @@ export function OrderSummary({
   selectedAddressLabel,
   onUpdateQuantity,
   onRemoveItem,
+  discount,
+  appliedOffer,
 }: OrderSummaryProps) {
   const subtotal = cart.subtotal;
-  const deliveryFee = DELIVERY_FEE;
-  const total = subtotal + deliveryFee;
+  const deliveryFee = discount?.deliveryFeeWaived ? 0 : DELIVERY_FEE;
+  const discountAmount = discount?.discountAmount || 0;
+  const total = subtotal - discountAmount + deliveryFee;
 
   return (
     <Card className="sticky top-24 overflow-hidden">
@@ -164,15 +170,40 @@ export function OrderSummary({
             <span className="font-medium text-gray-900">₹{subtotal.toFixed(2)}</span>
           </div>
 
+          {/* Applied Offer */}
+          {appliedOffer && discount && (
+            <div className="flex items-center justify-between text-sm bg-emerald-50 p-2 rounded">
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-emerald-600" />
+                <span className="text-emerald-700">{appliedOffer.code}</span>
+              </div>
+              <span className="font-semibold text-emerald-600">-₹{discountAmount.toFixed(2)}</span>
+            </div>
+          )}
+
           <div className="flex justify-between text-sm">
             <span className="text-gray-600">Delivery Fee</span>
-            <span className="font-medium text-gray-900">₹{deliveryFee.toFixed(2)}</span>
+            <span className={`font-medium ${discount?.deliveryFeeWaived ? 'text-emerald-600 line-through' : 'text-gray-900'}`}>
+              ₹{DELIVERY_FEE.toFixed(2)}
+            </span>
+            {discount?.deliveryFeeWaived && (
+              <span className="font-medium text-emerald-600 ml-1">FREE</span>
+            )}
           </div>
 
           <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-200">
             <span className="text-emerald-900">Total</span>
             <span className="text-emerald-900">₹{total.toFixed(2)}</span>
           </div>
+
+          {/* Savings Badge */}
+          {discountAmount > 0 && (
+            <div className="flex justify-center">
+              <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                You save ₹{discountAmount.toFixed(2)} on this order!
+              </Badge>
+            </div>
+          )}
         </div>
 
         {/* Estimated Delivery Time */}

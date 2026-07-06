@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-07-02 (Emerald Fresh Color Theme - Complete Implementation)
+> **Last Updated:** 2026-07-06 (Offer Module Complete - Backend & Frontend)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -165,6 +165,15 @@ d:\restaurant/
 - `ModifierGroup` - Modifier groups (e.g., Size, Add-ons) with SINGLE/MULTIPLE selection types
 - `ModifierOption` - Individual modifier options with price adjustments
 
+### Offer Management
+
+**Models:**
+- `Offer` - Main offer/discount table with validation rules, usage limits, date/time validity
+- `OfferOutlet` - Junction table for outlet-specific offers
+- `OfferCategory` - Junction table for category-specific offers
+- `OfferMenuItem` - Junction table for item-specific offers (e.g., BOGO)
+- `OfferUsage` - Track customer offer usage with order association and discount amounts
+
 **Important:** Outlet and CustomerAddress latitude/longitude fields are **optional** and automatically calculated from addresses using the GeocodingService (Nominatim API). If geocoding fails, coordinates remain null without blocking address creation.
 
 **Key Enums:**
@@ -176,6 +185,10 @@ d:\restaurant/
 - `MenuStatus`: ACTIVE, INACTIVE
 - `MenuItemStatus`: AVAILABLE, UNAVAILABLE
 - `ModifierType`: SINGLE (one option), MULTIPLE (multiple options)
+- `OfferType`: PERCENTAGE, FIXED, FREE_DELIVERY, BUY_ONE_GET_ONE
+- `OfferStatus`: DRAFT, ACTIVE, PAUSED, EXPIRED, SCHEDULED
+- `OfferScope`: PUBLIC, RESTAURANT, OUTLET
+- `OfferCombinationType`: EXCLUSIVE, STACKABLE, BEST_DEAL
 
 ---
 
@@ -185,7 +198,7 @@ d:\restaurant/
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule, OrderModule, NotificationsModule, DashboardModule imported |
+| App Module | ✅ Complete | ConfigModule, PrismaModule, RestaurantModule, OutletModule, CustomerModule, MenuModule, StorageModule, OrderModule, NotificationsModule, DashboardModule, OfferModule imported |
 | Auth Module | ✅ Complete | JWT auth, role-based guards, decorators (for admin users) |
 | Customer Module | ✅ Complete | Customer auth, profile, address management with auto-geocoding |
 | User Module | ✅ Complete | Full CRUD operations for users |
@@ -196,9 +209,10 @@ d:\restaurant/
 | Storage Module | ✅ Complete | Supabase storage service for image uploads |
 | Notifications Module | ✅ Complete | WebSocket gateway for real-time order notifications (restaurant + customer) with dual JWT token support |
 | Dashboard Module | ✅ Complete | Dashboard analytics with statistics, recent orders, revenue analytics, popular items, staff performance |
+| **Offer Module** | ✅ **Complete** | **Discount/coupon system with 4 offer types (PERCENTAGE, FIXED, FREE_DELIVERY, BUY_ONE_GET_ONE), 3 scopes (PUBLIC, RESTAURANT, OUTLET), validation engine, calculation service, usage tracking, admin CRUD, customer apply/preview endpoints** |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
-| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, required lat/lng |
+| Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, Offer models (Offer, OfferOutlet, OfferCategory, OfferMenuItem, OfferUsage), required lat/lng |
 | Database Seeder | ✅ Complete | Creates Super Admin via npm run seed |
 
 **Port:** 3001 (configurable via `PORT` env var)
@@ -252,6 +266,9 @@ d:\restaurant/
 | Customer Profile Edit | ✅ Complete | Profile form modal for editing name, email with validation and profile image upload |
 | Customer Address Management | ✅ Complete | Full CRUD operations for addresses (add, edit, delete, set default) with checkout sync |
 | Chef Dashboard | ✅ Complete | Kitchen dashboard with order pool, claim functionality, and status updates |
+| Offer Module (Backend) | ✅ Complete | Full discount/coupon system with 4 offer types, validation, calculation, usage tracking, admin CRUD, customer endpoints |
+| Offer Module (Frontend) | ✅ Complete | Admin offers page with full CRUD, status management, filtering, pagination, statistics modals |
+| Offer Module - Customer | ✅ Complete | Offer code input component integrated in checkout with discount display, available offers list, error handling |
 
 ### Routing Structure
 
@@ -587,6 +604,105 @@ Each restaurant card features:
 - `MONTH` - Statistics from start of current month (default)
 - `YEAR` - Statistics from start of current year
 - `ALL` - All-time statistics
+
+### Offer Management Endpoints (Admin)
+
+| Endpoint | Method | Auth Required | Role Required | Description | Query Params |
+|----------|--------|---------------|---------------|-------------|--------------|
+| `/admin/offers` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Create new offer with validation | - |
+| `/admin/offers` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get all offers with filters | `page`, `limit`, `type`, `status`, `scope`, `restaurantId`, `search` |
+| `/admin/offers/:id` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get offer by ID with full details | - |
+| `/admin/offers/:id` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Update offer details | - |
+| `/admin/offers/:id` | DELETE | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Soft delete offer (if not used) | - |
+| `/admin/offers/:id/status` | PUT | JWT | SUPER_ADMIN, RESTAURANT_ADMIN | Update offer status (DRAFT/ACTIVE/PAUSED/EXPIRED) | - |
+| `/admin/offers/:id/stats` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get offer usage statistics | - |
+| `/admin/offers/stats/overview` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get overview statistics (total, active, draft, expired) | - |
+| `/admin/offers/expiring` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get offers expiring within 7 days | - |
+| `/admin/offers/popular` | GET | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Get most used offers | `limit` (default: 10) |
+| `/admin/offers/validate` | POST | JWT | SUPER_ADMIN, RESTAURANT_ADMIN, MANAGER | Validate offer code (testing) | - |
+
+**Offer Types:**
+- `PERCENTAGE` - X% off discount with optional max cap
+- `FIXED` - ₹X off discount
+- `FREE_DELIVERY` - Waive delivery fee
+- `BUY_ONE_GET_ONE` - BOGO on specific menu items
+
+**Offer Scope:**
+- `PUBLIC` - Available to all customers
+- `RESTAURANT` - Restaurant-specific offers
+- `OUTLET` - Outlet-specific offers
+
+**Offer Status:**
+- `DRAFT` - Not yet active
+- `ACTIVE` - Currently available
+- `PAUSED` - Temporarily disabled
+- `EXPIRED` - Past end date
+- `SCHEDULED` - Scheduled for future activation
+
+**Offer Combination Types:**
+- `EXCLUSIVE` - Cannot be combined with other offers
+- `STACKABLE` - Can be combined with other offers
+- `BEST_DEAL` - System picks best offer among applicable ones
+
+**Validation Rules:**
+- Date/time validity with day restrictions (0=Sunday to 6=Saturday)
+- Minimum order amount requirements
+- First-order-only offers
+- Usage limits (global max uses & per-customer limit)
+- Category/menu item applicability
+- Outlet scope validation
+
+### Offer Endpoints (Customer)
+
+| Endpoint | Method | Auth Required | Description | Query Params |
+|----------|--------|---------------|-------------|--------------|
+| `/offers` | GET | No | Get available offers for an outlet | `outletId` |
+| `/offers/apply` | POST | Customer JWT | Apply offer code to cart | - |
+| `/offers/preview` | POST | No | Preview discount without applying | - |
+| `/offers/my-usage` | GET | Customer JWT | Get customer's offer usage history | - |
+| `/offers/:id/check` | GET | Customer JWT | Check if customer can use offer | - |
+
+**Offer Apply Request Body:**
+```json
+{
+  "code": "SAVE20",
+  "outletId": 1,
+  "cartTotal": 500,
+  "items": [
+    {
+      "menuItemId": 1,
+      "name": "Burger",
+      "price": 150,
+      "quantity": 2,
+      "categoryId": 5
+    }
+  ]
+}
+```
+
+**Offer Apply Response:**
+```json
+{
+  "success": true,
+  "message": "Offer applied successfully",
+  "data": {
+    "discount": {
+      "discountAmount": 100,
+      "discountType": "PERCENTAGE",
+      "originalAmount": 500,
+      "finalAmount": 400,
+      "savings": 100,
+      "deliveryFeeWaived": false
+    },
+    "offer": {
+      "id": 1,
+      "name": "20% Off",
+      "code": "SAVE20",
+      "type": "PERCENTAGE"
+    }
+  }
+}
+```
 
 ### Authentication Flow
 
@@ -1445,6 +1561,58 @@ npx shadcn@latest add dialog -y
     - Added conditional `text-white` class to active navigation icons in sidebar
     - All gradient buttons now have `text-white` class for proper icon visibility
     - Fixed icons: Plus, Loader2, Check, and navigation icons
+- ✅ **Offer Module - Complete Discount System** - Full-featured coupon/discount system - 2026-07-03
+  - **Database Schema**: Offer models with Offer, OfferOutlet, OfferCategory, OfferMenuItem, OfferUsage tables
+  - **Offer Types**: PERCENTAGE (% off), FIXED (₹ off), FREE_DELIVERY (waive delivery fee), BUY_ONE_GET_ONE
+  - **Offer Scope**: PUBLIC (all customers), RESTAURANT (restaurant-specific), OUTLET (outlet-specific)
+  - **Offer Services**:
+    - `OfferValidationService` - Validates offer status, dates, time, days, usage limits, applicability
+    - `OfferCalculationService` - Calculates discounts for all offer types with max caps
+    - `OfferQueryService` - CRUD operations with filtering, pagination, search
+    - `OfferTransactionService` - Create/update/delete offers with junction table management
+    - `OfferUsageService` - Track customer usage, enforce limits, statistics
+  - **Admin Endpoints** (`/admin/offers`):
+    - `POST /admin/offers` - Create offer with validation
+    - `GET /admin/offers` - List with filters (type, status, scope, restaurant, search)
+    - `GET /admin/offers/:id` - Get offer with full details
+    - `PUT /admin/offers/:id` - Update offer
+    - `DELETE /admin/offers/:id` - Soft delete (if not used)
+    - `PUT /admin/offers/:id/status` - Change status (DRAFT→ACTIVE→PAUSED→EXPIRED)
+    - `GET /admin/offers/:id/stats` - Usage statistics
+    - `GET /admin/offers/stats/overview` - Overview stats
+    - `GET /admin/offers/expiring` - Offers expiring within 7 days
+    - `GET /admin/offers/popular` - Most used offers
+    - `POST /admin/offers/validate` - Test offer code validity
+  - **Customer Endpoints** (`/offers`):
+    - `GET /offers?outletId=X` - Get available offers for outlet
+    - `POST /offers/apply` - Apply offer to cart (returns discount calculation)
+    - `POST /offers/preview` - Preview discount without applying
+    - `GET /offers/my-usage` - Customer's usage history
+    - `GET /offers/:id/check` - Check if customer can use offer
+  - **Validation Features**:
+    - Date/time validity with day-of-week restrictions (0=Sunday to 6=Saturday)
+    - Time range validation (HH:MM format)
+    - Minimum order amount requirements
+    - First-order-only offers
+    - Global usage limits (maxUses) and per-customer limits (maxUsesPerCustomer)
+    - Category/menu item applicability filtering
+    - Outlet scope validation for restaurant/outlet-specific offers
+    - Automatic expiration of past-due offers
+    - Automatic activation of scheduled offers
+  - **Discount Calculation**:
+    - PERCENTAGE: Cart discount with optional max cap (maxDiscountAmount)
+    - FIXED: Flat amount discount
+    - FREE_DELIVERY: Waives delivery fee
+    - BUY_ONE_GET_ONE: Free item (cheapest) from qualifying items
+  - **Offer Combination Rules**:
+    - EXCLUSIVE: Cannot be combined with other offers
+    - STACKABLE: Multiple offers can apply (sums discounts)
+    - BEST_DEAL: System picks highest discount from applicable offers
+  - **Order Integration Ready**:
+    - Order model has `appliedOfferId`, `appliedOfferDiscount`, `appliedOfferCode` fields
+    - Offer usage tracking on order completion
+    - Usage reversion on order cancellation
+  - **BOGO Offer Fix** (2026-07-06): Made menu items optional for BOGO offers - can now create general BOGO offers that apply to all cart items without restricting to specific menu items
 
 ### In Progress
 - No tasks currently in progress

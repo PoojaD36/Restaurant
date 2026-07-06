@@ -1,10 +1,14 @@
-import { IsNotEmpty, IsNumber, IsString, IsArray, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsArray, IsOptional, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CartItemDto {
   @IsNumber()
   @IsNotEmpty()
   menuItemId!: number;
+
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
 
   @IsNumber()
   @IsNotEmpty()
@@ -13,6 +17,10 @@ export class CartItemDto {
   @IsNumber()
   @IsNotEmpty()
   quantity!: number;
+
+  @IsOptional()
+  @IsNumber()
+  categoryId?: number;
 }
 
 export class ApplyOfferDto {
