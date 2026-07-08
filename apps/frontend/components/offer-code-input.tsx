@@ -139,6 +139,7 @@ export default function OfferCodeInput({
         name: item.name,
         price: item.price,
         quantity: item.quantity,
+        categoryId: item.categoryId,
       }));
 
       const response = await applyOffer({
