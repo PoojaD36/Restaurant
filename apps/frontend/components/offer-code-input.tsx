@@ -21,6 +21,8 @@ interface OfferCodeInputProps {
   onOfferRemoved?: () => void;
   className?: string;
   compact?: boolean;
+  cartSubtotal?: number;
+  cartItems?: any[];
 }
 
 export default function OfferCodeInput({
@@ -29,6 +31,8 @@ export default function OfferCodeInput({
   onOfferRemoved,
   className = '',
   compact = false,
+  cartSubtotal,
+  cartItems,
 }: OfferCodeInputProps) {
   const { customer } = useCustomerAuth();
   const { cart } = useCart();
@@ -41,6 +45,7 @@ export default function OfferCodeInput({
   const [showAvailableOffers, setShowAvailableOffers] = useState(false);
   const [availableOffers, setAvailableOffers] = useState<Offer[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(false);
+  const [lastValidatedTotal, setLastValidatedTotal] = useState<number | null>(null);
 
   // Check if offer is already applied in cart
   useEffect(() => {
@@ -49,6 +54,52 @@ export default function OfferCodeInput({
       setSuccess(true);
     }
   }, [cart]);
+
+  // Re-validate applied offer when cart subtotal changes (items added/removed)
+  useEffect(() => {
+    if (!appliedOffer || !cartSubtotal || !outletId) return;
+
+    // Skip if total hasn't changed
+    if (lastValidatedTotal === cartSubtotal) return;
+
+    const revalidateOffer = async () => {
+      try {
+        const itemsToUse = cartItems || cart?.items?.map((item) => ({
+          menuItemId: item.menuItemId,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })) || [];
+
+        const response = await previewOfferDiscount({
+          code: appliedOffer.code,
+          outletId,
+          cartTotal: cartSubtotal,
+          items: itemsToUse,
+        });
+
+        if (response.success && response.data) {
+          // Offer is still valid, update discount
+          setDiscount(response.data.discount);
+          setLastValidatedTotal(cartSubtotal);
+
+          // Notify parent of updated discount
+          if (onOfferApplied) {
+            onOfferApplied(appliedOffer, response.data.discount);
+          }
+        } else {
+          // Offer is no longer valid (e.g., below minimum order amount)
+          handleRemoveOffer();
+        }
+      } catch (err: any) {
+        // If preview fails, remove the offer
+        console.error('Offer re-validation failed:', err);
+        handleRemoveOffer();
+      }
+    };
+
+    revalidateOffer();
+  }, [cartSubtotal, appliedOffer, outletId, cartItems, cart?.items]);
 
   const fetchAvailableOffers = async () => {
     if (!outletId) return;
@@ -102,6 +153,7 @@ export default function OfferCodeInput({
         setDiscount(response.data.discount);
         setSuccess(true);
         setError('');
+        setLastValidatedTotal(cart.subtotal); // Store the validated total
 
         // Notify parent component
         if (onOfferApplied) {
@@ -154,6 +206,7 @@ export default function OfferCodeInput({
     setDiscount(null);
     setSuccess(false);
     setError('');
+    setLastValidatedTotal(null);
 
     if (onOfferRemoved) {
       onOfferRemoved();
@@ -222,7 +275,13 @@ export default function OfferCodeInput({
                 </div>
                 {discount && (
                   <div className="text-sm font-semibold text-emerald-600 mt-1">
-                    You save ₹{discount.discountAmount}!
+                    {appliedOffer.type === 'BUY_ONE_GET_ONE' ? (
+                      <>
+                        You save ₹{discount.discountAmount}! (Buy 1 Get 1 Free)
+                      </>
+                    ) : (
+                      <>You save ₹{discount.discountAmount}!</>
+                    )}
                   </div>
                 )}
               </div>
