@@ -20,6 +20,7 @@ import { Button } from '../../../components/ui/button';
 import { Card } from '../../../components/ui/card';
 import { CustomerAuthSheet } from '../../../components/customer-auth-sheet';
 import { DiscountResult } from '../../../lib/offer-types';
+import { ChatWidget } from '../../../components/chat-widget';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -486,6 +487,9 @@ export default function CheckoutPage() {
           />
         )}
       </AnimatePresence>
+
+      {/* Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }

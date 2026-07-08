@@ -11,6 +11,7 @@ import { cn } from '../../../../lib/utils';
 import { Button } from '../../../../components/ui/button';
 import { Badge } from '../../../../components/ui/badge';
 import { Card } from '../../../../components/ui/card';
+import { ChatWidget } from '../../../../components/chat-widget';
 
 export default function MenuPage() {
   const params = useParams();
@@ -493,6 +494,9 @@ export default function MenuPage() {
           </motion.div>
         </motion.div>
       )}
+
+      {/* Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }

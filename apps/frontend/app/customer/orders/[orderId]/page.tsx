@@ -24,6 +24,7 @@ import { getOrderById, cancelOrder } from '../../../../lib/order-api';
 import { Order, OrderStatus } from '../../../../lib/order-types';
 import { Button } from '../../../../components/ui/button';
 import { Card } from '../../../../components/ui/card';
+import { ChatWidget } from '../../../../components/chat-widget';
 
 const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode }> = {
   PENDING: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800', icon: <Clock className="h-4 w-4" /> },
@@ -492,6 +493,9 @@ export default function OrderDetailsPage() {
           </div>
         </div>
       </main>
+
+      {/* Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }

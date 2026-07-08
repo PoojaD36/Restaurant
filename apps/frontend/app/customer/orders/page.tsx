@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
+import { ChatWidget } from '@/components/chat-widget';
 import { CustomerHeader } from '@/components/customer-header';
 import { CustomerBottomNav } from '@/components/customer-bottom-nav';
 
@@ -280,6 +281,9 @@ export default function CustomerOrdersPage() {
 
       {/* Bottom Navigation (Mobile Only) */}
       <CustomerBottomNav />
+
+      {/* Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }

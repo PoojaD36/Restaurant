@@ -23,6 +23,7 @@ import { ProfileFormModal } from '../../../components/profile-form-modal';
 import { AddressForm } from '../../../components/address-form';
 import { CustomerHeader } from '../../../components/customer-header';
 import { CustomerBottomNav } from '../../../components/customer-bottom-nav';
+import { ChatWidget } from '../../../components/chat-widget';
 import { CustomerAddress } from '../../../lib/customer-types';
 import {
   deleteCustomerAddress,
@@ -402,6 +403,9 @@ export default function CustomerProfilePage() {
 
       {/* Bottom Navigation (Mobile Only) */}
       <CustomerBottomNav />
+
+      {/* Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }
