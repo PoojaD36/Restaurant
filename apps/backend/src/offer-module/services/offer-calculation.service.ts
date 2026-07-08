@@ -96,6 +96,8 @@ export class OfferCalculationService {
 
   /**
    * Calculate Buy One Get One discount
+   * For every 2 items of the same type, customer pays for 1
+   * Example: 3 items @ ₹199 = 2 paid + 1 free = ₹398 (discount ₹199)
    */
   private calculateBogoDiscount(
     offer: any,
@@ -117,20 +119,44 @@ export class OfferCalculationService {
       return { discountAmount: 0 };
     }
 
-    // Find the cheapest item for free
-    const cheapestItem = applicableItems.reduce((cheapest, item) =>
-      item.price < cheapest.price ? item : cheapest,
-    );
+    // Group items by menuItemId to calculate free items per unique item
+    const itemGroups = new Map<number, { price: number; name: string; totalQty: number }>();
 
-    const discountAmount = cheapestItem.price;
+    applicableItems.forEach((item) => {
+      const existing = itemGroups.get(item.menuItemId);
+      if (existing) {
+        existing.totalQty += item.quantity;
+      } else {
+        itemGroups.set(item.menuItemId, {
+          price: item.price,
+          name: item.name,
+          totalQty: item.quantity,
+        });
+      }
+    });
+
+    // Calculate discount: for each group, floor(quantity / 2) items are free
+    let totalDiscount = 0;
+    let freeItemDetails: any = null;
+
+    itemGroups.forEach((details, menuItemId) => {
+      const freeItemCount = Math.floor(details.totalQty / 2);
+      if (freeItemCount > 0) {
+        totalDiscount += details.price * freeItemCount;
+        // Store first free item details for display
+        if (!freeItemDetails) {
+          freeItemDetails = {
+            menuItemId,
+            name: details.name,
+            quantity: freeItemCount,
+          };
+        }
+      }
+    });
 
     return {
-      discountAmount,
-      freeItem: {
-        menuItemId: cheapestItem.menuItemId,
-        name: cheapestItem.name,
-        quantity: 1,
-      },
+      discountAmount: totalDiscount,
+      freeItem: freeItemDetails,
     };
   }
 

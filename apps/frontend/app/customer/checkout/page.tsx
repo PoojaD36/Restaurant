@@ -442,6 +442,13 @@ export default function CheckoutPage() {
                 outletId={cart?.outletId}
                 onOfferApplied={handleOfferApplied}
                 onOfferRemoved={handleOfferRemoved}
+                cartSubtotal={cart?.subtotal}
+                cartItems={cart?.items?.map((item) => ({
+                  menuItemId: item.menuItemId,
+                  name: item.name,
+                  price: item.price,
+                  quantity: item.quantity,
+                }))}
               />
             </Card>
           </div>
