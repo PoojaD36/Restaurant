@@ -98,25 +98,34 @@ export class OfferCalculationService {
    * Calculate Buy One Get One discount
    * For every 2 items of the same type, customer pays for 1
    * Example: 3 items @ ₹199 = 2 paid + 1 free = ₹398 (discount ₹199)
+   *
+   * If offer.menuItems is empty/null: apply BOGO to ALL cart items
+   * If offer.menuItems has items: apply BOGO only to those specific items
    */
   private calculateBogoDiscount(
     offer: any,
     context: CartContext,
   ): { discountAmount: number; freeItem?: any } {
-    if (!offer.menuItems || offer.menuItems.length === 0) {
-      return { discountAmount: 0 };
-    }
+    let applicableItems: any[] = [];
 
-    // Get qualifying menu item IDs from offer
-    const qualifyingItemIds = offer.menuItems.map((mi: any) => mi.menuItemId);
+    // Check if offer has specific menu items configured
+    if (offer.menuItems && offer.menuItems.length > 0) {
+      // OFFER HAS SPECIFIC ITEMS - apply BOGO only to those items
+      const qualifyingItemIds = offer.menuItems.map((mi: any) => mi.menuItemId);
+      applicableItems = context.items.filter((item) =>
+        qualifyingItemIds.includes(item.menuItemId),
+      );
 
-    // Find applicable items in cart
-    const applicableItems = context.items.filter((item) =>
-      qualifyingItemIds.includes(item.menuItemId),
-    );
+      if (applicableItems.length === 0) {
+        return { discountAmount: 0 };
+      }
+    } else {
+      // OFFER HAS NO SPECIFIC ITEMS - apply BOGO to ALL cart items
+      applicableItems = context.items;
 
-    if (applicableItems.length === 0) {
-      return { discountAmount: 0 };
+      if (applicableItems.length === 0) {
+        return { discountAmount: 0 };
+      }
     }
 
     // Group items by menuItemId to calculate free items per unique item

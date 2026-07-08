@@ -17,6 +17,7 @@ export interface CartItem {
   name: string;
   price: number;
   quantity: number;
+  categoryId?: number; // Category ID for offer validation
   imageUrl?: string;
   modifiers: CartModifier[];
 }

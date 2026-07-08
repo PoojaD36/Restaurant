@@ -34,6 +34,7 @@ export interface ServerCartItem {
   name: string;
   price: number;
   quantity: number;
+  categoryId?: number;
   modifiers: any;
   createdAt: string;
   updatedAt: string;
@@ -77,7 +78,6 @@ export async function addCartItem(
   token: string,
   item: CartItemRequest
 ): Promise<{ success: boolean; data: ServerCartResponse }> {
-  console.log('🛒 Adding cart item to server:', item);
   const response = await fetch(`${API_URL}/customers/cart/items`, {
     method: 'POST',
     headers: {
@@ -89,7 +89,7 @@ export async function addCartItem(
 
   if (!response.ok) {
     const errorText = await response.text();
-    console.error('❌ Failed to add item to cart:', response.status, errorText);
+    console.error('Failed to add item to cart:', response.status, errorText);
     let errorMessage = `Failed to add item to cart: ${response.status}`;
     try {
       const errorJson = JSON.parse(errorText);
@@ -101,7 +101,6 @@ export async function addCartItem(
   }
 
   const result = await response.json();
-  console.log('✅ Cart item added successfully:', result);
   return result;
 }
 
@@ -204,6 +203,7 @@ export function serverCartToLocalCart(serverCart: ServerCartResponse): CartState
         name: item.name,
         price: item.price,
         quantity: item.quantity,
+        categoryId: item.categoryId,
         modifiers: modifiers || [],
       };
     }),

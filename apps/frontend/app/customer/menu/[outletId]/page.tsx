@@ -92,6 +92,7 @@ export default function MenuPage() {
       name: item.name,
       price: item.price,
       quantity: 1,
+      categoryId: item.categoryId,
       imageUrl: item.imageUrl,
       modifiers: modifiers as any,
     });

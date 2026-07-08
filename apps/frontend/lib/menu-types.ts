@@ -23,6 +23,7 @@ export interface MenuItem {
   description?: string;
   price: number; // Outlet-specific price
   basePrice: number;
+  categoryId?: number; // Category ID for offer validation
   imageUrl?: string;
   isVegetarian: boolean;
   isSpicy: boolean;

@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-07-06 (Offer Module Complete - Backend & Frontend)
+> **Last Updated:** 2026-07-08 (Enhanced BOGO Implementation & Auto Coupon Removal)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -209,7 +209,7 @@ d:\restaurant/
 | Storage Module | ✅ Complete | Supabase storage service for image uploads |
 | Notifications Module | ✅ Complete | WebSocket gateway for real-time order notifications (restaurant + customer) with dual JWT token support |
 | Dashboard Module | ✅ Complete | Dashboard analytics with statistics, recent orders, revenue analytics, popular items, staff performance |
-| **Offer Module** | ✅ **Complete** | **Discount/coupon system with 4 offer types (PERCENTAGE, FIXED, FREE_DELIVERY, BUY_ONE_GET_ONE), 3 scopes (PUBLIC, RESTAURANT, OUTLET), validation engine, calculation service, usage tracking, admin CRUD, customer apply/preview endpoints** |
+| **Offer Module** | ✅ **Complete** | **Discount/coupon system with 4 offer types (PERCENTAGE, FIXED, FREE_DELIVERY, BUY_ONE_GET_ONE), flexible BOGO (all items or specific items), auto coupon removal on cart changes, 3 scopes (PUBLIC, RESTAURANT, OUTLET), validation engine, calculation service, usage tracking, admin CRUD, customer apply/preview endpoints** |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
 | Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, Offer models (Offer, OfferOutlet, OfferCategory, OfferMenuItem, OfferUsage), required lat/lng |
@@ -625,7 +625,11 @@ Each restaurant card features:
 - `PERCENTAGE` - X% off discount with optional max cap
 - `FIXED` - ₹X off discount
 - `FREE_DELIVERY` - Waive delivery fee
-- `BUY_ONE_GET_ONE` - BOGO on specific menu items
+- `BUY_ONE_GET_ONE` - BOGO discount (flexible implementation):
+  - **Without menu items specified**: Applies to ALL items in cart
+  - **With menu items specified**: Applies only to those specific items
+  - **Calculation**: For every 2 items of same type, customer pays for 1 (floor(quantity / 2) items are free)
+  - **Example**: 4 items @ ₹199 = 2 paid + 2 free = ₹398 total (saves ₹398)
 
 **Offer Scope:**
 - `PUBLIC` - Available to all customers
@@ -651,6 +655,12 @@ Each restaurant card features:
 - Usage limits (global max uses & per-customer limit)
 - Category/menu item applicability
 - Outlet scope validation
+- **BOGO Requirements**: At least 2 items required (total cart items if no specific items configured, or 2 qualifying items if specific items configured)
+
+**Automatic Coupon Removal:**
+- Applied coupons are automatically re-validated when cart changes (items added/removed, quantity updated)
+- If cart falls below minimum requirements (e.g., below ₹399 for BOGO), coupon is automatically removed
+- Re-validation happens in real-time as customer modifies cart
 
 ### Offer Endpoints (Customer)
 
@@ -1613,6 +1623,21 @@ npx shadcn@latest add dialog -y
     - Offer usage tracking on order completion
     - Usage reversion on order cancellation
   - **BOGO Offer Fix** (2026-07-06): Made menu items optional for BOGO offers - can now create general BOGO offers that apply to all cart items without restricting to specific menu items
+- ✅ **Offer Module Enhancements** - Enhanced BOGO calculation and automatic coupon removal - 2026-07-08
+  - **Flexible BOGO Implementation**: BOGO now works in two modes:
+    - **Without specific menu items**: Applies to ALL items in cart (more generous)
+    - **With specific menu items**: Applies only to those items (more controlled)
+    - **Calculation**: For every 2 items of same type, customer pays for 1 (floor(quantity / 2) items free)
+    - **Example**: 4 items @ ₹199 = 2 paid + 2 free = ₹398 total (saves ₹398)
+  - **Automatic Coupon Removal**:
+    - Applied coupons are automatically re-validated when cart changes
+    - If cart falls below minimum requirements (e.g., below ₹399), coupon is auto-removed
+    - Re-validation happens in real-time as customer modifies cart (items added/removed, quantity changed)
+  - **Enhanced Validation**: BOGO requires at least 2 items (total or qualifying, depending on configuration)
+  - **Updated Frontend Components**:
+    - `OfferCodeInput` component now accepts `cartSubtotal` and `cartItems` props for re-validation
+    - Added `categoryId` field to cart items for proper offer validation
+    - Improved BOGO savings display with "Buy 1 Get 1 Free" label
 
 ### In Progress
 - No tasks currently in progress

@@ -258,14 +258,30 @@ export class OfferValidationService {
       }
     }
 
-    // Special validation for BOGO - need at least 2 items (or qualifying items)
+    // Special validation for BOGO - need at least 2 items
     if (offer.type === OfferType.BUY_ONE_GET_ONE) {
+      const totalItems = context.items.reduce((sum, item) => sum + item.quantity, 0);
+
       if (offer.menuItems && offer.menuItems.length > 0) {
+        // OFFER HAS SPECIFIC ITEMS - check that at least 2 of those items are in cart
         const qualifyingItems = context.items.filter((item) =>
           offer.menuItems.some((mi: any) => mi.menuItemId === item.menuItemId),
         );
-        if (qualifyingItems.length < 1 || qualifyingItems.reduce((sum, item) => sum + item.quantity, 0) < 2) {
-          return { isValid: false, error: 'At least 2 qualifying items required for Buy One Get One offer' };
+        const qualifyingItemsCount = qualifyingItems.reduce((sum, item) => sum + item.quantity, 0);
+
+        if (qualifyingItems.length === 0 || qualifyingItemsCount < 2) {
+          return {
+            isValid: false,
+            error: `At least 2 qualifying items required for Buy One Get One offer (you have ${qualifyingItemsCount})`,
+          };
+        }
+      } else {
+        // OFFER APPLIES TO ALL ITEMS - check that at least 2 total items are in cart
+        if (totalItems < 2) {
+          return {
+            isValid: false,
+            error: `At least 2 items required for Buy One Get One offer (you have ${totalItems})`,
+          };
         }
       }
     }
