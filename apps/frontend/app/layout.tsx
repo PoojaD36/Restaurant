@@ -6,6 +6,7 @@ import { CustomerAuthProvider } from "../contexts/customer-auth-context";
 import { CustomerNotificationProvider } from "../contexts/customer-notification-context";
 import { CartProvider } from "../contexts/cart-context";
 import { LocationProvider } from "../contexts/location-context";
+import { ChatProvider } from "../contexts/chat-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,7 +38,9 @@ export default function RootLayout({
           <CustomerAuthProvider>
             <CustomerNotificationProvider>
               <LocationProvider>
-                <CartProvider>{children}</CartProvider>
+                <CartProvider>
+                  <ChatProvider>{children}</ChatProvider>
+                </CartProvider>
               </LocationProvider>
             </CustomerNotificationProvider>
           </CustomerAuthProvider>

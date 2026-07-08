@@ -14,6 +14,7 @@ import { Card } from '../../components/ui/card';
 import { Badge } from '../../components/ui/badge';
 import { CustomerHeader } from '../../components/customer-header';
 import { CustomerBottomNav } from '../../components/customer-bottom-nav';
+import { ChatWidget } from '../../components/chat-widget';
 
 interface OutletWithDistance extends PublicOutlet {
   distance?: number;
@@ -345,6 +346,9 @@ export default function CustomerPage() {
 
       {/* Bottom Navigation (Mobile Only) */}
       <CustomerBottomNav />
+
+      {/* Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }

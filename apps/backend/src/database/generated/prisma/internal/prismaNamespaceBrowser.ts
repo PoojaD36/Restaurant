@@ -75,7 +75,9 @@ export const ModelName = {
   OfferOutlet: 'OfferOutlet',
   OfferCategory: 'OfferCategory',
   OfferMenuItem: 'OfferMenuItem',
-  OfferUsage: 'OfferUsage'
+  OfferUsage: 'OfferUsage',
+  ChatSession: 'ChatSession',
+  ChatMessage: 'ChatMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -490,6 +492,28 @@ export const OfferUsageScalarFieldEnum = {
 } as const
 
 export type OfferUsageScalarFieldEnum = (typeof OfferUsageScalarFieldEnum)[keyof typeof OfferUsageScalarFieldEnum]
+
+
+export const ChatSessionScalarFieldEnum = {
+  id: 'id',
+  customerId: 'customerId',
+  sessionId: 'sessionId',
+  startedAt: 'startedAt',
+  lastActiveAt: 'lastActiveAt'
+} as const
+
+export type ChatSessionScalarFieldEnum = (typeof ChatSessionScalarFieldEnum)[keyof typeof ChatSessionScalarFieldEnum]
+
+
+export const ChatMessageScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  role: 'role',
+  content: 'content',
+  createdAt: 'createdAt'
+} as const
+
+export type ChatMessageScalarFieldEnum = (typeof ChatMessageScalarFieldEnum)[keyof typeof ChatMessageScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -8,9 +8,10 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger, UseGuards, Inject } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
+import { ChatbotService } from '../chatbot/chatbot.service';
 
 /**
  * WebSocket Gateway for real-time order notifications
@@ -20,6 +21,7 @@ import { PrismaService } from '../database/prisma.service';
  * - Customer-specific rooms (customer:1, customer:2, etc.)
  * - User authentication via JWT
  * - Real-time order notifications (created, updated, cancelled)
+ * - AI Chatbot integration for customer support
  *
  * Events:
  * - subscribe:restaurant - Subscribe to restaurant notifications
@@ -28,6 +30,9 @@ import { PrismaService } from '../database/prisma.service';
  * - order.updated - Order status update notification (to restaurant)
  * - order.cancelled - Order cancellation notification (to restaurant)
  * - order.status.updated - Order status update notification (to customer)
+ * - chat:message - Send chat message to AI bot (from customer)
+ * - chat:response - AI bot response (to customer)
+ * - chat:error - Chat error (to customer)
  */
 @WebSocketGateway({
   cors: {
@@ -52,6 +57,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private chatbotService: ChatbotService,
   ) {
     this.adminJwtSecret = this.configService.get<string>('JWT_SECRET') || 'restaurant-secret-key-change-in-production';
     this.customerJwtSecret = this.configService.get<string>('CUSTOMER_JWT_SECRET') || 'restaurant-customer-secret-key-change-in-production';
@@ -256,6 +262,53 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
       client.emit('unsubscribed', { restaurantId });
     } catch (error) {
       this.logger.error(`Unsubscribe error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Handle chat message from customer
+   * Event: 'chat:message'
+   * Payload: { sessionId?: string, message: string }
+   */
+  @SubscribeMessage('chat:message')
+  async handleChatMessage(
+    @MessageBody() data: { sessionId?: string; message: string },
+    @ConnectedSocket() client: Socket,
+  ) {
+    try {
+      const userId = this.getUserIdFromSocket(client);
+
+      if (!userId) {
+        client.emit('chat:error', { error: 'User not authenticated' });
+        return;
+      }
+
+      const { sessionId, message } = data;
+
+      this.logger.log(`Chat message received from customer ${userId}, session: ${sessionId || 'new'}`);
+
+      // Send typing indicator
+      client.emit('chat:typing', { isTyping: true });
+
+      // Get AI response from chatbot service
+      const response = await this.chatbotService.sendMessage(userId, message, sessionId);
+
+      // Send response back to customer
+      client.emit('chat:response', {
+        sessionId: response.sessionId,
+        response: response.response,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Send typing indicator stopped
+      client.emit('chat:typing', { isTyping: false });
+
+      this.logger.log(`Chat response sent to customer ${userId}, session: ${response.sessionId}`);
+    } catch (error) {
+      this.logger.error(`Chat message error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      client.emit('chat:error', {
+        error: error instanceof Error ? error.message : 'Failed to process chat message',
+      });
     }
   }
 

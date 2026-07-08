@@ -3,11 +3,13 @@ import { NotificationsGateway } from './notifications.gateway';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PrismaModule } from 'src/database/database.module';
+import { ChatbotModule } from 'src/chatbot/chatbot.module';
 
 @Module({
   imports: [
     ConfigModule,
     PrismaModule,
+    ChatbotModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

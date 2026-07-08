@@ -142,3 +142,13 @@ export type OfferMenuItem = Prisma.OfferMenuItemModel
  * 
  */
 export type OfferUsage = Prisma.OfferUsageModel
+/**
+ * Model ChatSession
+ * 
+ */
+export type ChatSession = Prisma.ChatSessionModel
+/**
+ * Model ChatMessage
+ * 
+ */
+export type ChatMessage = Prisma.ChatMessageModel

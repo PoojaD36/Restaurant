@@ -307,3 +307,4 @@ export class OfferCalculationService {
     return { discountAmount, applicableItems };
   }
 }
+

@@ -212,6 +212,7 @@ model Customer {
   addresses CustomerAddress[]
   orders    Order[]
   carts     CustomerCart[]
+  chatSessions ChatSession[]
 
   @@map("customers")
   offerUsages OfferUsage[]
@@ -748,4 +749,33 @@ model OfferUsage {
   @@index([orderId])
 
   @@map("offer_usages")
+}
+
+// Chat models for AI chatbot feature
+model ChatSession {
+  id          Int         @id @default(autoincrement())
+  customerId  Int
+  sessionId   String      @unique
+  startedAt   DateTime    @default(now())
+  lastActiveAt DateTime   @default(now())
+
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages    ChatMessage[]
+
+  @@index([customerId])
+  @@index([sessionId])
+  @@map("chat_sessions")
+}
+
+model ChatMessage {
+  id          Int         @id @default(autoincrement())
+  sessionId   Int
+  role        String      // "user" or "assistant"
+  content     String
+  createdAt   DateTime    @default(now())
+
+  session     ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@map("chat_messages")
 }
