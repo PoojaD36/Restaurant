@@ -210,6 +210,7 @@ d:\restaurant/
 | Notifications Module | ✅ Complete | WebSocket gateway for real-time order notifications (restaurant + customer) with dual JWT token support |
 | Dashboard Module | ✅ Complete | Dashboard analytics with statistics, recent orders, revenue analytics, popular items, staff performance |
 | **Offer Module** | ✅ **Complete** | **Discount/coupon system with 4 offer types (PERCENTAGE, FIXED, FREE_DELIVERY, BUY_ONE_GET_ONE), flexible BOGO (all items or specific items), auto coupon removal on cart changes, 3 scopes (PUBLIC, RESTAURANT, OUTLET), validation engine, calculation service, usage tracking, admin CRUD, customer apply/preview endpoints** |
+| **Events Module** | ✅ **Complete** | **Event-driven architecture with EventEmitter2 for decoupled notification handling. Event listeners for order lifecycle (order.created, order.status.updated, order.cancelled, order.paid, delivery.agent.assigned, order.preparing, order.ready, order.delivered), customer registration, and offer usage tracking** |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
 | Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, Offer models (Offer, OfferOutlet, OfferCategory, OfferMenuItem, OfferUsage), required lat/lng |
@@ -816,6 +817,82 @@ notificationSocket.on('order.status.updated', (data) => {
 - **Red dot (disconnected):** Check browser console for WebSocket errors, verify backend is running
 - **No notifications received:** Verify user is assigned to restaurant/outlet in database
 - **JWT errors:** Ensure JWT_SECRET and CUSTOMER_JWT_SECRET are set correctly
+
+---
+
+### Event-Driven Architecture
+
+The system uses **Event-Driven Architecture** with EventEmitter2 for decoupled notification handling and extensible event processing.
+
+**Architecture:**
+- **Backend:** NestJS EventEmitter2 module (`events/`) with event listeners for order lifecycle, customer events, and offer tracking
+- **Event Emission:** OrderService emits events at key lifecycle points using EventEmitter2
+- **Event Listeners:** Dedicated listener classes handle events independently, enabling multiple consumers (WebSocket, future email/SMS, analytics)
+
+**Event Types:**
+
+| Event | Emitted When | Listeners | Purpose |
+|-------|--------------|-----------|---------|
+| `order.created` | New order placed | OrderListener | Notify restaurant, send confirmations, track analytics |
+| `order.status.updated` | Order status changes | OrderListener | Notify customer, log history, update analytics |
+| `order.cancelled` | Order cancelled | OrderListener | Notify restaurant and customer, release inventory |
+| `order.paid` | Payment completed | OrderListener | Notify kitchen, send receipt, confirm order |
+| `delivery.agent.assigned` | Agent assigned to order | OrderListener | Notify agent and customer, update status |
+| `order.preparing` | Chef starts preparing | OrderListener | Notify restaurant of preparation start |
+| `order.ready` | Order ready for delivery | OrderListener | Notify restaurant and customer |
+| `order.delivered` | Order delivered | OrderListener | Notify customer, complete order |
+| `customer.registered` | Customer signs up | CustomerListener | Send welcome email (future), init analytics |
+| `offer.applied` | Offer code used | OfferListener | Log usage, track in analytics, decrement usage count |
+
+**File Structure:**
+```
+apps/backend/src/events/
+├── events.module.ts          # EventEmitter2 configuration
+├── interfaces/
+│   └── event-payloads.interface.ts  # TypeScript interfaces for all events
+├── listeners/
+│   ├── order.listener.ts      # Order event handlers
+│   ├── customer.listener.ts   # Customer event handlers
+│   └── offer.listener.ts      # Offer event handlers
+└── dto/                       # (unused - events are internal, not HTTP endpoints)
+```
+
+**Example Event Flow:**
+```typescript
+// OrderService emits event
+this.eventEmitter.emit('order.created', {
+  orderId: order.id,
+  outletId: order.outletId,
+  customerId: order.customerId,
+  total: Number(order.total),
+  // ... more fields
+});
+
+// OrderListener handles event
+@OnEvent('order.created')
+async handleOrderCreated(payload: OrderCreatedEvent) {
+  // 1. Notify restaurant via WebSocket
+  await this.notificationsGateway.notifyOrderCreated(payload.outletId, {...});
+  
+  // 2. Future: Send SMS confirmation
+  // await this.smsService.sendOrderConfirmation(payload);
+  
+  // 3. Future: Send email receipt
+  // await this.emailService.sendOrderConfirmation(payload);
+}
+```
+
+**Benefits:**
+- **Decoupling:** Business logic separated from notification logic
+- **Extensibility:** New consumers (email, SMS, analytics) can be added without modifying OrderService
+- **Testability:** Event listeners can be tested independently
+- **Audit Trail:** All events are logged for debugging and compliance
+- **Non-Blocking:** Event emission is async and won't block order operations
+
+**Configuration:**
+- `wildcard: false` - Disabled for performance
+- `maxListeners: 10` - Maximum listeners per event (prevents memory leaks)
+- `verboseMemoryLeak: true` - Detects memory leaks in development
 
 ### Role Permissions
 
@@ -1638,6 +1715,16 @@ npx shadcn@latest add dialog -y
     - `OfferCodeInput` component now accepts `cartSubtotal` and `cartItems` props for re-validation
     - Added `categoryId` field to cart items for proper offer validation
     - Improved BOGO savings display with "Buy 1 Get 1 Free" label
+- ✅ **Event-Driven Architecture Implementation** - Complete event-driven system with EventEmitter2 - 2026-07-21
+  - **Events Module Created**: `events.module.ts` with EventEmitter2 configuration (wildcard: false, maxListeners: 10, verboseMemoryLeak: true)
+  - **Event Interfaces Defined**: `event-payloads.interface.ts` with TypeScript interfaces for all event payloads (OrderCreatedEvent, OrderStatusUpdatedEvent, OrderCancelledEvent, OrderPaidEvent, DeliveryAgentAssignedEvent, OrderPreparingEvent, OrderReadyEvent, OrderDeliveredEvent, CustomerRegisteredEvent, AddressAddedEvent, OfferAppliedEvent)
+  - **Event Listeners Implemented**:
+    - `OrderListener` - Handles all order lifecycle events (order.created, order.status.updated, order.cancelled, order.paid, delivery.agent.assigned, order.preparing, order.ready, order.delivered)
+    - `CustomerListener` - Handles customer events (customer.registered, customer.address.added)
+    - `OfferListener` - Handles offer events (offer.applied)
+  - **OrderService Event Emission**: Event emission added at key lifecycle points in OrderModuleService (claimOrder, markOrderReady, assignDeliveryAgent)
+  - **TypeScript Fixes**: All event listener imports fixed to use `import type` syntax for decorator compatibility
+  - **Benefits**: Decoupled business logic from notification logic, extensible architecture for future enhancements (email, SMS, analytics), non-blocking event processing
 
 ### In Progress
 - No tasks currently in progress
@@ -1796,7 +1883,1373 @@ src/{module-name}/
 
 ---
 
-## Notes
+## Advanced Features to Implement
+
+> **Purpose:** This section outlines advanced NestJS features that can be added to enhance the project. These features provide scheduled tasks, event-driven architecture, and microservices capabilities.
+
+### Overview
+
+The project currently does NOT use any of the following advanced features. Implementing these will make the system more robust, scalable, and maintainable:
+
+| Feature | Purpose | Use Case in Restaurant Project |
+|---------|---------|-------------------------------|
+| **@Cron** | Scheduled tasks (runs at specific times) | Daily sales reports, Auto-expire offers, Cleanup tasks |
+| **@Interval** | Recurring tasks at fixed intervals | Payment polling, Cache updates, Health checks |
+| **@OnEvent** | Event listeners (event-driven architecture) | Order created → multiple actions (notify, log, email) |
+| **EventEmitter2** | Event emitter for pub/sub patterns | Internal event communication |
+| **EventPattern** | Microservice event handling | Inter-service communication |
+| **ClientProxy** | Microservice client communication | Send events to other services |
+| **@Timeout** | Delayed execution | Follow-up emails, Cart abandonment reminders |
+
+### Prerequisites
+
+To use these features, install the required packages:
+
+```bash
+# For @Cron, @Interval, @Timeout
+pnpm add @nestjs/schedule
+
+# For EventEmitter2 (usually included in @nestjs/common)
+pnpm add @nestjs/event-emitter
+
+# For microservices (EventPattern, ClientProxy)
+pnpm add @nestjs/microservices
+# For Redis transport (recommended)
+pnpm add ioredis
+# OR for RabbitMQ transport
+pnpm add amqplib amqp-connection-manager
+```
+
+---
+
+### 1. @Cron - Scheduled Tasks
+
+Run tasks at specific times using cron expressions.
+
+#### Use Cases
+
+| Feature | Description | Cron Expression | Priority |
+|---------|-------------|-----------------|----------|
+| **Daily Sales Report** | Generate and email daily revenue/sales report to admins | `0 0 8 * * *` (8 AM daily) | High |
+| **Auto-Expire Offers** | Check and mark expired offers as EXPIRED status | `0 0 * * * *` (every hour) | High |
+| **Clean Up Tokens** | Remove expired refresh tokens from database | `0 0 0 * * *` (midnight daily) | Medium |
+| **Auto-Cancel Pending Orders** | Cancel orders stuck in PENDING > 30 minutes | `*/15 * * * *` (every 15 min) | High |
+| **Generate Daily Analytics** | Aggregate daily stats for dashboard cache | `0 1 0 * * *` (12:01 AM daily) | Medium |
+| **Weekly Restaurant Summary** | Email weekly performance to restaurant admins | `0 0 9 * * 1` (9 AM Monday) | Low |
+| **Abandoned Cart Cleanup** | Clear cart data older than 7 days | `0 0 3 * * *` (3 AM daily) | Low |
+
+#### Implementation
+
+**File Structure:**
+```
+apps/backend/src/
+├── jobs/
+│   ├── jobs.module.ts
+│   ├── schedulers/
+│   │   ├── daily-report.scheduler.ts
+│   │   ├── offer-expiration.scheduler.ts
+│   │   ├── token-cleanup.scheduler.ts
+│   │   └── order-cleanup.scheduler.ts
+│   └── dto/
+```
+
+**jobs.module.ts:**
+```typescript
+import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
+import { DailyReportScheduler } from './schedulers/daily-report.scheduler';
+import { OfferExpirationScheduler } from './schedulers/offer-expiration.scheduler';
+import { TokenCleanupScheduler } from './schedulers/token-cleanup.scheduler';
+import { OrderCleanupScheduler } from './schedulers/order-cleanup.scheduler';
+import { PrismaService } from '../database/prisma.service';
+import { OfferModule } from '../offer-module/offer.module';
+import { OrderModule } from '../order-module/order.module';
+
+@Module({
+  imports: [ScheduleModule.forRoot(), OfferModule, OrderModule],
+  providers: [
+    DailyReportScheduler,
+    OfferExpirationScheduler,
+    TokenCleanupScheduler,
+    OrderCleanupScheduler,
+    PrismaService,
+  ],
+})
+export class JobsModule {}
+```
+
+**daily-report.scheduler.ts:**
+```typescript
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+
+@Injectable()
+export class DailyReportScheduler {
+  private readonly logger = new Logger(DailyReportScheduler.name);
+
+  constructor(private prisma: PrismaService) {}
+
+  @Cron('0 0 8 * * *', {
+    name: 'daily-sales-report',
+    timeZone: 'Asia/Kolkata',
+  })
+  async handleDailySalesReport() {
+    this.logger.log('📊 Generating daily sales report...');
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    try {
+      // Get today's orders
+      const orders = await this.prisma.order.findMany({
+        where: {
+          createdAt: {
+            gte: today,
+            lt: tomorrow,
+          },
+          status: { not: 'CANCELLED' },
+        },
+        include: {
+          items: true,
+          payment: true,
+          outlet: {
+            include: { restaurant: true },
+          },
+        },
+      });
+
+      // Calculate stats
+      const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+      const totalOrders = orders.length;
+      const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+      const report = {
+        date: today.toISOString().split('T')[0],
+        totalRevenue,
+        totalOrders,
+        avgOrderValue: Math.round(avgOrderValue),
+        paymentBreakdown: {
+          online: orders.filter(o => o.payment?.method === 'CARD' || o.payment?.method === 'UPI' || o.payment?.method === 'WALLET').length,
+          cod: orders.filter(o => o.payment?.method === 'CASH').length,
+        },
+        restaurantBreakdown: orders.reduce((acc, order) => {
+          const restaurantName = order.outlet.restaurant.name;
+          acc[restaurantName] = (acc[restaurantName] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+      };
+
+      this.logger.log(`Daily Report: ${JSON.stringify(report, null, 2)}`);
+
+      // TODO: Send email to super admins
+      // await this.emailService.sendDailyReport(report);
+
+    } catch (error) {
+      this.logger.error('Failed to generate daily sales report', error);
+    }
+  }
+}
+```
+
+**offer-expiration.scheduler.ts:**
+```typescript
+import { Cron, CronExpression } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+
+@Injectable()
+export class OfferExpirationScheduler {
+  private readonly logger = new Logger(OfferExpirationScheduler.name);
+
+  constructor(private prisma: PrismaService) {}
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async expireOffers() {
+    this.logger.log('🔄 Checking for expired offers...');
+
+    try {
+      const now = new Date();
+
+      // Find active offers that have expired
+      const expiredOffers = await this.prisma.offer.findMany({
+        where: {
+          status: 'ACTIVE',
+          endDate: {
+            lte: now,
+          },
+        },
+      });
+
+      if (expiredOffers.length > 0) {
+        // Update all to EXPIRED
+        await this.prisma.offer.updateMany({
+          where: {
+            id: { in: expiredOffers.map(o => o.id) },
+          },
+          data: { status: 'EXPIRED' },
+        });
+
+        this.logger.log(`✅ Expired ${expiredOffers.length} offers`);
+      }
+
+      // Activate scheduled offers
+      const scheduledOffers = await this.prisma.offer.findMany({
+        where: {
+          status: 'SCHEDULED',
+          startDate: {
+            lte: now,
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Within last 24h
+          },
+        },
+      });
+
+      if (scheduledOffers.length > 0) {
+        await this.prisma.offer.updateMany({
+          where: {
+            id: { in: scheduledOffers.map(o => o.id) },
+          },
+          data: { status: 'ACTIVE' },
+        });
+
+        this.logger.log(`✅ Activated ${scheduledOffers.length} scheduled offers`);
+      }
+
+    } catch (error) {
+      this.logger.error('Failed to expire/activate offers', error);
+    }
+  }
+}
+```
+
+**token-cleanup.scheduler.ts:**
+```typescript
+import { Cron } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+
+@Injectable()
+export class TokenCleanupScheduler {
+  private readonly logger = new Logger(TokenCleanupScheduler.name);
+
+  constructor(private prisma: PrismaService) {}
+
+  @Cron('0 0 0 * * *')
+  async cleanupExpiredTokens() {
+    this.logger.log('🧹 Cleaning up expired tokens...');
+
+    try {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      // Delete expired refresh tokens older than 30 days
+      const result = await this.prisma.userPassword.deleteMany({
+        where: {
+          refreshTokenExpiresAt: {
+            lt: thirtyDaysAgo,
+          },
+        },
+      });
+
+      this.logger.log(`✅ Cleaned up ${result.count} expired tokens`);
+
+      // Also cleanup customer refresh tokens
+      const customerResult = await this.prisma.customerPassword.deleteMany({
+        where: {
+          refreshTokenExpiresAt: {
+            lt: thirtyDaysAgo,
+          },
+        },
+      });
+
+      this.logger.log(`✅ Cleaned up ${customerResult.count} customer tokens`);
+
+    } catch (error) {
+      this.logger.error('Failed to cleanup tokens', error);
+    }
+  }
+}
+```
+
+**order-cleanup.scheduler.ts:**
+```typescript
+import { Cron } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+
+@Injectable()
+export class OrderCleanupScheduler {
+  private readonly logger = new Logger(OrderCleanupScheduler.name);
+
+  constructor(private prisma: PrismaService) {}
+
+  @Cron('*/15 * * * *')
+  async cancelStaleOrders() {
+    this.logger.log('⏰ Checking for stale pending orders...');
+
+    try {
+      const thirtyMinutesAgo = new Date();
+      thirtyMinutesAgo.setMinutes(thirtyMinutesAgo.getMinutes() - 30);
+
+      // Find orders in PENDING status for more than 30 minutes
+      const staleOrders = await this.prisma.order.findMany({
+        where: {
+          status: 'PENDING',
+          createdAt: {
+            lt: thirtyMinutesAgo,
+          },
+        },
+        include: {
+          customer: true,
+        },
+      });
+
+      if (staleOrders.length > 0) {
+        // Cancel all stale orders
+        await this.prisma.order.updateMany({
+          where: {
+            id: { in: staleOrders.map(o => o.id) },
+          },
+          data: {
+            status: 'CANCELLED',
+            cancellationReason: 'Auto-cancelled: Order not confirmed within 30 minutes',
+          },
+        });
+
+        this.logger.log(`✅ Cancelled ${staleOrders.length} stale orders`);
+
+        // TODO: Send notifications to customers about auto-cancellation
+        // for (const order of staleOrders) {
+        //   await this.notificationService.notifyOrderCancelled(order);
+        // }
+      }
+
+    } catch (error) {
+      this.logger.error('Failed to cancel stale orders', error);
+    }
+  }
+}
+```
+
+---
+
+### 2. @Interval - Recurring Tasks
+
+Run tasks at fixed intervals (in milliseconds).
+
+#### Use Cases
+
+| Feature | Description | Interval | Priority |
+|---------|-------------|----------|----------|
+| **Payment Status Poll** | Poll Razorpay for COD payment link status | 3000ms (3 sec) | High |
+| **Order Status Sync** | Sync order status with external delivery API | 30000ms (30 sec) | Medium |
+| **WebSocket Health Check** | Check active WebSocket connections | 60000ms (1 min) | Low |
+| **Dashboard Cache Update** | Update dashboard stats cache | 300000ms (5 min) | Medium |
+| **Delivery Agent Tracking** | Poll agent GPS location updates | 10000ms (10 sec) | Medium |
+
+#### Implementation
+
+**File Structure:**
+```
+apps/backend/src/
+├── jobs/
+│   └── intervals/
+│       ├── payment-poll.interval.ts
+│       ├── cache-update.interval.ts
+│       └── health-check.interval.ts
+```
+
+**payment-poll.interval.ts:**
+```typescript
+import { Interval } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+
+@Injectable()
+export class PaymentPollInterval {
+  private readonly logger = new Logger(PaymentPollInterval.name);
+  private activePolls = new Map<string, NodeJS.Timeout>();
+
+  constructor(private prisma: PrismaService) {}
+
+  @Interval(30000) // Every 30 seconds
+  async checkPendingPaymentLinks() {
+    try {
+      // Find orders with PENDING payment status and COD method
+      const pendingOrders = await this.prisma.order.findMany({
+        where: {
+          payment: {
+            status: 'PENDING',
+            method: 'CASH',
+          },
+          status: { in: ['OUT_FOR_DELIVERY', 'DELIVERED'] },
+        },
+        include: { payment: true },
+      });
+
+      for (const order of pendingOrders) {
+        if (order.payment?.paymentLinkId) {
+          // Check payment link status with Razorpay
+          const status = await this.checkPaymentLinkStatus(order.payment.paymentLinkId);
+
+          if (status === 'paid') {
+            // Update payment status
+            await this.prisma.payment.update({
+              where: { id: order.payment.id },
+              data: { status: 'COMPLETED' },
+            });
+
+            this.logger.log(`✅ Payment completed for order ${order.id}`);
+          }
+        }
+      }
+
+    } catch (error) {
+      this.logger.error('Failed to check payment links', error);
+    }
+  }
+
+  private async checkPaymentLinkStatus(paymentLinkId: string): Promise<string> {
+    // TODO: Implement Razorpay payment link status check
+    // const response = await razorpay.paymentLink.fetch(paymentLinkId);
+    // return response.status;
+    return 'unpaid';
+  }
+}
+```
+
+**cache-update.interval.ts:**
+```typescript
+import { Interval } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+import { RedisService } from '../cache/redis.service'; // Assuming Redis cache
+
+@Injectable()
+export class CacheUpdateInterval {
+  private readonly logger = new Logger(CacheUpdateInterval.name);
+
+  constructor(
+    private prisma: PrismaService,
+    private redis: RedisService,
+  ) {}
+
+  @Interval(300000) // Every 5 minutes
+  async updateDashboardCache() {
+    this.logger.log('🔄 Updating dashboard analytics cache...');
+
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Calculate today's stats
+      const stats = await this.prisma.$transaction(async (tx) => {
+        const [totalOrders, totalRevenue, activeUsers, totalCustomers] = await Promise.all([
+          tx.order.count({
+            where: {
+              createdAt: { gte: today },
+              status: { not: 'CANCELLED' },
+            },
+          }),
+          tx.order.aggregate({
+            where: {
+              createdAt: { gte: today },
+              status: { not: 'CANCELLED' },
+            },
+            _sum: { total: true },
+          }),
+          tx.user.count({ where: { status: 'ACTIVE' } }),
+          tx.customer.count({ where: { status: 'ACTIVE' } }),
+        ]);
+
+        return {
+          todayOrders: totalOrders,
+          todayRevenue: totalRevenue._sum.total || 0,
+          activeUsers,
+          totalCustomers,
+          timestamp: new Date().toISOString(),
+        };
+      });
+
+      // Cache in Redis with 5-minute expiration
+      await this.redis.set('dashboard:stats:today', JSON.stringify(stats), 300);
+
+      this.logger.log(`✅ Dashboard cache updated: ${JSON.stringify(stats)}`);
+
+    } catch (error) {
+      this.logger.error('Failed to update dashboard cache', error);
+    }
+  }
+}
+```
+
+---
+
+### 3. @OnEvent - Event Listeners
+
+Implement event-driven architecture using EventEmitter2.
+
+#### Use Cases
+
+| Event | Triggered When | Listeners (Actions) |
+|-------|---------------|---------------------|
+| **order.created** | New order is created | Send SMS/Email, Update inventory, Create notification, Log analytics, Notify kitchen |
+| **order.paid** | Payment is completed | Confirm order, Notify kitchen, Send receipt, Update payment records |
+| **order.status.updated** | Order status changes | Notify customer, Update delivery ETA, Log in history, Update analytics |
+| **customer.registered** | Customer registers | Send welcome email, Create profile stats, Track analytics |
+| **offer.applied** | Offer code is applied | Log usage, Decrease usage count, Validate constraints |
+| **review.submitted** | Customer submits review | Update restaurant rating, Notify admin, Moderate content |
+
+#### Implementation
+
+**File Structure:**
+```
+apps/backend/src/
+├── events/
+│   ├── events.module.ts
+│   ├── listeners/
+│   │   ├── order.listener.ts
+│   │   ├── customer.listener.ts
+│   │   └── offer.listener.ts
+│   └── emitters/
+│       └── event-emitter.service.ts
+```
+
+**events.module.ts:**
+```typescript
+import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { OrderListener } from './listeners/order.listener';
+import { CustomerListener } from './listeners/customer.listener';
+import { OfferListener } from './listeners/offer.listener';
+import { NotificationService } from '../notifications/notifications.service';
+
+@Module({
+  imports: [
+    EventEmitterModule.forRoot({
+      wildcard: false, // Set to true to use wildcard events
+      delimiter: '.',  // Delimiter for wildcard events
+      newListener: false, // Listen for 'newListener' event
+      maxListeners: 10, // Maximum listeners per event
+      verboseMemoryLeak: true, // Detect memory leaks
+    }),
+  ],
+  providers: [
+    OrderListener,
+    CustomerListener,
+    OfferListener,
+    NotificationService,
+  ],
+  exports: [EventEmitterModule],
+})
+export class EventsModule {}
+```
+
+**Emitting Events (in existing services):**
+```typescript
+// src/order/order.service.ts
+import { EventEmitter2 } from '@nestjs/event-emitter';
+
+@Injectable()
+export class OrderService {
+  constructor(
+    private prisma: PrismaService,
+    private eventEmitter: EventEmitter2,
+  ) {}
+
+  async createOrder(dto: CreateOrderDto, customerId: number) {
+    const order = await this.prisma.order.create({
+      data: {
+        customerId,
+        outletId: dto.outletId,
+        addressId: dto.addressId,
+        total: dto.total,
+        items: {
+          create: dto.items.map(item => ({
+            menuItemId: item.menuItemId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            modifiers: item.modifiers || [],
+          })),
+        },
+        payment: {
+          create: {
+            method: dto.paymentMethod,
+            status: 'PENDING',
+          },
+        },
+      },
+    });
+
+    // Emit event for other services to listen
+    this.eventEmitter.emit('order.created', {
+      orderId: order.id,
+      customerId: order.customerId,
+      outletId: order.outletId,
+      total: order.total,
+      paymentMethod: dto.paymentMethod,
+      items: order.items,
+      createdAt: order.createdAt,
+    });
+
+    return order;
+  }
+
+  async updateOrderStatus(orderId: number, status: OrderStatus) {
+    const order = await this.prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+      include: { customer: true, outlet: true },
+    });
+
+    // Emit status update event
+    this.eventEmitter.emit('order.status.updated', {
+      orderId: order.id,
+      customerId: order.customerId,
+      previousStatus: order.status,
+      newStatus: status,
+      outletId: order.outletId,
+    });
+
+    return order;
+  }
+}
+```
+
+**order.listener.ts:**
+```typescript
+import { OnEvent } from '@nestjs/event-emitter';
+import { Injectable, Logger } from '@nestjs/common';
+import { NotificationService } from '../notifications/notifications.service';
+import { AnalyticsService } from '../analytics/analytics.service';
+import { EmailService } from '../email/email.service';
+import { SmsService } from '../sms/sms.service';
+
+@Injectable()
+export class OrderListener {
+  private readonly logger = new Logger(OrderListener.name);
+
+  constructor(
+    private notificationService: NotificationService,
+    private analyticsService: AnalyticsService,
+    private emailService: EmailService,
+    private smsService: SmsService,
+  ) {}
+
+  @OnEvent('order.created')
+  async handleOrderCreated(payload: any) {
+    this.logger.log(`📦 Order created event received: ${payload.orderId}`);
+
+    try {
+      // 1. Send notification to restaurant
+      await this.notificationService.notifyRestaurant({
+        outletId: payload.outletId,
+        message: `New order #${payload.orderId} received`,
+        orderId: payload.orderId,
+        total: payload.total,
+      });
+
+      // 2. Track in analytics
+      await this.analyticsService.trackOrderCreated({
+        orderId: payload.orderId,
+        customerId: payload.customerId,
+        outletId: payload.outletId,
+        total: payload.total,
+        paymentMethod: payload.paymentMethod,
+        itemCount: payload.items.length,
+      });
+
+      // 3. Send SMS to customer
+      await this.smsService.sendOrderConfirmation({
+        orderId: payload.orderId,
+        phone: payload.customerPhone,
+        total: payload.total,
+      });
+
+      // 4. Send email receipt
+      await this.emailService.sendOrderConfirmation({
+        orderId: payload.orderId,
+        email: payload.customerEmail,
+        total: payload.total,
+        items: payload.items,
+      });
+
+      this.logger.log(`✅ Order created event processed successfully`);
+
+    } catch (error) {
+      this.logger.error('Failed to process order.created event', error);
+    }
+  }
+
+  @OnEvent('order.status.updated')
+  async handleOrderStatusUpdated(payload: any) {
+    this.logger.log(`📤 Order status updated: ${payload.orderId} → ${payload.newStatus}`);
+
+    try {
+      // 1. Notify customer via WebSocket
+      await this.notificationService.notifyCustomer({
+        customerId: payload.customerId,
+        message: this.getStatusMessage(payload.newStatus, payload.orderId),
+        orderId: payload.orderId,
+        status: payload.newStatus,
+      });
+
+      // 2. Track status change in analytics
+      await this.analyticsService.trackStatusChange({
+        orderId: payload.orderId,
+        previousStatus: payload.previousStatus,
+        newStatus: payload.newStatus,
+      });
+
+      // 3. Log to order history
+      // await this.prisma.orderHistory.create({...});
+
+      this.logger.log(`✅ Order status updated event processed`);
+
+    } catch (error) {
+      this.logger.error('Failed to process order.status.updated event', error);
+    }
+  }
+
+  @OnEvent('order.paid')
+  async handleOrderPaid(payload: any) {
+    this.logger.log(`💰 Order paid: ${payload.orderId}`);
+
+    try {
+      // 1. Notify kitchen to start preparing
+      await this.notificationService.notifyKitchen({
+        outletId: payload.outletId,
+        orderId: payload.orderId,
+        message: 'Order paid! Start preparing.',
+      });
+
+      // 2. Update order status to CONFIRMED
+      // await this.prisma.order.update({...});
+
+      // 3. Send receipt
+      await this.emailService.sendPaymentReceipt({
+        orderId: payload.orderId,
+        email: payload.customerEmail,
+        amount: payload.amount,
+        transactionId: payload.transactionId,
+      });
+
+      this.logger.log(`✅ Order paid event processed`);
+
+    } catch (error) {
+      this.logger.error('Failed to process order.paid event', error);
+    }
+  }
+
+  private getStatusMessage(status: string, orderId: number): string {
+    const messages = {
+      CONFIRMED: `Your order #${orderId} has been confirmed!`,
+      PREPARING: `Your order #${orderId} is being prepared. It won't be long!`,
+      READY: `Your order #${orderId} is ready and waiting for delivery partner!`,
+      OUT_FOR_DELIVERY: `Your order #${orderId} is out for delivery!`,
+      DELIVERED: `Your order #${orderId} has been delivered. Enjoy your meal!`,
+      CANCELLED: `Your order #${orderId} has been cancelled.`,
+    };
+    return messages[status] || `Order #${orderId} status updated to ${status}`;
+  }
+}
+```
+
+**customer.listener.ts:**
+```typescript
+import { OnEvent } from '@nestjs/event-emitter';
+import { Injectable, Logger } from '@nestjs/common';
+import { EmailService } from '../email/email.service';
+
+@Injectable()
+export class CustomerListener {
+  private readonly logger = new Logger(CustomerListener.name);
+
+  constructor(private emailService: EmailService) {}
+
+  @OnEvent('customer.registered')
+  async handleCustomerRegistered(payload: any) {
+    this.logger.log(`👤 New customer registered: ${payload.customerId}`);
+
+    try {
+      // Send welcome email
+      await this.emailService.sendWelcomeEmail({
+        email: payload.email,
+        name: payload.name,
+      });
+
+      // Create customer profile stats
+      // await this.analyticsService.initCustomerStats(payload.customerId);
+
+      this.logger.log(`✅ Customer registered event processed`);
+
+    } catch (error) {
+      this.logger.error('Failed to process customer.registered event', error);
+    }
+  }
+
+  @OnEvent('customer.address.added')
+  async handleAddressAdded(payload: any) {
+    this.logger.log(`📍 Address added for customer: ${payload.customerId}`);
+
+    // Geocode address if not already done
+    // Update customer stats
+  }
+}
+```
+
+**offer.listener.ts:**
+```typescript
+import { OnEvent } from '@nestjs/event-emitter';
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+
+@Injectable()
+export class OfferListener {
+  private readonly logger = new Logger(OfferListener.name);
+
+  constructor(private prisma: PrismaService) {}
+
+  @OnEvent('offer.applied')
+  async handleOfferApplied(payload: any) {
+    this.logger.log(`🎁 Offer applied: ${payload.code} for order ${payload.orderId}`);
+
+    try {
+      // Log usage
+      await this.prisma.offerUsage.create({
+        data: {
+          offerId: payload.offerId,
+          customerId: payload.customerId,
+          orderId: payload.orderId,
+          discountAmount: payload.discountAmount,
+        },
+      });
+
+      // Decrease usage count if applicable
+      if (payload.maxUses) {
+        await this.prisma.offer.update({
+          where: { id: payload.offerId },
+          data: {
+            currentUses: { increment: 1 },
+          },
+        });
+      }
+
+      // Log to analytics
+      // await this.analyticsService.trackOfferUsed(payload);
+
+      this.logger.log(`✅ Offer applied event processed`);
+
+    } catch (error) {
+      this.logger.error('Failed to process offer.applied event', error);
+    }
+  }
+}
+```
+
+---
+
+### 4. EventEmitter2 - Event-Driven Architecture
+
+For more advanced event patterns including wildcards and async handling.
+
+#### Implementation
+
+**event-emitter.service.ts:**
+```typescript
+import { Injectable, Logger } from '@nestjs/common';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+
+@Injectable()
+export class EventEmitterService {
+  private readonly logger = new Logger(EventEmitterService.name);
+
+  constructor(private eventEmitter: EventEmitter2) {}
+
+  // Emit events with proper typing
+  emitOrderCreated(data: OrderCreatedEvent) {
+    this.eventEmitter.emit('order.created', data);
+  }
+
+  emitOrderStatusUpdated(data: OrderStatusUpdatedEvent) {
+    this.eventEmitter.emit('order.status.updated', data);
+  }
+
+  emitWildcard(pattern: string, data: any) {
+    this.eventEmitter.emit(pattern, data);
+  }
+
+  // Async event listener with error handling
+  @OnEvent('order.*', { async: true })
+  async handleAllOrderEvents(payload: any) {
+    // This catches all order.* events
+    this.logger.log(`Order event received: ${payload}`);
+  }
+}
+
+// Event interfaces
+interface OrderCreatedEvent {
+  orderId: number;
+  customerId: number;
+  outletId: number;
+  total: number;
+  paymentMethod: string;
+}
+
+interface OrderStatusUpdatedEvent {
+  orderId: number;
+  customerId: number;
+  previousStatus: string;
+  newStatus: string;
+}
+```
+
+---
+
+### 5. EventPattern / ClientProxy - Microservices
+
+For microservices architecture with inter-service communication.
+
+#### Use Cases
+
+| Service | Emits Event | Consuming Service | Purpose |
+|---------|-------------|-------------------|---------|
+| **Order Service** | `order.created` | Payment Service, Notification Service, Kitchen Service | Trigger payment, notify, start preparation |
+| **Payment Service** | `payment.completed` | Order Service, Email Service | Confirm order, send receipt |
+| **Delivery Service** | `delivery.assigned` | Order Service, Notification Service | Update order status, notify customer |
+
+#### Architecture
+
+```
+┌─────────────────────┐     ┌──────────────────────┐     ┌─────────────────────┐
+│   Order Service     │────▶│  Payment Service     │────▶│   Email Service     │
+│   (Port 3001)       │     │  (Port 3002)         │     │   (Port 3003)       │
+└─────────────────────┘     └──────────────────────┘     └─────────────────────┘
+         │                            │                            │
+         └────────────────────────────┴────────────────────────────┘
+                         Shared Event Bus (Redis/RabbitMQ)
+```
+
+#### Implementation
+
+**Using Redis as Transport:**
+
+```bash
+pnpm add ioredis @nestjs/microservices
+```
+
+**order.service.ts (Microservice):**
+```typescript
+import { Controller } from '@nestjs/common';
+import { EventPattern, Payload, Ctx, RmqContext } from '@nestjs/microservices';
+import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
+
+@Controller()
+export class OrderMicroserviceController {
+  private client: ClientProxy;
+
+  constructor() {
+    // Create client for emitting events
+    this.client = ClientProxyFactory.create({
+      transport: Transport.REDIS,
+      options: {
+        host: 'localhost',
+        port: 6379,
+      },
+    });
+  }
+
+  // Emit event when order is created
+  async createOrder(orderData: any) {
+    const order = await this.prisma.order.create({ data: orderData });
+
+    // Emit to payment service
+    this.client.emit('order.created', order).toPromise();
+
+    return order;
+  }
+
+  // Listen for payment completed events
+  @EventPattern('payment.completed')
+  async handlePaymentCompleted(@Payload() data: any, @Ctx() context: RmqContext) {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+
+    try {
+      // Mark order as paid
+      await this.prisma.order.update({
+        where: { id: data.orderId },
+        data: { status: 'CONFIRMED' },
+      });
+
+      // Acknowledge message
+      channel.ack(originalMsg);
+
+    } catch (error) {
+      // Reject message on error
+      channel.nack(originalMsg);
+    }
+  }
+
+  @EventPattern('delivery.assigned')
+  async handleDeliveryAssigned(@Payload() data: any) {
+    // Update order status to OUT_FOR_DELIVERY
+    await this.prisma.order.update({
+      where: { id: data.orderId },
+      data: { status: 'OUT_FOR_DELIVERY' },
+    });
+  }
+}
+```
+
+**payment.service.ts (Microservice):**
+```typescript
+import { Controller } from '@nestjs/common';
+import { EventPattern, Payload } from '@nestjs/microservices';
+
+@Controller()
+export class PaymentMicroserviceController {
+  @EventPattern('order.created')
+  async handleOrderCreated(@Payload() order: any) {
+    // Initiate payment for the order
+    await this.initiatePayment(order);
+  }
+
+  async initiatePayment(order: any) {
+    // Create Razorpay order
+    const razorpayOrder = await this.razorpay.orders.create({
+      amount: order.total * 100, // in paise
+      currency: 'INR',
+    });
+
+    // Emit payment initiated event
+    this.client.emit('payment.initiated', {
+      orderId: order.id,
+      razorpayOrderId: razorpayOrder.id,
+    });
+  }
+
+  async verifyPayment(paymentData: any) {
+    // Verify payment signature
+    const isValid = this.verifySignature(paymentData);
+
+    if (isValid) {
+      // Emit payment completed event
+      this.client.emit('payment.completed', {
+        orderId: paymentData.orderId,
+        transactionId: paymentData.razorpay_payment_id,
+      });
+    }
+  }
+}
+```
+
+**main.ts (Microservice setup):**
+```typescript
+import { NestFactory } from '@nestjs/core';
+import { Transport, MicroserviceOptions } from '@nestjs/microservices';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    AppModule,
+    {
+      transport: Transport.REDIS,
+      options: {
+        host: 'localhost',
+        port: 6379,
+      },
+    },
+  );
+
+  await app.listen();
+  console.log('Order microservice is listening...');
+}
+bootstrap();
+```
+
+---
+
+### 6. @Timeout - Delayed Execution
+
+Run a task once after a specified delay (in milliseconds).
+
+#### Use Cases
+
+| Feature | Description | Delay | Priority |
+|---------|-------------|-------|----------|
+| **Follow-up Email** | Send "How was your order?" email | 24 hours (86400000ms) | Low |
+| **Cart Abandonment** | Remind customers about items in cart | 1 hour (3600000ms) | Medium |
+| **Release Inventory** | Release reserved items if unpaid | 15 minutes (900000ms) | High |
+| **Delivery Reminder** | Remind agent about delayed orders | 5 minutes (300000ms) | Medium |
+
+#### Implementation
+
+**File Structure:**
+```
+apps/backend/src/
+└── jobs/
+    └── timeouts/
+        ├── follow-up-email.timeout.ts
+        ├── cart-reminder.timeout.ts
+        └── inventory-release.timeout.ts
+```
+
+**follow-up-email.timeout.ts:**
+```typescript
+import { Timeout } from '@nestjs/schedule';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
+import { PrismaService } from '../../database/prisma.service';
+import { EmailService } from '../email/email.service';
+
+@Injectable()
+export class FollowUpEmailTimeout {
+  private readonly logger = new Logger(FollowUpEmailTimeout.name);
+  private scheduledEmails = new Set<number>();
+
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
+
+  // Schedule follow-up email for delivered orders (runs once per order)
+  scheduleFollowUpEmail(orderId: number, email: string) {
+    if (this.scheduledEmails.has(orderId)) return;
+
+    this.scheduledEmails.add(orderId);
+
+    // Schedule email 24 hours from now
+    setTimeout(async () => {
+      try {
+        await this.emailService.sendFollowUpEmail({
+          email,
+          orderId,
+        });
+
+        this.logger.log(`✅ Follow-up email sent for order ${orderId}`);
+        this.scheduledEmails.delete(orderId);
+
+      } catch (error) {
+        this.logger.error(`Failed to send follow-up email for order ${orderId}`, error);
+      }
+    }, 24 * 60 * 60 * 1000); // 24 hours
+  }
+
+  // Alternative: Use @Timeout for one-time startup task
+  @Timeout(5000) // Runs once, 5 seconds after app startup
+  async handleStartupTask() {
+    this.logger.log('🚀 Running startup task (5 seconds after start)...');
+
+    // Initialize something on startup
+    // Check for incomplete tasks
+    // Send alerts if needed
+  }
+}
+```
+
+**cart-reminder.timeout.ts:**
+```typescript
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
+import { PrismaService } from '../../database/prisma.service';
+
+@Injectable()
+export class CartReminderTimeout {
+  private readonly logger = new Logger(CartReminderTimeout.name);
+  private reminderIntervals = new Map<number, NodeJS.Timeout>();
+
+  constructor(
+    private prisma: PrismaService,
+    private notificationService: NotificationService,
+  ) {}
+
+  // Schedule cart abandonment reminder
+  scheduleReminder(customerId: number, customerEmail: string) {
+    // Clear existing reminder if any
+    const existing = this.reminderIntervals.get(customerId);
+    if (existing) clearTimeout(existing);
+
+    // Schedule reminder after 1 hour
+    const timeout = setTimeout(async () => {
+      try {
+        // Get customer's current cart
+        const cart = await this.getCustomerCart(customerId);
+
+        if (cart && cart.items.length > 0) {
+          await this.notificationService.sendCartReminder({
+            email: customerEmail,
+            itemCount: cart.items.length,
+            total: cart.total,
+          });
+
+          this.logger.log(`✅ Cart reminder sent to customer ${customerId}`);
+        }
+
+      } catch (error) {
+        this.logger.error(`Failed to send cart reminder to ${customerId}`, error);
+      }
+    }, 60 * 60 * 1000); // 1 hour
+
+    this.reminderIntervals.set(customerId, timeout);
+  }
+
+  private async getCustomerCart(customerId: number) {
+    // Fetch from cache or database
+    return null;
+  }
+}
+```
+
+**inventory-release.timeout.ts:**
+```typescript
+import { Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+
+@Injectable()
+export class InventoryReleaseTimeout {
+  private readonly logger = new Logger(InventoryReleaseTimeout.name);
+  private inventoryHolds = new Map<number, NodeJS.Timeout>();
+
+  constructor(private prisma: PrismaService) {}
+
+  // Hold inventory for 15 minutes (payment window)
+  holdInventory(orderId: number, items: any[]) {
+    const timeout = setTimeout(async () => {
+      try {
+        const order = await this.prisma.order.findUnique({
+          where: { id: orderId },
+          select: { status: true },
+        });
+
+        // If still pending after 15 minutes, release inventory
+        if (order && order.status === 'PENDING') {
+          await this.releaseInventory(orderId);
+          await this.prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'CANCELLED', cancellationReason: 'Payment window expired' },
+          });
+
+          this.logger.log(`⏰ Inventory released for expired order ${orderId}`);
+        }
+
+      } catch (error) {
+        this.logger.error(`Failed to release inventory for order ${orderId}`, error);
+      }
+    }, 15 * 60 * 1000); // 15 minutes
+
+    this.inventoryHolds.set(orderId, timeout);
+  }
+
+  private async releaseInventory(orderId: number) {
+    // Update menu item availability
+    // Remove holds from inventory tracking
+  }
+
+  cancelHold(orderId: number) {
+    const timeout = this.inventoryHolds.get(orderId);
+    if (timeout) {
+      clearTimeout(timeout);
+      this.inventoryHolds.delete(orderId);
+    }
+  }
+}
+```
+
+---
+
+### Implementation Order (Recommended)
+
+If you want to implement these features progressively, follow this order:
+
+#### Phase 1: Event-Driven Architecture (Easiest, No Dependencies)
+1. **Install `@nestjs/event-emitter`**
+2. **Create EventsModule** with EventEmitter2 configuration
+3. **Implement OrderListener** with:
+   - `order.created` event
+   - `order.status.updated` event
+   - `order.paid` event
+4. **Emit events** from existing OrderService
+5. **Test** with console logs first
+
+#### Phase 2: Scheduled Tasks (@Cron)
+1. **Install `@nestjs/schedule`**
+2. **Create JobsModule**
+3. **Implement schedulers** in order of priority:
+   - Auto-cancel stale pending orders
+   - Auto-expire offers
+   - Daily sales report
+   - Token cleanup
+4. **Test** with shorter intervals (e.g., every minute) before setting production schedules
+
+#### Phase 3: Recurring Tasks (@Interval)
+1. **Implement PaymentPollInterval** for COD payment link status
+2. **Implement CacheUpdateInterval** for dashboard cache
+3. **Test** with shorter intervals
+
+#### Phase 4: Microservices (Optional, Advanced)
+1. **Set up Redis** or RabbitMQ
+2. **Split PaymentService** into separate microservice
+3. **Implement ClientProxy** for inter-service communication
+4. **Use EventPattern** for event handling
+5. **Test** event flow between services
+
+#### Phase 5: Delayed Execution (@Timeout)
+1. **Implement FollowUpEmailTimeout** for post-delivery feedback
+2. **Implement CartReminderTimeout** for abandoned cart recovery
+3. **Implement InventoryReleaseTimeout** for payment window expiry
+
+---
+
+### File Structure After Implementation
+
+```
+apps/backend/src/
+├── events/              # Event-driven architecture
+│   ├── events.module.ts
+│   ├── listeners/
+│   │   ├── order.listener.ts
+│   │   ├── customer.listener.ts
+│   │   └── offer.listener.ts
+│   └── emitters/
+│       └── event-emitter.service.ts
+├── jobs/                # Scheduled & recurring tasks
+│   ├── jobs.module.ts
+│   ├── schedulers/      # @Cron tasks
+│   │   ├── daily-report.scheduler.ts
+│   │   ├── offer-expiration.scheduler.ts
+│   │   ├── token-cleanup.scheduler.ts
+│   │   └── order-cleanup.scheduler.ts
+│   ├── intervals/       # @Interval tasks
+│   │   ├── payment-poll.interval.ts
+│   │   ├── cache-update.interval.ts
+│   │   └── health-check.interval.ts
+│   └── timeouts/        # @Timeout tasks
+│       ├── follow-up-email.timeout.ts
+│       ├── cart-reminder.timeout.ts
+│       └── inventory-release.timeout.ts
+├── analytics/           # Analytics service
+│   ├── analytics.module.ts
+│   ├── analytics.service.ts
+│   └── dto/
+├── email/               # Email service
+│   ├── email.module.ts
+│   ├── email.service.ts
+│   └── templates/
+├── sms/                 # SMS service
+│   ├── sms.module.ts
+│   └── sms.service.ts
+└── cache/               # Cache service (Redis)
+    ├── cache.module.ts
+    └── redis.service.ts
+```
+
+---
+
+### Notes
 
 - This is a Next.js 16 project with breaking changes from previous versions
 - Check `node_modules/next/dist/docs/` for Next.js API documentation
