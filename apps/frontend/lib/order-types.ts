@@ -63,6 +63,7 @@ export interface OrderOutlet {
   addressLine1: string;
   city: string;
   phone?: string;
+  restaurantId?: number;
 }
 
 export interface OrderPayment {
