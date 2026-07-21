@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getChefOrders, claimOrder, markOrderReady } from '../../../lib/chef-api';
 import { OrderStatus, ChefOrder, ChefOrderPool } from '../../../lib/order-types';
+import { useOrderWebSocket } from '../../../lib/use-order-websocket';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
@@ -19,6 +20,8 @@ import {
   IndianRupee,
   UtensilsCrossed,
   Flame,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,6 +41,34 @@ export default function ChefDashboardPage() {
   const [expandedOrder, setExpandedOrder] = useState<number | null>(null);
   const [isClaiming, setIsClaiming] = useState<number | null>(null);
   const [isMarkingReady, setIsMarkingReady] = useState<number | null>(null);
+  const [restaurantId, setRestaurantId] = useState<number | null>(null);
+
+  // Extract restaurant ID from orders (from outlet info)
+  useEffect(() => {
+    if (orderPool.pending.length > 0 && orderPool.pending[0].outlet) {
+      // Get restaurant ID from first pending order's outlet
+      // Note: This assumes all chef's outlets belong to same restaurant
+      // In a multi-restaurant scenario, you'd need multiple WebSocket subscriptions
+      setRestaurantId(Number(orderPool.pending[0].outlet.restaurantId) || null);
+    } else if (orderPool.preparing.length > 0 && orderPool.preparing[0].outlet) {
+      setRestaurantId(Number(orderPool.preparing[0].outlet.restaurantId) || null);
+    }
+  }, [orderPool]);
+
+  // WebSocket integration for real-time order updates
+  // Chef listens for admin confirmations (CONFIRMED status updates)
+  const { isConnected: isSocketConnected } = useOrderWebSocket(restaurantId, {
+    onOrderUpdated: (data) => {
+      // When admin confirms an order (PENDING -> CONFIRMED)
+      if (data.status === 'CONFIRMED') {
+        fetchOrders();
+      }
+    },
+    onOrderCancelled: () => {
+      // Refresh when order is cancelled
+      fetchOrders();
+    },
+  });
 
   useEffect(() => {
     fetchOrders();
@@ -254,21 +285,37 @@ export default function ChefDashboardPage() {
           </h1>
           <p className="text-gray-600 text-sm">Manage order preparation</p>
         </div>
-        <Button
-          onClick={fetchOrders}
-          disabled={isLoading}
-          variant="outline"
-          size="sm"
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Refreshing...
-            </>
-          ) : (
-            'Refresh'
-          )}
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* Connection Status */}
+          <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${isSocketConnected ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+            {isSocketConnected ? (
+              <>
+                <Wifi className="h-4 w-4 text-green-600" />
+                <span className="text-sm font-medium text-green-700">Live</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="h-4 w-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-500">Offline</span>
+              </>
+            )}
+          </div>
+          <Button
+            onClick={fetchOrders}
+            disabled={isLoading}
+            variant="outline"
+            size="sm"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Refreshing...
+              </>
+            ) : (
+              'Refresh'
+            )}
+          </Button>
+        </div>
       </div>
 
       {isLoading && orderPool.pending.length === 0 && orderPool.preparing.length === 0 ? (

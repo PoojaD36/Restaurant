@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { getOutletOrders, updateOrderStatus, assignDeliveryAgent } from '../../../lib/order-api';
 import { getAllOutlets, getOutletUsers } from '../../../lib/outlets-api';
 import { OrderStatus, OrderListItem } from '../../../lib/order-types';
 import { OutletListItem, OutletUser } from '../../../lib/types';
+import { useOrderWebSocket } from '../../../lib/use-order-websocket';
 import { Card } from '../../../components/ui/card';
 import { Button } from '../../../components/ui/button';
 import { Badge } from '../../../components/ui/badge';
@@ -31,17 +32,19 @@ import {
   Wallet,
   DollarSign,
   User,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode; nextStatuses?: OrderStatus[] }> = {
-  PENDING: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: <Clock className="h-4 w-4" />, nextStatuses: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED] },
-  CONFIRMED: { label: 'Confirmed', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: <CheckCircle className="h-4 w-4" />, nextStatuses: [OrderStatus.PREPARING, OrderStatus.CANCELLED] },
-  PREPARING: { label: 'Preparing', color: 'bg-purple-100 text-purple-800 border-purple-300', icon: <Utensils className="h-4 w-4" />, nextStatuses: [OrderStatus.READY] },
-  READY: { label: 'Ready', color: 'bg-green-100 text-green-800 border-green-300', icon: <Package className="h-4 w-4" />, nextStatuses: [OrderStatus.OUT_FOR_DELIVERY] },
-  OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'bg-indigo-100 text-indigo-800 border-indigo-300', icon: <Truck className="h-4 w-4" />, nextStatuses: [] }, // Removed DELIVERED - only delivery agent can mark as delivered
-  DELIVERED: { label: 'Delivered', color: 'bg-green-100 text-green-800 border-green-300', icon: <CheckCircle className="h-4 w-4" /> },
-  CANCELLED: { label: 'Cancelled', color: 'bg-red-100 text-red-800 border-red-300', icon: <XCircle className="h-4 w-4" /> },
+const statusConfig: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode; nextStatuses?: OrderStatus[]; managedBy?: 'admin' | 'chef' | 'delivery_agent' }> = {
+  PENDING: { label: 'Pending', color: 'bg-yellow-100 text-yellow-800 border-yellow-300', icon: <Clock className="h-4 w-4" />, nextStatuses: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED], managedBy: 'admin' },
+  CONFIRMED: { label: 'Confirmed', color: 'bg-blue-100 text-blue-800 border-blue-300', icon: <CheckCircle className="h-4 w-4" />, nextStatuses: [], managedBy: 'chef' }, // Chef claims CONFIRMED orders
+  PREPARING: { label: 'Preparing', color: 'bg-purple-100 text-purple-800 border-purple-300', icon: <Utensils className="h-4 w-4" />, nextStatuses: [], managedBy: 'chef' }, // Chef manages PREPARING -> READY transition
+  READY: { label: 'Ready', color: 'bg-green-100 text-green-800 border-green-300', icon: <Package className="h-4 w-4" />, nextStatuses: [OrderStatus.OUT_FOR_DELIVERY], managedBy: 'admin' }, // Admin assigns delivery agent to move to OUT_FOR_DELIVERY
+  OUT_FOR_DELIVERY: { label: 'Out for Delivery', color: 'bg-indigo-100 text-indigo-800 border-indigo-300', icon: <Truck className="h-4 w-4" />, nextStatuses: [], managedBy: 'delivery_agent' }, // Only delivery agent can mark as delivered
+  DELIVERED: { label: 'Delivered', color: 'bg-green-100 text-green-800 border-green-300', icon: <CheckCircle className="h-4 w-4" />, managedBy: 'delivery_agent' },
+  CANCELLED: { label: 'Cancelled', color: 'bg-red-100 text-red-800 border-red-300', icon: <XCircle className="h-4 w-4" />, managedBy: 'admin' },
 };
 
 const statusOrder: OrderStatus[] = [
@@ -98,6 +101,101 @@ export default function OrdersManagementPage() {
   const [isLoadingAgents, setIsLoadingAgents] = useState(false);
   const [isAssigningAgent, setIsAssigningAgent] = useState<number | null>(null);
 
+  // Get restaurantId from selected outlet for WebSocket subscription
+  const restaurantId = useMemo(() => {
+    if (!selectedOutlet) return null;
+    const outlet = outlets.find(o => o.id === selectedOutlet);
+    // Convert string ID to number for backend compatibility
+    return outlet?.restaurant?.id ? Number(outlet.restaurant.id) : null;
+  }, [selectedOutlet, outlets]);
+
+  // WebSocket integration for real-time order updates
+  const { isConnected: isSocketConnected } = useOrderWebSocket(restaurantId, {
+    onOrderCreated: () => {
+      // Fetch orders when a new order is created
+      if (selectedOutlet) {
+        fetchOrdersForOutlet(selectedOutlet);
+      }
+    },
+    onOrderPreparing: (data) => {
+      // Update order status to PREPARING with chef info
+      setOrders(prev =>
+        prev.map(order =>
+          order.id === data.orderId
+            ? {
+                ...order,
+                status: OrderStatus.PREPARING,
+                chef: data.chefName ? { id: data.chefId, name: data.chefName } : order.chef,
+                startedAt: data.startedAt,
+              }
+            : order,
+        ),
+      );
+    },
+    onOrderReady: (data) => {
+      // Update order status to READY
+      setOrders(prev =>
+        prev.map(order =>
+          order.id === data.orderId
+            ? {
+                ...order,
+                status: OrderStatus.READY,
+                completedAt: data.completedAt,
+              }
+            : order,
+        ),
+      );
+    },
+    onOrderCancelled: (data) => {
+      // Update order status to CANCELLED
+      setOrders(prev =>
+        prev.map(order =>
+          order.id === data.orderId
+            ? { ...order, status: OrderStatus.CANCELLED }
+            : order,
+        ),
+      );
+    },
+    onDeliveryAgentAssigned: (data) => {
+      // Update order with delivery agent info
+      setOrders(prev =>
+        prev.map(order =>
+          order.id === data.orderId
+            ? {
+                ...order,
+                status: data.status as OrderStatus,
+                deliveryAgent: data.deliveryAgent ? {
+                  id: data.deliveryAgent.id,
+                  name: data.deliveryAgent.name,
+                  phone: data.deliveryAgent.phone || '',
+                } : order.deliveryAgent,
+              }
+            : order,
+        ),
+      );
+    },
+  });
+
+  // Fetch orders function extracted for reuse
+  const fetchOrdersForOutlet = async (outletId: string) => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem('accessToken');
+      if (!token) return;
+
+      const status = filterStatus === 'all' ? undefined : filterStatus;
+      const response = await getOutletOrders(token, outletId, status);
+
+      if (response.success) {
+        setOrders(response.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch user's outlets on mount
   useEffect(() => {
     const fetchOutlets = async () => {
@@ -120,28 +218,9 @@ export default function OrdersManagementPage() {
 
   // Fetch orders when outlet or filter changes
   useEffect(() => {
-    const fetchOrders = async () => {
-      if (!selectedOutlet) return;
-
-      setIsLoading(true);
-      try {
-        const token = localStorage.getItem('accessToken');
-        if (!token) return;
-
-        const status = filterStatus === 'all' ? undefined : filterStatus;
-        const response = await getOutletOrders(token, selectedOutlet, status);
-
-        if (response.success) {
-          setOrders(response.data);
-        }
-      } catch (error) {
-        console.error('Failed to fetch orders:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchOrders();
+    if (selectedOutlet) {
+      fetchOrdersForOutlet(selectedOutlet);
+    }
   }, [selectedOutlet, filterStatus]);
 
   // Fetch available delivery agents when outlet changes
@@ -238,9 +317,17 @@ export default function OrdersManagementPage() {
     return orders.filter(o => o.status === status).length;
   };
 
-  // Get next valid statuses for an order (considers delivery agent assignment)
+  // Get next valid statuses for an order (considers delivery agent assignment and role-based access)
   const getNextStatuses = (order: OrderListItem): OrderStatus[] => {
-    const baseStatuses = statusConfig[order.status]?.nextStatuses || [];
+    const config = statusConfig[order.status];
+    if (!config) return [];
+
+    // Don't show Update Status button for statuses managed by chef or delivery agent
+    if (config.managedBy === 'chef' || config.managedBy === 'delivery_agent') {
+      return [];
+    }
+
+    const baseStatuses = config.nextStatuses || [];
     if (!baseStatuses) return [];
 
     // For READY status, OUT_FOR_DELIVERY is only allowed if delivery agent is assigned
@@ -275,9 +362,25 @@ export default function OrdersManagementPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
-        <p className="text-gray-600 mt-1">Manage and track orders for your outlets</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Order Management</h1>
+          <p className="text-gray-600 mt-1">Manage and track orders for your outlets</p>
+        </div>
+        {/* Connection Status */}
+        <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border ${isSocketConnected ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+          {isSocketConnected ? (
+            <>
+              <Wifi className="h-4 w-4 text-green-600" />
+              <span className="text-sm font-medium text-green-700">Live</span>
+            </>
+          ) : (
+            <>
+              <WifiOff className="h-4 w-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-500">Offline</span>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
