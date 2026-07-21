@@ -5,6 +5,7 @@ import { PrismaModule } from '../database/database.module';
 import { CommonModule } from '../common/common.module';
 import { CustomerModule } from '../customer-module/customer-module.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     CommonModule,
     CustomerModule,
     NotificationsModule,
+    EventEmitterModule,
   ],
   controllers: [OrderModuleController],
   providers: [OrderModuleService],

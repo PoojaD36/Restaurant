@@ -19,6 +19,7 @@ import { DashboardModule } from './dashboard-module/dashboard-module.module';
 import { CartModule } from './cart-module/cart-module.module';
 import { OfferModuleModule } from './offer-module/offer-module.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
     CartModule,
     OfferModuleModule,
     ChatbotModule,
+    EventsModule,
   ],
   controllers: [AppController, UserModuleController],
   providers: [AppService, UserModuleService],

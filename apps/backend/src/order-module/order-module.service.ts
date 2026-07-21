@@ -1,10 +1,32 @@
-import { Injectable, BadRequestException, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+  Logger,
+} from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
-import { CreateOrderDto, OrderItemDto, AssignDeliveryAgentDto, CollectPaymentDto } from './dto';
-import { OrderStatus, OutletStatus, MenuItemStatus, UserRole } from 'src/database/generated/prisma/enums';
-import { PaginationDto, PaginationMeta, ApiResponse, PaginatedResponse } from '../common';
+import {
+  CreateOrderDto,
+  OrderItemDto,
+  AssignDeliveryAgentDto,
+  CollectPaymentDto,
+} from './dto';
+import {
+  OrderStatus,
+  OutletStatus,
+  MenuItemStatus,
+  UserRole,
+} from 'src/database/generated/prisma/enums';
+import {
+  PaginationDto,
+  PaginationMeta,
+  ApiResponse,
+  PaginatedResponse,
+} from '../common';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class OrderModuleService {
@@ -13,12 +35,16 @@ export class OrderModuleService {
   constructor(
     private prisma: PrismaService,
     private notificationsGateway: NotificationsGateway,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   /**
    * Create order from cart items
    */
-  async createOrder(customerId: number, dto: CreateOrderDto): Promise<ApiResponse<any>> {
+  async createOrder(
+    customerId: number,
+    dto: CreateOrderDto,
+  ): Promise<ApiResponse<any>> {
     try {
       const { outletId, addressId, items, specialInstructions } = dto;
 
@@ -56,7 +82,9 @@ export class OrderModuleService {
         }
 
         if (menuItem.status !== MenuItemStatus.AVAILABLE) {
-          throw new BadRequestException(`Menu item ${menuItem.name} is not available`);
+          throw new BadRequestException(
+            `Menu item ${menuItem.name} is not available`,
+          );
         }
 
         // Calculate item total with modifiers
@@ -114,11 +142,22 @@ export class OrderModuleService {
           outlet: {
             select: {
               id: true,
+              restaurantId: true,
               name: true,
               addressLine1: true,
               city: true,
             },
           },
+          customer: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              phone: true,
+              email: true,
+            },
+          },
+          payment: true,
         },
       });
 
@@ -138,9 +177,10 @@ export class OrderModuleService {
 
       if (dto.paymentMethod) {
         const paymentMethod = dto.paymentMethod as any;
-        const paymentStatus = dto.paymentMethod === 'CASH'
-          ? 'PENDING'  // COD - payment pending until delivery
-          : 'COMPLETED'; // Online payment - already paid
+        const paymentStatus =
+          dto.paymentMethod === 'CASH'
+            ? 'PENDING' // COD - payment pending until delivery
+            : 'COMPLETED'; // Online payment - already paid
 
         const paymentRecord = await this.prisma.payment.create({
           data: {
@@ -160,11 +200,55 @@ export class OrderModuleService {
           transactionId: paymentRecord.transactionId,
         };
 
-        this.logger.log(`Payment record created: ${paymentRecord.id} for order: ${order.id}, method: ${paymentMethod}, status: ${paymentStatus}`);
+        this.logger.log(
+          `Payment record created: ${paymentRecord.id} for order: ${order.id}, method: ${paymentMethod}, status: ${paymentStatus}`,
+        );
       }
 
       this.logger.log(`Order created: ${order.id} for customer: ${customerId}`);
 
+      // AFTER the order is created, emit event
+      this.eventEmitter.emit('order.created', {
+        orderId: order.id,
+        outletId: order.outletId,
+        outletName: order.outlet.name,
+        restaurantId: order.outlet.restaurantId,
+        customerId: order.customerId,
+        customerName: order.customer
+          ? `${order.customer.firstName} ${order.customer.lastName || ''}`.trim()
+          : 'Unknown',
+        customerPhone: order.customer.phone,
+        customerEmail: order.customer.email,
+        status: order.status,
+        items: order.items.map((item) => ({
+          menuItemId: item.menuItemId,
+          name: item.name,
+          quantity: item.quantity,
+          price: Number(item.price),
+        })),
+        subtotal: Number(order.subtotal),
+        deliveryFee: Number(order.deliveryFee),
+        total: Number(order.total),
+        deliveryAddress: {
+          label: order.deliveryAddressLabel,
+          name: order.deliveryName,
+          phone: order.deliveryPhone,
+          line1: order.deliveryAddressLine1,
+          line2: order.deliveryAddressLine2,
+          city: order.deliveryCity,
+          state: order.deliveryState,
+          country: order.deliveryCountry,
+          postalCode: order.deliveryPostalCode,
+        },
+        specialInstructions: order.specialInstructions,
+        payment: order.payment
+          ? {
+              method: order.payment.method,
+              status: order.payment.status,
+            }
+          : undefined,
+        createdAt: order.createdAt,
+      });
       // Emit WebSocket notification to restaurant
       this.notificationsGateway.notifyOrderCreated(outletId, {
         orderId: order.id,
@@ -173,7 +257,7 @@ export class OrderModuleService {
         status: order.status,
         total: Number(order.total),
         createdAt: order.createdAt,
-        items: orderItems.map(item => ({
+        items: orderItems.map((item) => ({
           ...item,
           price: Number(item.price),
         })),
@@ -198,23 +282,29 @@ export class OrderModuleService {
           total: Number(order.total),
           estimatedDeliveryTime: order.estimatedDeliveryTime,
           payment: paymentData,
-          items: orderItems.map(item => ({
+          items: orderItems.map((item) => ({
             ...item,
             price: Number(item.price),
           })),
         },
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
       // Log detailed error for debugging
-      this.logger.error(`Failed to create order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to create order: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       if (error instanceof Error && error.stack) {
         this.logger.debug(`Error stack: ${error.stack}`);
       }
       // Return meaningful error message
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create order';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to create order';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -222,7 +312,10 @@ export class OrderModuleService {
   /**
    * Get customer's orders with pagination
    */
-  async getCustomerOrders(customerId: number, dto: PaginationDto): Promise<PaginatedResponse<any>> {
+  async getCustomerOrders(
+    customerId: number,
+    dto: PaginationDto,
+  ): Promise<PaginatedResponse<any>> {
     try {
       const { page, limit, skip } = dto;
 
@@ -252,7 +345,7 @@ export class OrderModuleService {
       return {
         success: true,
         message: 'Orders retrieved successfully',
-        data: orders.map(order => ({
+        data: orders.map((order) => ({
           id: order.id,
           status: order.status,
           subtotal: Number(order.subtotal),
@@ -263,7 +356,7 @@ export class OrderModuleService {
           createdAt: order.createdAt,
           deliveredAt: order.deliveredAt,
           outlet: order.outlet,
-          items: order.items.map(item => ({
+          items: order.items.map((item) => ({
             ...item,
             price: Number(item.price),
           })),
@@ -271,11 +364,14 @@ export class OrderModuleService {
         pagination,
       };
     } catch (error) {
-      this.logger.error(`Failed to get customer orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to get customer orders: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       if (error instanceof Error && error.stack) {
         this.logger.debug(`Error stack: ${error.stack}`);
       }
-      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve orders';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to retrieve orders';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -283,7 +379,10 @@ export class OrderModuleService {
   /**
    * Get order by ID
    */
-  async getOrderById(orderId: number, customerId: number): Promise<ApiResponse<any>> {
+  async getOrderById(
+    orderId: number,
+    customerId: number,
+  ): Promise<ApiResponse<any>> {
     try {
       const order = await this.prisma.order.findFirst({
         where: { id: orderId, customerId },
@@ -340,30 +439,37 @@ export class OrderModuleService {
           pickedUpAt: order.pickedUpAt,
           deliveredAt: order.deliveredAt,
           outlet: order.outlet,
-          items: order.items.map(item => ({
+          items: order.items.map((item) => ({
             ...item,
             price: Number(item.price),
           })),
-          payment: order.payment ? {
-            ...order.payment,
-            amount: Number(order.payment.amount),
-          } : null,
-          deliveryAgent: order.deliveryAgent ? {
-            id: order.deliveryAgent.id,
-            name: `${order.deliveryAgent.firstName} ${order.deliveryAgent.lastName || ''}`.trim(),
-            phone: order.deliveryAgent.phone,
-          } : null,
+          payment: order.payment
+            ? {
+                ...order.payment,
+                amount: Number(order.payment.amount),
+              }
+            : null,
+          deliveryAgent: order.deliveryAgent
+            ? {
+                id: order.deliveryAgent.id,
+                name: `${order.deliveryAgent.firstName} ${order.deliveryAgent.lastName || ''}`.trim(),
+                phone: order.deliveryAgent.phone,
+              }
+            : null,
         },
       };
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      this.logger.error(`Failed to get order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to get order: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       if (error instanceof Error && error.stack) {
         this.logger.debug(`Error stack: ${error.stack}`);
       }
-      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve order';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to retrieve order';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -426,7 +532,7 @@ export class OrderModuleService {
       return {
         success: true,
         message: 'Orders retrieved successfully',
-        data: orders.map(order => ({
+        data: orders.map((order) => ({
           id: order.id,
           status: order.status,
           subtotal: Number(order.subtotal),
@@ -441,35 +547,44 @@ export class OrderModuleService {
           deliveryAddressLine1: order.deliveryAddressLine1,
           deliveryCity: order.deliveryCity,
           outlet: order.outlet,
-          items: order.items.map(item => ({
+          items: order.items.map((item) => ({
             ...item,
             price: Number(item.price),
           })),
-          payment: order.payment ? {
-            method: order.payment.method,
-            status: order.payment.status,
-            amount: Number(order.payment.amount),
-          } : null,
-          deliveryAgent: order.deliveryAgent ? {
-            id: order.deliveryAgent.id,
-            name: `${order.deliveryAgent.firstName} ${order.deliveryAgent.lastName || ''}`.trim(),
-            phone: order.deliveryAgent.phone,
-          } : null,
-          chef: order.chef ? {
-            id: order.chef.id,
-            name: `${order.chef.firstName} ${order.chef.lastName || ''}`.trim(),
-          } : null,
+          payment: order.payment
+            ? {
+                method: order.payment.method,
+                status: order.payment.status,
+                amount: Number(order.payment.amount),
+              }
+            : null,
+          deliveryAgent: order.deliveryAgent
+            ? {
+                id: order.deliveryAgent.id,
+                name: `${order.deliveryAgent.firstName} ${order.deliveryAgent.lastName || ''}`.trim(),
+                phone: order.deliveryAgent.phone,
+              }
+            : null,
+          chef: order.chef
+            ? {
+                id: order.chef.id,
+                name: `${order.chef.firstName} ${order.chef.lastName || ''}`.trim(),
+              }
+            : null,
           startedAt: order.startedAt,
           completedAt: order.completedAt,
         })),
         pagination,
       };
     } catch (error) {
-      this.logger.error(`Failed to get outlet orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to get outlet orders: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       if (error instanceof Error && error.stack) {
         this.logger.debug(`Error stack: ${error.stack}`);
       }
-      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve orders';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to retrieve orders';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -478,11 +593,30 @@ export class OrderModuleService {
    * Update order status (for restaurant admin/manager)
    * Notifies the customer when status changes
    */
-  async updateOrderStatus(orderId: number, status: OrderStatus, userId: number): Promise<ApiResponse<any>> {
+  async updateOrderStatus(
+    orderId: number,
+    status: OrderStatus,
+    userId: number,
+  ): Promise<ApiResponse<any>> {
     try {
       const order = await this.prisma.order.findUnique({
         where: { id: orderId },
-        select: { id: true, status: true, customerId: true, outletId: true, pickedUpAt: true, deliveryAgentId: true },
+        select: {
+          id: true,
+          status: true,
+          customerId: true,
+          outletId: true,
+          pickedUpAt: true,
+          deliveryAgentId: true,
+          total: true,
+          outlet: {
+            select: {
+              id: true,
+              name: true,
+              restaurantId: true,
+            },
+          },
+        },
       });
 
       if (!order) {
@@ -509,7 +643,9 @@ export class OrderModuleService {
 
       // Require delivery agent assignment before OUT_FOR_DELIVERY status
       if (status === OrderStatus.OUT_FOR_DELIVERY && !order.deliveryAgentId) {
-        throw new BadRequestException('Cannot mark order as "Out for Delivery" without assigning a delivery agent first. Please assign a delivery agent to this order.');
+        throw new BadRequestException(
+          'Cannot mark order as "Out for Delivery" without assigning a delivery agent first. Please assign a delivery agent to this order.',
+        );
       }
 
       // Update order status
@@ -536,7 +672,21 @@ export class OrderModuleService {
         },
       });
 
-      this.logger.log(`Order ${orderId} status updated from ${order.status} to ${status} by user ${userId}`);
+      this.logger.log(
+        `Order ${orderId} status updated from ${order.status} to ${status} by user ${userId}`,
+      );
+
+      this.eventEmitter.emit('order.status.updated', {
+        orderId: order.id,
+        previousStatus: order.status,
+        newStatus: status,
+        customerId: order.customerId,
+        outletId: order.outletId,
+        outletName: order.outlet.name,
+        restaurantId: order.outlet.restaurantId,
+        total: Number(order.total),
+        timestamp: new Date(),
+      });
 
       // Emit WebSocket notification ONLY to customer (not to restaurant)
       this.notificationsGateway.notifyCustomerOrderUpdated(order.customerId, {
@@ -558,14 +708,22 @@ export class OrderModuleService {
         },
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
-      this.logger.error(`Failed to update order status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to update order status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       if (error instanceof Error && error.stack) {
         this.logger.debug(`Error stack: ${error.stack}`);
       }
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update order status';
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to update order status';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -573,10 +731,20 @@ export class OrderModuleService {
   /**
    * Cancel order
    */
-  async cancelOrder(orderId: number, customerId: number): Promise<ApiResponse<any>> {
+  async cancelOrder(
+    orderId: number,
+    customerId: number,
+  ): Promise<ApiResponse<any>> {
     try {
       const order = await this.prisma.order.findFirst({
         where: { id: orderId, customerId },
+        include: {
+          outlet: {
+            select: {
+              restaurantId: true,
+            },
+          },
+        },
       });
 
       if (!order) {
@@ -594,6 +762,16 @@ export class OrderModuleService {
 
       this.logger.log(`Order cancelled: ${orderId} by customer: ${customerId}`);
 
+      // Emit event
+      this.eventEmitter.emit('order.cancelled', {
+        orderId: order.id,
+        customerId: order.customerId,
+        outletId: order.outletId,
+        restaurantId: order.outlet.restaurantId,
+        total: Number(order.total),
+        timestamp: new Date(),
+      });
+
       // Emit WebSocket notification to restaurant
       this.notificationsGateway.notifyOrderCancelled(order.outletId, {
         orderId: updatedOrder.id,
@@ -608,14 +786,20 @@ export class OrderModuleService {
         data: { orderId: updatedOrder.id, status: updatedOrder.status },
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
         throw error;
       }
-      this.logger.error(`Failed to cancel order: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      this.logger.error(
+        `Failed to cancel order: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
       if (error instanceof Error && error.stack) {
         this.logger.debug(`Error stack: ${error.stack}`);
       }
-      const errorMessage = error instanceof Error ? error.message : 'Failed to cancel order';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to cancel order';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -623,7 +807,10 @@ export class OrderModuleService {
   /**
    * Assign delivery agent to order
    */
-  async assignDeliveryAgent(orderId: number, dto: AssignDeliveryAgentDto): Promise<ApiResponse<any>> {
+  async assignDeliveryAgent(
+    orderId: number,
+    dto: AssignDeliveryAgentDto,
+  ): Promise<ApiResponse<any>> {
     try {
       // Verify order exists and is in appropriate status
       const order = await this.prisma.order.findUnique({
@@ -638,8 +825,13 @@ export class OrderModuleService {
       }
 
       // Only allow assignment for orders that are ready or out for delivery
-      if (order.status !== OrderStatus.READY && order.status !== OrderStatus.OUT_FOR_DELIVERY) {
-        throw new BadRequestException('Can only assign delivery agent to orders that are ready or out for delivery');
+      if (
+        order.status !== OrderStatus.READY &&
+        order.status !== OrderStatus.OUT_FOR_DELIVERY
+      ) {
+        throw new BadRequestException(
+          'Can only assign delivery agent to orders that are ready or out for delivery',
+        );
       }
 
       // Verify delivery agent exists and has DELIVERY_AGENT role
@@ -661,7 +853,10 @@ export class OrderModuleService {
         data: {
           deliveryAgentId: dto.deliveryAgentId,
           // If order is READY, automatically move to OUT_FOR_DELIVERY when agent is assigned
-          status: order.status === OrderStatus.READY ? OrderStatus.OUT_FOR_DELIVERY : order.status,
+          status:
+            order.status === OrderStatus.READY
+              ? OrderStatus.OUT_FOR_DELIVERY
+              : order.status,
         },
         select: {
           id: true,
@@ -671,8 +866,31 @@ export class OrderModuleService {
         },
       });
 
-      this.logger.log(`Delivery agent ${dto.deliveryAgentId} assigned to order ${orderId}`);
+      this.logger.log(
+        `Delivery agent ${dto.deliveryAgentId} assigned to order ${orderId}`,
+      );
 
+      this.eventEmitter.emit('delivery.agent.assigned', {
+        orderId: order.id,
+        deliveryAgentId: order.deliveryAgentId,
+        deliveryAgentName: deliveryAgent
+          ? `${deliveryAgent.firstName} ${deliveryAgent.lastName || ''}`.trim()
+          : 'Unknown',
+        deliveryAgentPhone: deliveryAgent.phone,
+        outletId: order.outletId,
+        outletName: order.outlet.name,
+        customerId: order.customerId,
+        customerPhone: order.deliveryPhone,
+        customerAddress: {
+          label: order.deliveryAddressLabel,
+          name: order.deliveryName,
+          line1: order.deliveryAddressLine1,
+          city: order.deliveryCity,
+          state: order.deliveryState,
+        },
+        total: Number(order.total),
+        assignedAt: new Date(),
+      });
       // Notify customer about delivery agent assignment
       this.notificationsGateway.notifyCustomerOrderUpdated(order.customerId, {
         orderId: updatedOrder.id,
@@ -683,24 +901,27 @@ export class OrderModuleService {
       });
 
       // Notify delivery agent about new assignment
-      this.notificationsGateway.notifyDeliveryAgentOrderAssigned(dto.deliveryAgentId, {
-        orderId: updatedOrder.id,
-        outletId: order.outletId,
-        outletName: order.outlet.name,
-        status: updatedOrder.status,
-        total: Number(order.total),
-        customerName: order.deliveryName,
-        customerPhone: order.deliveryPhone,
-        deliveryAddress: {
-          addressLine1: order.deliveryAddressLine1,
-          addressLine2: order.deliveryAddressLine2,
-          city: order.deliveryCity,
-          state: order.deliveryState,
-          postalCode: order.deliveryPostalCode,
-          latitude: Number(order.deliveryLatitude),
-          longitude: Number(order.deliveryLongitude),
+      this.notificationsGateway.notifyDeliveryAgentOrderAssigned(
+        dto.deliveryAgentId,
+        {
+          orderId: updatedOrder.id,
+          outletId: order.outletId,
+          outletName: order.outlet.name,
+          status: updatedOrder.status,
+          total: Number(order.total),
+          customerName: order.deliveryName,
+          customerPhone: order.deliveryPhone,
+          deliveryAddress: {
+            addressLine1: order.deliveryAddressLine1,
+            addressLine2: order.deliveryAddressLine2,
+            city: order.deliveryCity,
+            state: order.deliveryState,
+            postalCode: order.deliveryPostalCode,
+            latitude: Number(order.deliveryLatitude),
+            longitude: Number(order.deliveryLongitude),
+          },
         },
-      });
+      );
 
       return {
         success: true,
@@ -712,11 +933,19 @@ export class OrderModuleService {
         },
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
-      this.logger.error(`Failed to assign delivery agent: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to assign delivery agent';
+      this.logger.error(
+        `Failed to assign delivery agent: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to assign delivery agent';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -724,7 +953,10 @@ export class OrderModuleService {
   /**
    * Get orders for a delivery agent
    */
-  async getDeliveryAgentOrders(deliveryAgentId: number, dto: PaginationDto): Promise<PaginatedResponse<any>> {
+  async getDeliveryAgentOrders(
+    deliveryAgentId: number,
+    dto: PaginationDto,
+  ): Promise<PaginatedResponse<any>> {
     try {
       const { page, limit, skip } = dto;
 
@@ -768,7 +1000,7 @@ export class OrderModuleService {
       return {
         success: true,
         message: 'Delivery agent orders retrieved successfully',
-        data: orders.map(order => ({
+        data: orders.map((order) => ({
           id: order.id,
           status: order.status,
           subtotal: Number(order.subtotal),
@@ -789,21 +1021,28 @@ export class OrderModuleService {
           deliveryLatitude: Number(order.deliveryLatitude),
           deliveryLongitude: Number(order.deliveryLongitude),
           outlet: order.outlet,
-          items: order.items.map(item => ({
+          items: order.items.map((item) => ({
             ...item,
             price: Number(item.price),
           })),
-          payment: order.payment ? {
-            method: order.payment.method,
-            status: order.payment.status,
-            amount: Number(order.payment.amount),
-          } : null,
+          payment: order.payment
+            ? {
+                method: order.payment.method,
+                status: order.payment.status,
+                amount: Number(order.payment.amount),
+              }
+            : null,
         })),
         pagination,
       };
     } catch (error) {
-      this.logger.error(`Failed to get delivery agent orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve delivery agent orders';
+      this.logger.error(
+        `Failed to get delivery agent orders: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to retrieve delivery agent orders';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -811,7 +1050,11 @@ export class OrderModuleService {
   /**
    * Update delivery agent location (for tracking)
    */
-  async updateDeliveryLocation(orderId: number, deliveryAgentId: number, location: { latitude: number; longitude: number }): Promise<ApiResponse<any>> {
+  async updateDeliveryLocation(
+    orderId: number,
+    deliveryAgentId: number,
+    location: { latitude: number; longitude: number },
+  ): Promise<ApiResponse<any>> {
     try {
       // Verify order is assigned to this delivery agent
       const order = await this.prisma.order.findFirst({
@@ -822,14 +1065,18 @@ export class OrderModuleService {
       });
 
       if (!order) {
-        throw new NotFoundException('Order not found or not assigned to this delivery agent');
+        throw new NotFoundException(
+          'Order not found or not assigned to this delivery agent',
+        );
       }
 
       // For now, just return success
       // In production, you would store this in a separate location tracking table
       // or use a real-time location tracking service
 
-      this.logger.log(`Location updated for order ${orderId} by delivery agent ${deliveryAgentId}`);
+      this.logger.log(
+        `Location updated for order ${orderId} by delivery agent ${deliveryAgentId}`,
+      );
 
       return {
         success: true,
@@ -845,8 +1092,13 @@ export class OrderModuleService {
       if (error instanceof NotFoundException) {
         throw error;
       }
-      this.logger.error(`Failed to update delivery location: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update delivery location';
+      this.logger.error(
+        `Failed to update delivery location: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to update delivery location';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -874,17 +1126,21 @@ export class OrderModuleService {
           status: true,
           customerId: true,
           outletId: true,
+          deliveryAgentId: true,
           total: true,
           payment: true,
         },
       });
 
       if (!order) {
-        throw new NotFoundException('Order not found, not assigned to you, or not yet out for delivery');
+        throw new NotFoundException(
+          'Order not found, not assigned to you, or not yet out for delivery',
+        );
       }
 
       // Check payment status
-      const isPendingPayment = order.payment && order.payment.status === 'PENDING';
+      const isPendingPayment =
+        order.payment && order.payment.status === 'PENDING';
 
       // If payment is pending (COD), payment details must be provided
       if (isPendingPayment && !collectPaymentDto) {
@@ -924,7 +1180,20 @@ export class OrderModuleService {
         },
       });
 
-      this.logger.log(`Order ${orderId} marked as DELIVERED by delivery agent ${deliveryAgentId}`);
+      this.logger.log(
+        `Order ${orderId} marked as DELIVERED by delivery agent ${deliveryAgentId}`,
+      );
+
+      // Emit event
+      this.eventEmitter.emit('order.delivered', {
+        orderId: order.id,
+        customerId: order.customerId,
+        outletId: order.outletId,
+        deliveryAgentId: order.deliveryAgentId,
+        total: Number(order.total),
+        paymentMethod: order.payment?.method,
+        deliveredAt: updatedOrder.deliveredAt,
+      });
 
       // Notify customer that order has been delivered
       this.notificationsGateway.notifyCustomerOrderUpdated(order.customerId, {
@@ -945,11 +1214,19 @@ export class OrderModuleService {
         },
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
-      this.logger.error(`Failed to mark order as delivered: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to mark order as delivered';
+      this.logger.error(
+        `Failed to mark order as delivered: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to mark order as delivered';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -958,7 +1235,10 @@ export class OrderModuleService {
    * Get orders for a chef
    * Returns CONFIRMED orders (pending claim) and PREPARING orders (assigned to this chef)
    */
-  async getChefOrders(chefId: number, outletId?: number): Promise<ApiResponse<any>> {
+  async getChefOrders(
+    chefId: number,
+    outletId?: number,
+  ): Promise<ApiResponse<any>> {
     try {
       // Get chef's assigned outlets (if not provided)
       let chefOutletIds: number[] = [];
@@ -1037,7 +1317,7 @@ export class OrderModuleService {
         success: true,
         message: 'Chef orders retrieved successfully',
         data: {
-          pending: pendingOrders.map(order => ({
+          pending: pendingOrders.map((order) => ({
             id: order.id,
             status: order.status,
             subtotal: Number(order.subtotal),
@@ -1051,12 +1331,12 @@ export class OrderModuleService {
             deliveryAddressLine1: order.deliveryAddressLine1,
             deliveryCity: order.deliveryCity,
             outlet: order.outlet,
-            items: order.items.map(item => ({
+            items: order.items.map((item) => ({
               ...item,
               price: Number(item.price),
             })),
           })),
-          preparing: preparingOrders.map(order => ({
+          preparing: preparingOrders.map((order) => ({
             id: order.id,
             status: order.status,
             subtotal: Number(order.subtotal),
@@ -1071,7 +1351,7 @@ export class OrderModuleService {
             deliveryAddressLine1: order.deliveryAddressLine1,
             deliveryCity: order.deliveryCity,
             outlet: order.outlet,
-            items: order.items.map(item => ({
+            items: order.items.map((item) => ({
               ...item,
               price: Number(item.price),
             })),
@@ -1079,11 +1359,19 @@ export class OrderModuleService {
         },
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof ForbiddenException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof ForbiddenException
+      ) {
         throw error;
       }
-      this.logger.error(`Failed to get chef orders: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to retrieve chef orders';
+      this.logger.error(
+        `Failed to get chef orders: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to retrieve chef orders';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -1102,6 +1390,14 @@ export class OrderModuleService {
           status: true,
           outletId: true,
           chefId: true,
+          customerId: true,
+          total: true,
+          outlet: {
+            select: {
+              name: true,
+              restaurantId: true,
+            },
+          },
         },
       });
 
@@ -1110,11 +1406,15 @@ export class OrderModuleService {
       }
 
       if (order.status !== OrderStatus.CONFIRMED) {
-        throw new BadRequestException('Can only claim orders that are confirmed');
+        throw new BadRequestException(
+          'Can only claim orders that are confirmed',
+        );
       }
 
       if (order.chefId !== null) {
-        throw new BadRequestException('This order has already been claimed by another chef');
+        throw new BadRequestException(
+          'This order has already been claimed by another chef',
+        );
       }
 
       // Verify chef is assigned to this outlet
@@ -1158,12 +1458,24 @@ export class OrderModuleService {
 
       this.logger.log(`Order ${orderId} claimed by chef ${chefId}`);
 
+      this.eventEmitter.emit('order.preparing', {
+        orderId: order.id,
+        chefId: order.chefId,
+        chefName: chef ? `${chef.firstName} ${chef.lastName || ''}`.trim() : 'Unknown',
+        outletId: order.outletId,
+        outletName: order.outlet.name,
+        customerId: order.customerId,
+        total: Number(order.total),
+        startedAt: updatedOrder.startedAt,
+      });
       // Notify restaurant that order is being prepared
       this.notificationsGateway.notifyOrderPreparing(order.outletId, {
         orderId: updatedOrder.id,
         status: updatedOrder.status,
         chefId: updatedOrder.chefId,
-        chefName: chef ? `${chef.firstName} ${chef.lastName || ''}`.trim() : 'Unknown',
+        chefName: chef
+          ? `${chef.firstName} ${chef.lastName || ''}`.trim()
+          : 'Unknown',
         startedAt: updatedOrder.startedAt,
       });
 
@@ -1178,11 +1490,18 @@ export class OrderModuleService {
         },
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof ForbiddenException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException ||
+        error instanceof ForbiddenException
+      ) {
         throw error;
       }
-      this.logger.error(`Failed to claim order: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to claim order';
+      this.logger.error(
+        `Failed to claim order: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to claim order';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
@@ -1191,7 +1510,10 @@ export class OrderModuleService {
    * Mark order as ready (chef only)
    * Updates status to READY and sets completedAt timestamp
    */
-  async markOrderReady(orderId: number, chefId: number): Promise<ApiResponse<any>> {
+  async markOrderReady(
+    orderId: number,
+    chefId: number,
+  ): Promise<ApiResponse<any>> {
     try {
       // Verify order exists, is PREPARING, and is assigned to this chef
       const order = await this.prisma.order.findFirst({
@@ -1207,12 +1529,30 @@ export class OrderModuleService {
           customerId: true,
           total: true,
           chefId: true,
+          outlet: {
+            select: {
+              name: true,
+              restaurantId: true,
+            },
+          },
         },
       });
 
       if (!order) {
-        throw new NotFoundException('Order not found, not being prepared by you, or not in PREPARING status');
+        throw new NotFoundException(
+          'Order not found, not being prepared by you, or not in PREPARING status',
+        );
       }
+
+      // Get chef details for notification
+      const chef = await this.prisma.user.findUnique({
+        where: { id: chefId },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      });
 
       // Update order to READY
       const updatedOrder = await this.prisma.order.update({
@@ -1233,6 +1573,16 @@ export class OrderModuleService {
 
       this.logger.log(`Order ${orderId} marked as READY by chef ${chefId}`);
 
+      this.eventEmitter.emit('order.ready', {
+        orderId: order.id,
+        chefId: order.chefId,
+        chefName: chef ? `${chef.firstName} ${chef.lastName || ''}`.trim() : 'Unknown',
+        outletId: order.outletId,
+        outletName: order.outlet.name,
+        customerId: order.customerId,
+        total: Number(order.total),
+        completedAt: updatedOrder.completedAt,
+      });
       // Notify restaurant that order is ready for delivery assignment
       this.notificationsGateway.notifyOrderReady(order.outletId, {
         orderId: updatedOrder.id,
@@ -1260,11 +1610,19 @@ export class OrderModuleService {
         },
       };
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
         throw error;
       }
-      this.logger.error(`Failed to mark order as ready: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to mark order as ready';
+      this.logger.error(
+        `Failed to mark order as ready: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Failed to mark order as ready';
       throw new BadRequestException(`${errorMessage}`);
     }
   }
