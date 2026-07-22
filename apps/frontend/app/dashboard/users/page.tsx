@@ -9,11 +9,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../../../components/ui/badge';
 import { Button } from '../../../components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '../../../components/ui/dialog';
-import { Mail, Phone, Users, Loader2, Key, UserPlus, Pencil, Trash2 } from 'lucide-react';
+import { Mail, Phone, Users, Loader2, Key, UserPlus, Pencil, Trash2, Filter, X } from 'lucide-react';
 import { ChangePasswordModal } from '../../../components/change-password-modal';
 import { CreateUserModal } from '../../../components/create-user-modal';
 import { EditUserModal } from '../../../components/edit-user-modal';
 import { deleteUser } from '../../../lib/users-api';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../../components/ui/select';
 
 const roleLabels: Record<UserRole, string> = {
   SUPER_ADMIN: 'Super Admin',
@@ -32,6 +39,7 @@ const statusColors = {
 export default function UsersListPage() {
   const [users, setUsers] = useState<UserListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFiltering, setIsFiltering] = useState(false);
   const [error, setError] = useState('');
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [showCreateUserModal, setShowCreateUserModal] = useState(false);
@@ -42,16 +50,28 @@ export default function UsersListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalUsers, setTotalUsers] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [roleFilter, setRoleFilter] = useState<string>('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
-    loadUsers();
-  }, [currentPage]);
+    loadUsers(isInitialLoad);
+  }, [currentPage, roleFilter, statusFilter]);
 
-  const loadUsers = async () => {
-    setIsLoading(true);
+  const loadUsers = async (showInitialLoader = false) => {
+    if (showInitialLoader) {
+      setIsLoading(true);
+    } else {
+      setIsFiltering(true);
+    }
     setError('');
     try {
-      const response = await getAllUsers(currentPage, 10);
+      const response = await getAllUsers(
+        currentPage,
+        10,
+        roleFilter || undefined,
+        statusFilter || undefined
+      );
       setUsers(response.data);
       setTotalPages(response.pagination.totalPages);
       setTotalUsers(response.pagination.total);
@@ -59,6 +79,8 @@ export default function UsersListPage() {
       setError(err instanceof Error ? err.message : 'Failed to load users');
     } finally {
       setIsLoading(false);
+      setIsFiltering(false);
+      setIsInitialLoad(false);
     }
   };
 
@@ -83,11 +105,13 @@ export default function UsersListPage() {
   };
 
   const handleUserCreated = () => {
-    loadUsers();
+    setIsInitialLoad(true);
+    loadUsers(true);
   };
 
   const handleUserUpdated = () => {
-    loadUsers();
+    setIsInitialLoad(true);
+    loadUsers(true);
   };
 
   const handleDeleteUser = async () => {
@@ -99,7 +123,8 @@ export default function UsersListPage() {
       await deleteUser(selectedUser.id);
       setShowDeleteConfirm(false);
       setSelectedUser(null);
-      loadUsers();
+      setIsInitialLoad(true);
+      loadUsers(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete user');
     } finally {
@@ -149,6 +174,76 @@ export default function UsersListPage() {
             </CardDescription>
           </CardHeader>
 
+          {/* Filters */}
+          <div className="px-6 pb-4">
+            <div className="flex items-center gap-4 flex-wrap">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4 text-slate-500" />
+                <span className="text-sm font-medium text-slate-700">Filters:</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label htmlFor="role-filter" className="text-sm text-slate-600">Role:</label>
+                <Select
+                  value={roleFilter}
+                  onValueChange={(value) => {
+                    setRoleFilter(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger id="role-filter" className="w-[180px]">
+                    <SelectValue placeholder="All Roles" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Roles</SelectItem>
+                    <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+                    <SelectItem value="RESTAURANT_ADMIN">Restaurant Admin</SelectItem>
+                    <SelectItem value="MANAGER">Manager</SelectItem>
+                    <SelectItem value="CHEF">Chef</SelectItem>
+                    <SelectItem value="DELIVERY_AGENT">Delivery Agent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label htmlFor="status-filter" className="text-sm text-slate-600">Status:</label>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(value) => {
+                    setStatusFilter(value);
+                    setCurrentPage(1);
+                  }}
+                >
+                  <SelectTrigger id="status-filter" className="w-[140px]">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Status</SelectItem>
+                    <SelectItem value="ACTIVE">Active</SelectItem>
+                    <SelectItem value="INACTIVE">Inactive</SelectItem>
+                    <SelectItem value="SUSPENDED">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {(roleFilter || statusFilter) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setRoleFilter('');
+                    setStatusFilter('');
+                    setCurrentPage(1);
+                  }}
+                  className="text-slate-600 hover:text-emerald-600"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Clear Filters
+                </Button>
+              )}
+            </div>
+          </div>
+
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
@@ -163,85 +258,95 @@ export default function UsersListPage() {
                 No users found. Create your first user to get started.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-emerald-100">
-                      <TableHead className="font-semibold">Name</TableHead>
-                      <TableHead className="font-semibold">Email</TableHead>
-                      <TableHead className="font-semibold">Phone</TableHead>
-                      <TableHead className="font-semibold">Role</TableHead>
-                      <TableHead className="font-semibold">Status</TableHead>
-                      <TableHead className="font-semibold">Created</TableHead>
-                      <TableHead className="font-semibold">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.id} className="border-emerald-50">
-                        <TableCell className="font-medium">
-                          {user.firstName} {user.lastName || ''}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Mail className="h-3 w-3 text-slate-400" />
-                            {user.email}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Phone className="h-3 w-3 text-slate-400" />
-                            {user.phone}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
-                            {roleLabels[user.role]}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={statusColors[user.status]}>
-                            {user.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-slate-600">
-                          {new Date(user.createdAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleOpenEditModal(user)}
-                              className="text-slate-600 hover:text-emerald-600 hover:bg-emerald-50"
-                              title="Edit User"
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleOpenChangePasswordModal(user)}
-                              className="text-slate-600 hover:text-emerald-600 hover:bg-emerald-50"
-                              title="Change Password"
-                            >
-                              <Key className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleOpenDeleteConfirm(user)}
-                              className="text-slate-600 hover:text-red-600 hover:bg-red-50"
-                              title="Delete User"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+              <div className="relative">
+                <div className={`overflow-x-auto transition-opacity duration-200 ${isFiltering ? 'opacity-40' : 'opacity-100'}`}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-emerald-100">
+                        <TableHead className="font-semibold">Name</TableHead>
+                        <TableHead className="font-semibold">Email</TableHead>
+                        <TableHead className="font-semibold">Phone</TableHead>
+                        <TableHead className="font-semibold">Role</TableHead>
+                        <TableHead className="font-semibold">Status</TableHead>
+                        <TableHead className="font-semibold">Created</TableHead>
+                        <TableHead className="font-semibold">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map((user) => (
+                        <TableRow key={user.id} className="border-emerald-50">
+                          <TableCell className="font-medium">
+                            {user.firstName} {user.lastName || ''}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-3 w-3 text-slate-400" />
+                              {user.email}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-3 w-3 text-slate-400" />
+                              {user.phone}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                              {roleLabels[user.role]}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className={statusColors[user.status]}>
+                              {user.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-slate-600">
+                            {new Date(user.createdAt).toLocaleDateString()}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenEditModal(user)}
+                                className="text-slate-600 hover:text-emerald-600 hover:bg-emerald-50"
+                                title="Edit User"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenChangePasswordModal(user)}
+                                className="text-slate-600 hover:text-emerald-600 hover:bg-emerald-50"
+                                title="Change Password"
+                              >
+                                <Key className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleOpenDeleteConfirm(user)}
+                                className="text-slate-600 hover:text-red-600 hover:bg-red-50"
+                                title="Delete User"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                {isFiltering && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/30 backdrop-blur-[1px] pointer-events-none">
+                    <div className="bg-white/90 backdrop-blur px-4 py-2 rounded-lg shadow-lg border border-emerald-100 flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin text-emerald-500" />
+                      <span className="text-sm text-slate-600 font-medium">Loading...</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

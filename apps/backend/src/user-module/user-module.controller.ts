@@ -4,7 +4,7 @@ import { UserModuleService } from './user-module.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { RolesGuard } from '../auth/guards/roles.guard';
-import { UserRole } from 'src/database/generated/prisma/enums';
+import { UserRole, UserStatus } from 'src/database/generated/prisma/enums';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -45,6 +45,8 @@ export class UserModuleController {
   })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({ name: 'role', required: false, enum: UserRole, example: UserRole.RESTAURANT_ADMIN, description: 'Filter by user role' })
+  @ApiQuery({ name: 'status', required: false, enum: UserStatus, example: UserStatus.ACTIVE, description: 'Filter by user status' })
   @ApiResponse({
     status: 200,
     description: 'Users retrieved successfully',
@@ -63,6 +65,8 @@ export class UserModuleController {
   })
   @ApiQuery({ name: 'page', required: false, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: false, type: Number, example: 10 })
+  @ApiQuery({ name: 'role', required: false, enum: [UserRole.MANAGER, UserRole.CHEF, UserRole.DELIVERY_AGENT], example: UserRole.MANAGER, description: 'Filter by assignable role (MANAGER, CHEF, DELIVERY_AGENT)' })
+  @ApiQuery({ name: 'status', required: false, enum: UserStatus, example: UserStatus.ACTIVE, description: 'Filter by user status (defaults to ACTIVE)' })
   @ApiResponse({
     status: 200,
     description: 'Assignable users retrieved successfully',
