@@ -75,20 +75,32 @@ export class UserModuleService {
    */
   async getAssignableUsers(getUserDto: GetUserDto): Promise<PaginatedResponse<any>> {
     try {
-      const { page, limit, skip } = getUserDto;
+      const { page, limit, skip, role, status } = getUserDto;
 
       const assignableRoles = [UserRole.MANAGER, UserRole.CHEF, UserRole.DELIVERY_AGENT];
 
+      // Build where clause with dynamic filters
+      const where: any = {
+        role: {
+          in: assignableRoles,
+        },
+      };
+
+      // Apply role filter if provided (must be within assignable roles)
+      if (role && assignableRoles.includes(role)) {
+        where.role = { equals: role };
+      }
+
+      // Apply status filter if provided, default to ACTIVE
+      if (status) {
+        where.status = { equals: status };
+      } else {
+        where.status = { equals: UserStatus.ACTIVE };
+      }
+
       const [users, total] = await Promise.all([
         this.prisma.user.findMany({
-          where: {
-            role: {
-              in: assignableRoles,
-            },
-            status: {
-              equals: 'ACTIVE',
-            },
-          },
+          where,
           select: {
             id: true,
             firstName: true,
@@ -105,14 +117,7 @@ export class UserModuleService {
           take: limit,
         }),
         this.prisma.user.count({
-          where: {
-            role: {
-              in: assignableRoles,
-            },
-            status: {
-              equals: 'ACTIVE',
-            },
-          },
+          where,
         }),
       ]);
 
@@ -135,15 +140,28 @@ export class UserModuleService {
    */
   async getAllUsers(getUserDto: GetUserDto): Promise<PaginatedResponse<any>> {
     try {
-      const { page, limit, skip } = getUserDto;
+      const { page, limit, skip, role, status } = getUserDto;
+
+      // Build where clause with dynamic filters
+      const where: any = {
+        role: {
+          not: UserRole.SUPER_ADMIN,
+        },
+      };
+
+      // Apply role filter if provided (but never allow SUPER_ADMIN)
+      if (role && role !== UserRole.SUPER_ADMIN) {
+        where.role = { equals: role };
+      }
+
+      // Apply status filter if provided
+      if (status) {
+        where.status = { equals: status };
+      }
 
       const [users, total] = await Promise.all([
         this.prisma.user.findMany({
-          where: {
-            role: {
-              not: UserRole.SUPER_ADMIN,
-            },
-          },
+          where,
           select: {
             id: true,
             firstName: true,
@@ -161,11 +179,7 @@ export class UserModuleService {
           take: limit,
         }),
         this.prisma.user.count({
-          where: {
-            role: {
-              not: UserRole.SUPER_ADMIN,
-            },
-          },
+          where,
         }),
       ]);
 

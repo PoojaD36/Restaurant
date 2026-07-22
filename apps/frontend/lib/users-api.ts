@@ -30,16 +30,38 @@ export async function createUser(data: CreateUserRequest): Promise<ApiResponse<n
   });
 }
 
-export async function getAllUsers(page: number = 1, limit: number = 10): Promise<PaginatedResponse<UserListItem>> {
-  return request(`/users/list?page=${page}&limit=${limit}`);
+export async function getAllUsers(
+  page: number = 1,
+  limit: number = 10,
+  role?: string,
+  status?: string
+): Promise<PaginatedResponse<UserListItem>> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(role && { role }),
+    ...(status && { status }),
+  });
+  return request(`/users/list?${params.toString()}`);
 }
 
 /**
  * Get assignable users (Manager, Chef, Delivery Agent)
  * Accessible by Super Admin and Restaurant Admin
  */
-export async function getAssignableUsers(page: number = 1, limit: number = 100): Promise<PaginatedResponse<UserListItem>> {
-  return request(`/users/assignable?page=${page}&limit=${limit}`);
+export async function getAssignableUsers(
+  page: number = 1,
+  limit: number = 100,
+  role?: string,
+  status?: string
+): Promise<PaginatedResponse<UserListItem>> {
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+    ...(role && { role }),
+    ...(status && { status }),
+  });
+  return request(`/users/assignable?${params.toString()}`);
 }
 
 export async function changePassword(data: ChangePasswordRequest): Promise<ApiResponse<null>> {
