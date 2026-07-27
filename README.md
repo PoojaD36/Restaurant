@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-07-27 (Offer Lifecycle Scheduler)
+> **Last Updated:** 2026-07-27 (Daily Sales Report Scheduler)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -211,7 +211,7 @@ d:\restaurant/
 | Dashboard Module | ✅ Complete | Dashboard analytics with statistics, recent orders, revenue analytics, popular items, staff performance |
 | **Offer Module** | ✅ **Complete** | **Discount/coupon system with 4 offer types (PERCENTAGE, FIXED, FREE_DELIVERY, BUY_ONE_GET_ONE), flexible BOGO (all items or specific items), auto coupon removal on cart changes, 3 scopes (PUBLIC, RESTAURANT, OUTLET), validation engine, calculation service, usage tracking, admin CRUD, customer apply/preview endpoints** |
 | **Events Module** | ✅ **Complete** | **Event-driven architecture with EventEmitter2 for decoupled notification handling. Event listeners for order lifecycle (order.created, order.status.updated, order.cancelled, order.paid, delivery.agent.assigned, order.preparing, order.ready, order.delivered), customer registration, and offer usage tracking** |
-| **Jobs Module** | ✅ **Complete** | **Scheduled tasks using @nestjs/schedule. Auto-cancel pending orders stuck for >30 minutes (runs every 15 min). Extensible for daily reports, token cleanup, and offer expiration** |
+| **Jobs Module** | ✅ **Complete** | **Scheduled tasks using @nestjs/schedule. Auto-cancel pending orders (>30 min), auto-expire/activate offers (hourly), daily sales report (8 AM). Extensible for token cleanup, analytics cache, and more** |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
 | Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, Offer models (Offer, OfferOutlet, OfferCategory, OfferMenuItem, OfferUsage), required lat/lng |
@@ -1733,6 +1733,21 @@ npx shadcn@latest add dialog -y
   - **Performance**: No N+1 queries — three single-query fetches + batch updates
   - **Logging**: Emits count summaries for each operation
   - **JobsModule**: Extended to register OfferLifecycleScheduler provider
+- ✅ **Daily Sales Report Scheduler** - Implemented daily cron for generating sales reports - 2026-07-27
+  - **Cron Schedule**: Runs at 8 AM daily (`@Cron('0 0 8 * * *')`) with Asia/Kolkata timezone
+  - **DailySalesReportScheduler**: Comprehensive daily analytics with:
+    - Total revenue, order count, average order value
+    - Payment method breakdown (Online vs Cash)
+    - Order status breakdown
+    - Restaurant/Outlet performance metrics
+    - Top 10 selling items by quantity
+    - New customer count
+    - Recent orders (last 5) with full details
+  - **Pattern**: Follows same architecture as OrderCleanupScheduler and OfferLifecycleScheduler
+  - **Performance**: Single query for orders with full relations (items, payment, outlet.restaurant, customer), batch aggregation in-memory
+  - **Logging**: Formatted report output with emoji indicators and structured sections
+  - **JobsModule**: Extended to register DailySalesReportScheduler provider
+  - **TODO**: Email integration pending - report currently logs to console only
 - ✅ **Event-Driven Architecture Implementation** - Complete event-driven system with EventEmitter2 - 2026-07-21
   - **Events Module Created**: `events.module.ts` with EventEmitter2 configuration (wildcard: false, maxListeners: 10, verboseMemoryLeak: true)
   - **Event Interfaces Defined**: `event-payloads.interface.ts` with TypeScript interfaces for all event payloads (OrderCreatedEvent, OrderStatusUpdatedEvent, OrderCancelledEvent, OrderPaidEvent, DeliveryAgentAssignedEvent, OrderPreparingEvent, OrderReadyEvent, OrderDeliveredEvent, CustomerRegisteredEvent, AddressAddedEvent, OfferAppliedEvent)
@@ -1946,12 +1961,12 @@ Run tasks at specific times using cron expressions.
 
 #### Use Cases
 
-| Feature | Description | Cron Expression | Priority |
-|---------|-------------|-----------------|----------|
-| **Daily Sales Report** | Generate and email daily revenue/sales report to admins | `0 0 8 * * *` (8 AM daily) | High |
-| **Auto-Expire Offers** | Check and mark expired offers as EXPIRED status | `0 0 * * * *` (every hour) | High |
-| **Clean Up Tokens** | Remove expired refresh tokens from database | `0 0 0 * * *` (midnight daily) | Medium |
-| **Auto-Cancel Pending Orders** | Cancel orders stuck in PENDING > 30 minutes | `*/15 * * * *` (every 15 min) | High |
+| Feature | Status | Description | Cron Expression | Priority |
+|---------|--------|-------------|-----------------|----------|
+| **Daily Sales Report** | ✅ Done | Generate and email daily revenue/sales report to admins | `0 0 8 * * *` (8 AM daily) | High |
+| **Auto-Expire Offers** | ✅ Done | Check and mark expired offers as EXPIRED status | `0 0 * * * *` (every hour) | High |
+| **Clean Up Tokens** | ❌ Pending | Remove expired refresh tokens from database | `0 0 0 * * *` (midnight daily) | Medium |
+| **Auto-Cancel Pending Orders** | ✅ Done | Cancel orders stuck in PENDING > 30 minutes | `*/15 * * * *` (every 15 min) | High |
 | **Generate Daily Analytics** | Aggregate daily stats for dashboard cache | `0 1 0 * * *` (12:01 AM daily) | Medium |
 | **Weekly Restaurant Summary** | Email weekly performance to restaurant admins | `0 0 9 * * 1` (9 AM Monday) | Low |
 | **Abandoned Cart Cleanup** | Clear cart data older than 7 days | `0 0 3 * * *` (3 AM daily) | Low |
