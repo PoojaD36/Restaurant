@@ -11,6 +11,7 @@ import { AddAddressDto } from './dto/add-address.dto';
 import { UpdateAddressDto } from './dto/update-address.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 import { GeocodingService } from '../common';
+import { EmailService } from '../email-module/email.service';
 
 @Injectable()
 export class CustomerModuleService {
@@ -21,6 +22,7 @@ export class CustomerModuleService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private geocodingService: GeocodingService,
+    private emailService: EmailService,
   ) {}
 
   /**
@@ -80,6 +82,18 @@ export class CustomerModuleService {
       const tokens = await this.generateTokens(customer);
 
       const { password: _, ...customerWithoutPassword } = customer;
+
+      // Send welcome email to customer
+      try {
+        const customerName = `${customer.firstName} ${customer.lastName || ''}`.trim();
+        if (customer.email) {
+          await this.emailService.sendWelcomeEmail(customer.email, customerName);
+          this.logger.log(`Welcome email sent to ${customer.email}`);
+        }
+      } catch (emailError) {
+        // Log error but don't fail the registration
+        this.logger.error('Failed to send welcome email', emailError);
+      }
 
       return {
         success: true,

@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/button';
 import { NotificationBell } from '../../components/notification-bell';
 import { DeliveryNotificationBell } from '../../components/delivery-notification-bell';
-import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen, Package, Truck, UtensilsCrossed, Percent } from 'lucide-react';
+import { Utensils, LayoutDashboard, LogOut, Key, Users, ChevronLeft, ChevronRight, Menu, X, Building2, MapPin, LucideIcon, BookOpen, Package, Truck, UtensilsCrossed, Percent, Mail } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { ChangePasswordModal } from '../../components/change-password-modal';
 
@@ -46,6 +46,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: '/dashboard/outlets', icon: MapPin, label: 'My Outlets', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN'] },
     { href: '/dashboard/menus', icon: BookOpen, label: 'Menus', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'MANAGER'] },
     { href: '/dashboard/offers', icon: Percent, label: 'Offers', allowedRoles: ['SUPER_ADMIN', 'RESTAURANT_ADMIN', 'MANAGER'] },
+    { href: '/dashboard/email', icon: Mail, label: 'Email', requiresRole: 'SUPER_ADMIN' },
   ];
 
   const filteredNavItems = navItems.filter((item) => {

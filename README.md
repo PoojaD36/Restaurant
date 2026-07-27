@@ -724,7 +724,43 @@ Each restaurant card features:
 | `/email/test` | POST | JWT | SUPER_ADMIN | Send test email to verify SMTP configuration |
 | `/email/test-daily-report` | POST | JWT | SUPER_ADMIN | Get daily report scheduler information |
 
-**Note:** Daily sales reports are sent automatically by the scheduler at 8 AM daily (Asia/Kolkata timezone) to the email configured in `EMAIL_TO` environment variable.
+**Email Templates:**
+
+| Template | Purpose | Status | When Sent |
+|----------|---------|--------|-----------|
+| `daily-report.hbs` | Daily sales report with analytics | ✅ Active | Automatically at 8 AM daily (Asia/Kolkata) |
+| `test-email.hbs` | Test email for SMTP verification | ✅ Active | Manual trigger via dashboard |
+| `order-confirmation.hbs` | Order confirmation with details | ✅ Ready | When customer places an order |
+| `welcome-email.hbs` | Welcome email with coupon code | ✅ Ready | When new customer registers |
+| `order-status-update.hbs` | Order status update with timeline | ✅ Ready | When order status changes |
+
+**Email Configuration:**
+
+```env
+# SMTP Configuration (Backend .env)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM="Foodie Restaurant <your-email@gmail.com>"
+EMAIL_TO=your-email@gmail.com
+```
+
+**Daily Sales Report Contents:**
+- Total revenue and order count
+- Average order value
+- Payment method breakdown (Online vs Cash)
+- Order status distribution
+- Top selling items (by quantity and revenue)
+- Restaurant/outlet performance breakdown
+- Recent orders (last 5 orders)
+
+**Frontend Integration:**
+- Email management page: `/dashboard/email` (SUPER_ADMIN only)
+- Test email functionality with success/error feedback
+- Scheduler information display
+- Template status overview
 
 ### Authentication Flow
 
