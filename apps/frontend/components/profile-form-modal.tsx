@@ -76,7 +76,7 @@ export function ProfileFormModal({
 
     setIsLoading(true);
     try {
-      await updateCustomerProfile(token, formData);
+      await updateCustomerProfile(formData);
       onSuccess();
       onClose();
     } catch (error: any) {

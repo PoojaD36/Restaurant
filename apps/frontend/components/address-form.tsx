@@ -99,9 +99,9 @@ export function AddressForm({ isOpen, onClose, onSuccess, editAddress, token }: 
     setIsLoading(true);
     try {
       if (editAddress) {
-        await updateCustomerAddress(token, editAddress.id, formData);
+        await updateCustomerAddress(editAddress.id, formData);
       } else {
-        await addCustomerAddress(token, formData);
+        await addCustomerAddress(formData);
       }
       onSuccess();
       onClose();

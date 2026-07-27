@@ -7,6 +7,7 @@ import { CustomerNotificationProvider } from "../contexts/customer-notification-
 import { CartProvider } from "../contexts/cart-context";
 import { LocationProvider } from "../contexts/location-context";
 import { ChatProvider } from "../contexts/chat-context";
+import { ToastProvider } from "../components/ui/toast";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,17 +35,19 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
-        <AuthProvider>
-          <CustomerAuthProvider>
-            <CustomerNotificationProvider>
-              <LocationProvider>
-                <CartProvider>
-                  <ChatProvider>{children}</ChatProvider>
-                </CartProvider>
-              </LocationProvider>
-            </CustomerNotificationProvider>
-          </CustomerAuthProvider>
-        </AuthProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <CustomerAuthProvider>
+              <CustomerNotificationProvider>
+                <LocationProvider>
+                  <CartProvider>
+                    <ChatProvider>{children}</ChatProvider>
+                  </CartProvider>
+                </LocationProvider>
+              </CustomerNotificationProvider>
+            </CustomerAuthProvider>
+          </AuthProvider>
+        </ToastProvider>
       </body>
     </html>
   );

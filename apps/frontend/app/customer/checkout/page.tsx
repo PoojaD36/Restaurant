@@ -57,7 +57,7 @@ export default function CheckoutPage() {
       const token = getCustomerToken();
       if (!token) return;
 
-      const response = await getCustomerProfile(token);
+      const response = await getCustomerProfile();
       if (response.success && response.customer.addresses) {
         setAddresses(response.customer.addresses);
         // Set default address as selected
@@ -98,7 +98,7 @@ export default function CheckoutPage() {
       const token = getCustomerToken();
       if (!token) return;
 
-      await deleteCustomerAddress(token, addressId);
+      await deleteCustomerAddress(addressId);
       await refreshProfile(); // Refresh customer context
       await loadAddresses(); // Load addresses for checkout page
 

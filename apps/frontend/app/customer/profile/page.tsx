@@ -84,11 +84,8 @@ export default function CustomerProfilePage() {
     if (confirm('Are you sure you want to delete this address?')) {
       try {
         setIsUpdating(true);
-        const token = localStorage.getItem('customerAccessToken');
-        if (token) {
-          await deleteCustomerAddress(token, addressId);
-          await refreshProfile();
-        }
+        await deleteCustomerAddress(addressId);
+        await refreshProfile();
       } catch (error: any) {
         alert(error.message || 'Failed to delete address');
       } finally {
@@ -100,11 +97,8 @@ export default function CustomerProfilePage() {
   const handleSetDefaultAddress = async (addressId: number) => {
     try {
       setIsUpdating(true);
-      const token = localStorage.getItem('customerAccessToken');
-      if (token) {
-        await setDefaultCustomerAddress(token, addressId);
-        await refreshProfile();
-      }
+      await setDefaultCustomerAddress(addressId);
+      await refreshProfile();
     } catch (error: any) {
       alert(error.message || 'Failed to set default address');
     } finally {
