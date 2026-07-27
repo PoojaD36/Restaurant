@@ -1,14 +1,18 @@
 import { Cron } from '@nestjs/schedule';
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { EmailService } from '../../email-module/email.service';
 
 @Injectable()
 export class DailySalesReportScheduler {
   private readonly logger = new Logger(DailySalesReportScheduler.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) {}
 
-  @Cron('0 0 8 * * *', {
+  @Cron('0 0 16 * * *', {
     name: 'daily-sales-report',
     timeZone: 'Asia/Kolkata',
   })
@@ -230,9 +234,9 @@ export class DailySalesReportScheduler {
       });
       this.logger.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
 
-      // TODO: Send email to super admins
-      // await this.emailService.sendDailyReport(report);
-      this.logger.log('✅ Daily sales report generated successfully');
+      // Send email to super admins
+      await this.emailService.sendDailySalesReport(report);
+      this.logger.log('✅ Daily sales report sent successfully');
 
       return report;
     } catch (error) {

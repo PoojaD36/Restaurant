@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-07-27 (Daily Sales Report Scheduler)
+> **Last Updated:** 2026-07-27 (Email Integration + Daily Sales Report)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -212,6 +212,7 @@ d:\restaurant/
 | **Offer Module** | ✅ **Complete** | **Discount/coupon system with 4 offer types (PERCENTAGE, FIXED, FREE_DELIVERY, BUY_ONE_GET_ONE), flexible BOGO (all items or specific items), auto coupon removal on cart changes, 3 scopes (PUBLIC, RESTAURANT, OUTLET), validation engine, calculation service, usage tracking, admin CRUD, customer apply/preview endpoints** |
 | **Events Module** | ✅ **Complete** | **Event-driven architecture with EventEmitter2 for decoupled notification handling. Event listeners for order lifecycle (order.created, order.status.updated, order.cancelled, order.paid, delivery.agent.assigned, order.preparing, order.ready, order.delivered), customer registration, and offer usage tracking** |
 | **Jobs Module** | ✅ **Complete** | **Scheduled tasks using @nestjs/schedule. Auto-cancel pending orders (>30 min), auto-expire/activate offers (hourly), daily sales report (8 AM). Extensible for token cleanup, analytics cache, and more** |
+| **Email Module** | ✅ **Complete** | **Email service with @nestjs-modules/mailer + Nodemailer + Handlebars templates. Daily sales reports, order confirmations, welcome emails, order status updates, test emails. Gmail SMTP integration with environment-based configuration** |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
 | Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, Offer models (Offer, OfferOutlet, OfferCategory, OfferMenuItem, OfferUsage), required lat/lng |
@@ -716,6 +717,15 @@ Each restaurant card features:
 }
 ```
 
+### Email Management Endpoints
+
+| Endpoint | Method | Auth Required | Role Required | Description |
+|----------|--------|---------------|---------------|-------------|
+| `/email/test` | POST | JWT | SUPER_ADMIN | Send test email to verify SMTP configuration |
+| `/email/test-daily-report` | POST | JWT | SUPER_ADMIN | Get daily report scheduler information |
+
+**Note:** Daily sales reports are sent automatically by the scheduler at 8 AM daily (Asia/Kolkata timezone) to the email configured in `EMAIL_TO` environment variable.
+
 ### Authentication Flow
 
 1. **Database Seeding:** Run `pnpm run seed` to create Super Admin
@@ -1005,6 +1015,15 @@ SUPABASE_BUCKET=restaurant-menu-images
 # Razorpay Payment Gateway
 RAZORPAY_KEY_ID=rzp_test_xxxxx
 RAZORPAY_KEY_SECRET=rzp_test_xxxxx
+
+# Email Configuration (SMTP)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your-email@gmail.com
+SMTP_PASSWORD=your-app-password
+SMTP_FROM=Foodie Restaurant <your-email@gmail.com>
+EMAIL_TO=your-email@gmail.com
 ```
 
 **For Local Development:**
@@ -1747,7 +1766,22 @@ npx shadcn@latest add dialog -y
   - **Performance**: Single query for orders with full relations (items, payment, outlet.restaurant, customer), batch aggregation in-memory
   - **Logging**: Formatted report output with emoji indicators and structured sections
   - **JobsModule**: Extended to register DailySalesReportScheduler provider
-  - **TODO**: Email integration pending - report currently logs to console only
+  - **Email Integration**: Now sends daily sales report via email to configured recipients using @nestjs-modules/mailer with Handlebars templates
+- ✅ **Email Integration** - Complete email service implementation - 2026-07-27
+  - **EmailModule**: Created with @nestjs-modules/mailer + Nodemailer + Handlebars templates
+  - **EmailService**: Comprehensive email service with methods for:
+    - Daily sales reports (with HTML templates)
+    - Order confirmations
+    - Welcome emails
+    - Order status updates
+    - Test emails
+  - **Templates**: Beautiful HTML email templates with responsive design:
+    - Daily sales report template (sales analytics, payment breakdown, top items)
+    - Test email template
+  - **Configuration**: Gmail SMTP integration with environment-based configuration
+  - **Controller**: Test endpoints for email verification (`POST /email/test`)
+  - **Scheduler Integration**: DailySalesReportScheduler now sends emails instead of just logging
+  - **Environment Variables**: SMTP_HOST, SMTP_PORT, SMTP_SECURE, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, EMAIL_TO
 - ✅ **Event-Driven Architecture Implementation** - Complete event-driven system with EventEmitter2 - 2026-07-21
   - **Events Module Created**: `events.module.ts` with EventEmitter2 configuration (wildcard: false, maxListeners: 10, verboseMemoryLeak: true)
   - **Event Interfaces Defined**: `event-payloads.interface.ts` with TypeScript interfaces for all event payloads (OrderCreatedEvent, OrderStatusUpdatedEvent, OrderCancelledEvent, OrderPaidEvent, DeliveryAgentAssignedEvent, OrderPreparingEvent, OrderReadyEvent, OrderDeliveredEvent, CustomerRegisteredEvent, AddressAddedEvent, OfferAppliedEvent)

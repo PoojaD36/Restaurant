@@ -5,9 +5,10 @@ import { OfferLifecycleScheduler } from './schedulers/offer-lifecycle.scheduler'
 import { DailySalesReportScheduler } from './schedulers/daily-sales-report.scheduler';
 import { PrismaService } from '../database/prisma.service';
 import { EventsModule } from '../events/events.module';
+import { EmailModule } from '../email-module/email.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot(), EventsModule],
+  imports: [ScheduleModule.forRoot(), EventsModule, EmailModule],
   providers: [
     OrderCleanupScheduler,
     OfferLifecycleScheduler,
