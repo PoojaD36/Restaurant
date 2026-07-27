@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { apiClient } from './api-client';
 
 export interface PublicOutlet {
   id: string;
@@ -43,17 +43,10 @@ export async function getPublicOutlets(
   limit: number = 20,
   restaurantId?: number,
 ): Promise<PaginatedPublicOutlets> {
-  const url = restaurantId
-    ? `${API_URL}/public/outlets/list?page=${page}&limit=${limit}&restaurantId=${restaurantId}`
-    : `${API_URL}/public/outlets/list?page=${page}&limit=${limit}`;
+  const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+  if (restaurantId) params.append('restaurantId', String(restaurantId));
 
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch outlets');
-  }
-
-  return response.json();
+  return apiClient.get(`/public/outlets/list?${params}`, { skipAuth: true });
 }
 
 /**
@@ -64,13 +57,7 @@ export async function getPublicOutletById(id: string): Promise<{
   message: string;
   data: PublicOutlet;
 }> {
-  const response = await fetch(`${API_URL}/public/outlets/${id}`);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch outlet');
-  }
-
-  return response.json();
+  return apiClient.get(`/public/outlets/${id}`, { skipAuth: true });
 }
 
 /**
@@ -82,11 +69,5 @@ export async function getPublicMenuByOutlet(outletId: string): Promise<{
   message: string;
   data: import('./menu-types').PublicMenu;
 }> {
-  const response = await fetch(`${API_URL}/public/menus/outlet/${outletId}`);
-
-  if (!response.ok) {
-    throw new Error('Failed to fetch menu');
-  }
-
-  return response.json();
+  return apiClient.get(`/public/menus/outlet/${outletId}`, { skipAuth: true });
 }

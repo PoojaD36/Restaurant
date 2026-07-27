@@ -36,15 +36,15 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
     // Check if customer is already logged in
     const token = localStorage.getItem(CUSTOMER_TOKEN_KEY);
     if (token) {
-      loadCustomerProfile(token);
+      loadCustomerProfile();
     } else {
       setIsLoading(false);
     }
   }, []);
 
-  const loadCustomerProfile = async (token: string) => {
+  const loadCustomerProfile = async () => {
     try {
-      const response = await getCustomerProfile(token);
+      const response = await getCustomerProfile();
       if (response.success && response.customer) {
         setCustomer(response.customer);
       }
@@ -97,10 +97,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
 
   const logout = async () => {
     try {
-      const token = localStorage.getItem(CUSTOMER_TOKEN_KEY);
-      if (token) {
-        await apiLogoutCustomer(token);
-      }
+      await apiLogoutCustomer();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
@@ -115,7 +112,7 @@ export function CustomerAuthProvider({ children }: { children: ReactNode }) {
   const refreshProfile = async () => {
     const token = localStorage.getItem(CUSTOMER_TOKEN_KEY);
     if (token) {
-      await loadCustomerProfile(token);
+      await loadCustomerProfile();
     }
   };
 
