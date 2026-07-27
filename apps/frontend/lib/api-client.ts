@@ -116,7 +116,8 @@ class ApiClient {
       }
 
       // Handle network errors (backend not running, CORS, etc.)
-      if (error instanceof Error && (error as ApiError).isNetworkError) {
+      // Native fetch throws TypeError for network failures
+      if (error instanceof TypeError || (error instanceof Error && (error as ApiError).isNetworkError)) {
         const networkError: ApiError = new Error(
           'Cannot connect to server. Please check if the backend is running.'
         );

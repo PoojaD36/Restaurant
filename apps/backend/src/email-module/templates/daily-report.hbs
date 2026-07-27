@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{subject}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #10b981;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #10b981;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .stat-value.highlight {
+            color: #10b981;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .table th {
+            background-color: #f9fafb;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            color: #6b7280;
+            border-bottom: 2px solid #e5e7eb;
+        }
+        .table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 14px;
+        }
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .badge-success { background-color: #d1fae5; color: #065f46; }
+        .badge-warning { background-color: #fef3c7; color: #92400e; }
+        .badge-info { background-color: #dbeafe; color: #1e40af; }
+        .top-items-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .top-items-list li {
+            padding: 10px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .top-items-list li:last-child {
+            border-bottom: none;
+        }
+        .item-name {
+            font-weight: 500;
+            color: #1f2937;
+        }
+        .item-stats {
+            font-size: 13px;
+            color: #6b7280;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+        }
+        .emoji {
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Daily Sales Report</h1>
+            <p>{{date}} | Foodie Restaurant Analytics</p>
+        </div>
+
+        <div class="content">
+            <!-- Summary Section -->
+            <div class="section">
+                <h2 class="section-title">📈 Summary</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value highlight">₹{{summary.totalRevenue}}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Orders</div>
+                        <div class="stat-value">{{summary.totalOrders}}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Avg Order Value</div>
+                        <div class="stat-value">₹{{summary.avgOrderValue}}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">New Customers</div>
+                        <div class="stat-value">{{summary.newCustomers}}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Breakdown -->
+            <div class="section">
+                <h2 class="section-title">💳 Payment Breakdown</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Payment Method</th>
+                            <th>Orders</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span class="badge badge-info">Online</span></td>
+                            <td>{{paymentBreakdown.online.count}}</td>
+                            <td>₹{{paymentBreakdown.online.revenue}}</td>
+                        </tr>
+                        <tr>
+                            <td><span class="badge badge-warning">Cash on Delivery</span></td>
+                            <td>{{paymentBreakdown.cash.count}}</td>
+                            <td>₹{{paymentBreakdown.cash.revenue}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Order Status Breakdown -->
+            <div class="section">
+                <h2 class="section-title">📋 Order Status Breakdown</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each statusBreakdown}}
+                        <tr>
+                            <td>{{@key}}</td>
+                            <td>{{this}}</td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Top Selling Items -->
+            <div class="section">
+                <h2 class="section-title">🍔 Top Selling Items</h2>
+                <ul class="top-items-list">
+                    {{#each topSellingItems}}
+                    <li>
+                        <span class="item-name">{{@index}}. {{name}}</span>
+                        <span class="item-stats">{{quantity}} sold (₹{{revenue}})</span>
+                    </li>
+                    {{/each}}
+                </ul>
+            </div>
+
+            <!-- Restaurant Performance -->
+            <div class="section">
+                <h2 class="section-title">🏪 Restaurant Performance</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Restaurant - Outlet</th>
+                            <th>Orders</th>
+                            <th>Revenue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each restaurantBreakdown}}
+                        <tr>
+                            <td>{{restaurant}} - {{outlet}}</td>
+                            <td>{{orderCount}}</td>
+                            <td>₹{{revenue}}</td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Recent Orders -->
+            <div class="section">
+                <h2 class="section-title">🕐 Recent Orders (Last 5)</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Outlet</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{#each recentOrders}}
+                        <tr>
+                            <td>#{{id}}</td>
+                            <td>{{customer}}</td>
+                            <td>{{outlet}}</td>
+                            <td>₹{{total}}</td>
+                            <td><span class="badge badge-success">{{status}}</span></td>
+                            <td>{{paymentMethod}}</td>
+                        </tr>
+                        {{/each}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© {{year}} Foodie Restaurant. All rights reserved.</p>
+            <p>This is an automated email generated at {{generatedAt}}</p>
+        </div>
+    </div>
+</body>
+</html>
