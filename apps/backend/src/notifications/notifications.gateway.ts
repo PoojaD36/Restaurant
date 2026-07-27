@@ -8,7 +8,7 @@ import {
   ConnectedSocket,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards, Inject } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../database/prisma.service';
 import { ChatbotService } from '../chatbot/chatbot.service';
@@ -493,6 +493,7 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
   /**
    * Get user's accessible restaurants
+   * SUPER_ADMIN gets access to ALL restaurants
    */
   private async getUserRestaurants(
     userId: number,
@@ -501,6 +502,16 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
     const restaurants = new Set<number>();
 
     try {
+      // SUPER_ADMIN has access to all restaurants
+      if (role === 'SUPER_ADMIN') {
+        const allRestaurants = await this.prisma.restaurant.findMany({
+          select: { id: true },
+        });
+        allRestaurants.forEach(r => restaurants.add(r.id));
+        this.logger.log(`SUPER_ADMIN ${userId} granted access to ${restaurants.size} restaurants`);
+        return restaurants;
+      }
+
       // Get restaurants where user has access
       const userRestaurantData = await this.prisma.restaurantUser.findMany({
         where: { userId },
@@ -533,12 +544,24 @@ export class NotificationsGateway implements OnGatewayConnection, OnGatewayDisco
 
   /**
    * Verify user has access to restaurant
+   * SUPER_ADMIN has access to all restaurants
    */
   private async verifyRestaurantAccess(
     userId: number,
     restaurantId: number,
   ): Promise<boolean> {
     try {
+      // Get user to check if they are SUPER_ADMIN
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
+
+      // SUPER_ADMIN has access to all restaurants
+      if (user && user.role === 'SUPER_ADMIN') {
+        return true;
+      }
+
       // Check direct restaurant access
       const directAccess = await this.prisma.restaurantUser.findFirst({
         where: { userId, restaurantId },
