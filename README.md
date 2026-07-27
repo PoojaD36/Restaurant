@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-07-22 (Auto-Cancel Pending Orders Scheduler)
+> **Last Updated:** 2026-07-27 (Offer Lifecycle Scheduler)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -1723,6 +1723,16 @@ npx shadcn@latest add dialog -y
     - `OfferCodeInput` component now accepts `cartSubtotal` and `cartItems` props for re-validation
     - Added `categoryId` field to cart items for proper offer validation
     - Improved BOGO savings display with "Buy 1 Get 1 Free" label
+- ✅ **Offer Lifecycle Scheduler** - Implemented hourly cron for automatic offer status transitions - 2026-07-27
+  - **Cron Schedule**: Runs at the top of every hour (`@Cron('0 0 * * * *')`)
+  - **OfferLifecycleScheduler**: Three batch operations (single query each):
+    - Expire ACTIVE offers past their `endDate` → EXPIRED status
+    - Activate SCHEDULED offers whose `startDate` has arrived (and within `endDate`) → ACTIVE status
+    - Expire exhausted offers where `currentUses >= maxUses` → EXPIRED status
+  - **Pattern**: Follows same architecture as OrderCleanupScheduler (PrismaService, Logger, try-catch, batch updateMany)
+  - **Performance**: No N+1 queries — three single-query fetches + batch updates
+  - **Logging**: Emits count summaries for each operation
+  - **JobsModule**: Extended to register OfferLifecycleScheduler provider
 - ✅ **Event-Driven Architecture Implementation** - Complete event-driven system with EventEmitter2 - 2026-07-21
   - **Events Module Created**: `events.module.ts` with EventEmitter2 configuration (wildcard: false, maxListeners: 10, verboseMemoryLeak: true)
   - **Event Interfaces Defined**: `event-payloads.interface.ts` with TypeScript interfaces for all event payloads (OrderCreatedEvent, OrderStatusUpdatedEvent, OrderCancelledEvent, OrderPaidEvent, DeliveryAgentAssignedEvent, OrderPreparingEvent, OrderReadyEvent, OrderDeliveredEvent, CustomerRegisteredEvent, AddressAddedEvent, OfferAppliedEvent)
