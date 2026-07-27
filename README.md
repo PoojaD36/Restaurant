@@ -1,6 +1,6 @@
 # Restaurant Project - Development Context
 
-> **Last Updated:** 2026-07-08 (Enhanced BOGO Implementation & Auto Coupon Removal)
+> **Last Updated:** 2026-07-22 (Auto-Cancel Pending Orders Scheduler)
 > **Purpose:** Living documentation for project context, architecture, and task tracking
 
 ---
@@ -211,6 +211,7 @@ d:\restaurant/
 | Dashboard Module | ✅ Complete | Dashboard analytics with statistics, recent orders, revenue analytics, popular items, staff performance |
 | **Offer Module** | ✅ **Complete** | **Discount/coupon system with 4 offer types (PERCENTAGE, FIXED, FREE_DELIVERY, BUY_ONE_GET_ONE), flexible BOGO (all items or specific items), auto coupon removal on cart changes, 3 scopes (PUBLIC, RESTAURANT, OUTLET), validation engine, calculation service, usage tracking, admin CRUD, customer apply/preview endpoints** |
 | **Events Module** | ✅ **Complete** | **Event-driven architecture with EventEmitter2 for decoupled notification handling. Event listeners for order lifecycle (order.created, order.status.updated, order.cancelled, order.paid, delivery.agent.assigned, order.preparing, order.ready, order.delivered), customer registration, and offer usage tracking** |
+| **Jobs Module** | ✅ **Complete** | **Scheduled tasks using @nestjs/schedule. Auto-cancel pending orders stuck for >30 minutes (runs every 15 min). Extensible for daily reports, token cleanup, and offer expiration** |
 | Common Module | ✅ Complete | GeocodingService with Nominatim API, shared DTOs and interfaces |
 | Database Module | ✅ Complete | Global PrismaModule with adapter |
 | Prisma Schema | ✅ Complete | Full schema with relations including OutletUser junction, Customer with CustomerAddress, Menu models, Order models, Offer models (Offer, OfferOutlet, OfferCategory, OfferMenuItem, OfferUsage), required lat/lng |
@@ -1711,6 +1712,13 @@ npx shadcn@latest add dialog -y
     - If cart falls below minimum requirements (e.g., below ₹399), coupon is auto-removed
     - Re-validation happens in real-time as customer modifies cart (items added/removed, quantity changed)
   - **Enhanced Validation**: BOGO requires at least 2 items (total or qualifying, depending on configuration)
+- ✅ **Auto-Cancel Pending Orders Scheduler** - Implemented scheduled task using @nestjs/schedule to automatically cancel orders stuck in PENDING status for more than 30 minutes - 2026-07-22
+  - **Cron Schedule**: Runs every 15 minutes (`@Cron('*/15 * * * *')`)
+  - **JobsModule**: Created new module with ScheduleModule.forRoot() configuration
+  - **OrderCleanupScheduler**: Finds and batch updates stale orders to CANCELLED status
+  - **Event Integration**: Emits `order.cancelled` event for each auto-cancelled order, triggering WebSocket notifications to restaurant and customer
+  - **Performance**: Single query to fetch stale orders, batch update with `updateMany()` - no N+1 problem
+  - **Extensibility**: JobsModule structure allows easy addition of future scheduled tasks (daily reports, token cleanup, offer expiration)
   - **Updated Frontend Components**:
     - `OfferCodeInput` component now accepts `cartSubtotal` and `cartItems` props for re-validation
     - Added `categoryId` field to cart items for proper offer validation
