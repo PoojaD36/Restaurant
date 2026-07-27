@@ -68,7 +68,13 @@ export function useOrderWebSocket(
     });
 
     socket.on('connect_error', (error) => {
-      console.error('WebSocket connection error:', error);
+      console.error('WebSocket connection error:', {
+        message: error.message,
+        type: 'connection_error',
+        url: SOCKET_URL,
+        restaurantId,
+        rawError: error,
+      });
       setIsConnected(false);
     });
 
@@ -120,7 +126,14 @@ export function useOrderWebSocket(
     });
 
     socket.on('error', (error) => {
-      console.error('WebSocket error:', error);
+      console.error('WebSocket runtime error:', {
+        message: typeof error === 'object' ? JSON.stringify(error) : error,
+        type: 'runtime_error',
+        url: SOCKET_URL,
+        restaurantId,
+        socketId: socket.id,
+        connected: socket.connected,
+      });
     });
 
     socketRef.current = socket;
