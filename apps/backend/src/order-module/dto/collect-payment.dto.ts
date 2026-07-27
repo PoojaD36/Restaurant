@@ -10,11 +10,13 @@ export class CollectPaymentDto {
    * CASH = Cash payment
    * UPI = UPI payment (Google Pay, PhonePe, etc.)
    * CARD = Card payment (credit/debit)
+   * Optional - not required for prepaid orders (payment status is COMPLETED)
    */
+  @IsOptional()
   @IsEnum(['CASH', 'UPI', 'CARD'], {
     message: 'Payment method must be CASH, UPI, or CARD',
   })
-  paymentMethod: 'CASH' | 'UPI' | 'CARD';
+  paymentMethod?: 'CASH' | 'UPI' | 'CARD' | undefined;
 
   /**
    * Transaction ID for UPI/CARD payments (optional)

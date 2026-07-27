@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{subject}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+        .header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px;
+        }
+        .welcome-box {
+            background-color: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .welcome-icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .feature-card {
+            background-color: #f9fafb;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .feature-title {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 14px;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            background-color: #f9fafb;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-link {
+            display: inline-block;
+            margin: 0 10px;
+            color: #10b981;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Welcome to Foodie Restaurant!</h1>
+            <p>Hello, {{customerName}}!</p>
+        </div>
+
+        <div class="content">
+            <div class="welcome-box">
+                <div class="welcome-icon">🙌</div>
+                <h2>You're Now Part of Our Food Family!</h2>
+                <p>Get ready to embark on a delicious journey with us!</p>
+            </div>
+
+            <p style="color: #4b5563; font-size: 15px; line-height: 1.6;">
+                Thank you for signing up with <strong>Foodie Restaurant</strong>! We're thrilled to have you join our community of food lovers.
+            </p>
+
+            <h3 style="color: #1f2937; margin-top: 25px;">What You Can Do:</h3>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🍔</div>
+                    <div class="feature-title">Browse Menus</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📍</div>
+                    <div class="feature-title">Find Outlets</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🛒</div>
+                    <div class="feature-title">Easy Ordering</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎁</div>
+                    <div class="feature-title">Exclusive Offers</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <div class="feature-title">Fast Delivery</div>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <div class="feature-title">Real-time Tracking</div>
+                </div>
+            </div>
+
+            <h3 style="color: #1f2937; margin-top: 25px;">Special First-Order Offer!</h3>
+            <p style="color: #4b5563; font-size: 15px;">
+                Use welcome coupon <strong style="color: #10b981;">WELCOME20</strong> on your first order and get <strong>20% off</strong>!
+            </p>
+
+            <div style="text-align: center;">
+                <p style="color: #6b7280; font-size: 13px; margin-top: 20px;">
+                  Visit our website or app to start ordering delicious food!
+                </p>
+            </div>
+
+            <p style="color: #6b7280; font-size: 13px; margin-top: 20px; text-align: center;">
+                If you have any questions, feel free to reach out to our support team. We're here to help!
+            </p>
+        </div>
+
+        <div class="footer">
+            <p>© {{year}} Foodie Restaurant. All rights reserved.</p>
+            <div class="social-links">
+                <span>Follow us:</span>
+                <a href="#" class="social-link">Instagram</a>
+                <a href="#" class="social-link">Facebook</a>
+                <a href="#" class="social-link">Twitter</a>
+            </div>
+            <p>Need help? Contact us at support@foodierestaurant.com</p>
+        </div>
+    </div>
+</body>
+</html>

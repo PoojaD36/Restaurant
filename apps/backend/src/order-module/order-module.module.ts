@@ -6,6 +6,7 @@ import { CommonModule } from '../common/common.module';
 import { CustomerModule } from '../customer-module/customer-module.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EmailModule } from '../email-module/email.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     CustomerModule,
     NotificationsModule,
     EventEmitterModule,
+    EmailModule,
   ],
   controllers: [OrderModuleController],
   providers: [OrderModuleService],

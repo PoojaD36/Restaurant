@@ -27,6 +27,7 @@ import {
 } from '../common';
 import { NotificationsGateway } from '../notifications/notifications.gateway';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EmailService } from '../email-module/email.service';
 
 @Injectable()
 export class OrderModuleService {
@@ -36,6 +37,7 @@ export class OrderModuleService {
     private prisma: PrismaService,
     private notificationsGateway: NotificationsGateway,
     private eventEmitter: EventEmitter2,
+    private emailService: EmailService,
   ) {}
 
   /**
@@ -270,6 +272,48 @@ export class OrderModuleService {
         },
         specialInstructions: order.specialInstructions,
       });
+
+      // Send order confirmation email to customer
+      try {
+        const customerName = order.customer
+          ? `${order.customer.firstName} ${order.customer.lastName || ''}`.trim()
+          : 'Customer';
+        const customerEmail = order.customer?.email;
+        if (customerEmail) {
+          await this.emailService.sendOrderConfirmation(
+            customerEmail,
+            customerName,
+            {
+              id: order.id,
+              status: order.status,
+              total: Number(order.total),
+              items: orderItems.map((item) => ({
+                name: item.name,
+                quantity: item.quantity,
+                price: Number(item.price),
+                total: Number(item.price) * item.quantity,
+              })),
+              outlet: {
+                name: outlet.name,
+                restaurant: { name: outlet.name }, // Using outlet name since we don't have restaurant name
+              },
+              payment: order.payment ? { method: order.payment.method } : undefined,
+              deliveryAddress: {
+                addressLine1: order.deliveryAddressLine1,
+                addressLine2: order.deliveryAddressLine2,
+                city: order.deliveryCity,
+                state: order.deliveryState,
+                postalCode: order.deliveryPostalCode,
+              },
+              createdAt: order.createdAt,
+            },
+          );
+          this.logger.log(`Order confirmation email sent to ${customerEmail}`);
+        }
+      } catch (emailError) {
+        // Log error but don't fail the order creation
+        this.logger.error('Failed to send order confirmation email', emailError);
+      }
 
       return {
         success: true,
@@ -696,6 +740,41 @@ export class OrderModuleService {
         total: Number(updatedOrder.total),
         deliveredAt: updatedOrder.deliveredAt,
       });
+
+      // Send order status update email to customer
+      try {
+        const customer = await this.prisma.customer.findUnique({
+          where: { id: order.customerId },
+          select: { firstName: true, lastName: true, email: true },
+        });
+
+        if (customer && customer.email) {
+          const customerName = `${customer.firstName} ${customer.lastName || ''}`.trim();
+
+          // Status messages for email
+          const statusMessages: Record<OrderStatus, string> = {
+            PENDING: 'Your order has been received and is pending confirmation.',
+            CONFIRMED: 'Your order has been confirmed! We are preparing your food.',
+            PREPARING: 'Your order is being prepared with care by our chefs.',
+            READY: 'Your order is ready and waiting for delivery pickup.',
+            OUT_FOR_DELIVERY: 'Your order is out for delivery and will reach you soon!',
+            DELIVERED: 'Your order has been delivered. Enjoy your meal!',
+            CANCELLED: 'Your order has been cancelled.',
+          };
+
+          await this.emailService.sendOrderStatusUpdate(
+            customer.email,
+            customerName,
+            order.id,
+            status,
+            statusMessages[status] || `Your order status is now: ${status}`,
+          );
+          this.logger.log(`Order status update email sent to ${customer.email} for order ${order.id}`);
+        }
+      } catch (emailError) {
+        // Log error but don't fail the status update
+        this.logger.error('Failed to send order status update email', emailError);
+      }
 
       return {
         success: true,

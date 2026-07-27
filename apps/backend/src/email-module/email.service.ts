@@ -140,6 +140,7 @@ export class EmailService {
           subject: 'Test Email - Foodie Restaurant',
           year: new Date().getFullYear(),
           testName: 'Test User',
+          timestamp: new Date().toISOString(),
         },
       });
 

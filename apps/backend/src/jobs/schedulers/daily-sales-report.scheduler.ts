@@ -12,7 +12,7 @@ export class DailySalesReportScheduler {
     private emailService: EmailService,
   ) {}
 
-  @Cron('0 0 16 * * *', {
+  @Cron('0 0 8 * * *', {
     name: 'daily-sales-report',
     timeZone: 'Asia/Kolkata',
   })

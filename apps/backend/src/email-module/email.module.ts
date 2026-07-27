@@ -6,6 +6,16 @@ import { EmailService } from './email.service';
 import { EmailController } from './email.controller';
 import { join } from 'path';
 
+// Register Handlebars helpers
+const hbsHelpers = {
+  eq: (a: unknown, b: unknown) => a === b,
+  or: (...args: unknown[]) => {
+    // Remove the last argument (options) and check if any are truthy
+    const options = args.pop();
+    return args.some(Boolean);
+  },
+};
+
 @Module({
   imports: [
     ConfigModule,
@@ -27,7 +37,7 @@ import { join } from 'path';
         },
         template: {
           dir: join(__dirname, 'templates'),
-          adapter: new HandlebarsAdapter(),
+          adapter: new HandlebarsAdapter(hbsHelpers),
           options: {
             strict: true,
           },
