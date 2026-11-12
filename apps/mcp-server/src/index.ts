@@ -1,7 +1,28 @@
 
+import 'dotenv/config';
+
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
+
+
+async function apiRequest(endpoint: string) {
+  const backendUrl = process.env.BACKEND_URL;
+
+  if (!backendUrl) {
+    throw new Error('BACKEND_URL is not configured');
+  }
+
+  const response = await fetch(`${backendUrl}${endpoint}`);
+
+  if (!response.ok) {
+    throw new Error(
+      `Backend API error: ${response.status} ${response.statusText}`,
+    );
+  }
+
+  return response.json();
+}
 
 // 1. Create the MCP server
 const server = new McpServer({
@@ -59,7 +80,6 @@ server.registerTool(
   },
 );
 
-
 // Temporary sample menu data
 const menuItems = [
   { id: 1, name: 'Margherita Pizza', price: 250 },
@@ -102,6 +122,74 @@ server.registerTool(
     };
   },
 );
+
+
+server.registerTool(
+  'get_public_outlets',
+  {
+    title: 'Get Public Restaurant Outlets',
+    description:
+      'Retrieves active restaurant outlets with pagination. Customers can discover available restaurant outlets.',
+    inputSchema: {
+      page: z.number().int().min(1).default(1),
+      limit: z.number().int().min(1).max(50).default(10),
+      restaurantId: z.number().int().positive().optional(),
+    },
+  },
+  async ({ page, limit, restaurantId }) => {
+    const query = new URLSearchParams({
+      page: String(page),
+      limit: String(limit),
+    });
+
+    if (restaurantId !== undefined) {
+      query.set('restaurantId', String(restaurantId));
+    }
+
+    const data = await apiRequest(
+      `/public/outlets/list?${query.toString()}`,
+    );
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(data, null, 2),
+        },
+      ],
+    };
+  },
+);
+
+
+server.registerTool(
+  'get_public_menu',
+  {
+    title: 'Get Public Restaurant Menu',
+    description:
+      'Retrieves the menu, categories, food items, prices, availability and modifiers for a restaurant outlet.',
+    inputSchema: {
+      outletId: z.number().int().positive().describe(
+        'ID of the restaurant outlet',
+      ),
+    },
+  },
+  async ({ outletId }) => {
+    const data = await apiRequest(
+      `/public/menus/outlet/${outletId}`,
+    );
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(data, null, 2),
+        },
+      ],
+    };
+  },
+);
+
 
 
 // 4. Start the MCP server
