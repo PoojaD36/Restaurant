@@ -6,7 +6,47 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 
 
-async function apiRequest(endpoint: string) {
+
+interface MenuItem {
+  id: number;
+  name: string;
+  description: string | null;
+  price: number;
+  imageUrl: string;
+  isVegetarian: boolean;
+  isSpicy: boolean;
+  preparationTime: number | null;
+  calories: number | null;
+  available: boolean;
+  modifiers: unknown[];
+}
+
+interface MenuCategory {
+  id: number;
+  menuId: number;
+  name: string;
+  displayOrder: number;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  items: MenuItem[];
+}
+
+interface PublicMenuResponse {
+  success: boolean;
+  message: string;
+  data: {
+    id: number;
+    name: string;
+    description: string | null;
+    restaurantId: number;
+    categories: MenuCategory[];
+  };
+}
+
+
+
+async function apiRequest<T>(endpoint: string): Promise<T> {
   const backendUrl = process.env.BACKEND_URL;
 
   if (!backendUrl) {
@@ -21,7 +61,7 @@ async function apiRequest(endpoint: string) {
     );
   }
 
-  return response.json();
+  return (await response.json()) as T;
 }
 
 // 1. Create the MCP server
@@ -175,7 +215,7 @@ server.registerTool(
     },
   },
   async ({ outletId }) => {
-    const data = await apiRequest(
+    const data = await apiRequest<PublicMenuResponse>(
       `/public/menus/outlet/${outletId}`,
     );
 
@@ -190,6 +230,95 @@ server.registerTool(
   },
 );
 
+
+server.registerTool(
+  'search_public_menu',
+  {
+    title: 'Search Public Restaurant Menu',
+    description:
+      'Searches menu items by name and filters by price, vegetarian, spicy and availability.',
+    inputSchema: {
+      outletId: z.number().int().positive(),
+      search: z.string().optional(),
+      maxPrice: z.number().positive().optional(),
+      vegetarianOnly: z.boolean().optional(),
+      spicyOnly: z.boolean().optional(),
+      availableOnly: z.boolean().optional(),
+    },
+  },
+  async ({
+    outletId,
+    search,
+    maxPrice,
+    vegetarianOnly,
+    spicyOnly,
+    availableOnly,
+  }) => {
+    const response = await apiRequest<PublicMenuResponse>(
+      `/public/menus/outlet/${outletId}`,
+    );
+
+    const categories = response.data.categories;
+
+    const results = categories.flatMap((category: MenuCategory) =>
+      category.items
+        .filter((item: MenuItem) => {
+          if (
+            search &&
+            !item.name.toLowerCase().includes(search.toLowerCase())
+          ) {
+            return false;
+          }
+
+          if (maxPrice !== undefined && item.price > maxPrice) {
+            return false;
+          }
+
+          if (vegetarianOnly === true && !item.isVegetarian) {
+            return false;
+          }
+
+          if (spicyOnly === true && !item.isSpicy) {
+            return false;
+          }
+
+          if (availableOnly === true && !item.available) {
+            return false;
+          }
+
+          return true;
+        })
+        .map((item: MenuItem) => ({
+          ...item,
+          categoryName: category.name,
+        })),
+    );
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(
+            {
+              outletId,
+              searchFilters: {
+                search,
+                maxPrice,
+                vegetarianOnly,
+                spicyOnly,
+                availableOnly,
+              },
+              totalResults: results.length,
+              items: results,
+            },
+            null,
+            2,
+          ),
+        },
+      ],
+    };
+  },
+);
 
 
 // 4. Start the MCP server
